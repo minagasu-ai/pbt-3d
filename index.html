@@ -227,10 +227,10 @@ if(window.visualViewport)visualViewport.addEventListener('resize',()=>requestAni
 resize();setLayout(cur);
 // =================== 経営シミュレーション ===================
 const SIM={on:false,speed:1,paused:false,headless:false};
-const OPEN_MIN=10*60,CLOSE_MIN=24*60,DAY_MIN=CLOSE_MIN-OPEN_MIN,REAL_SEC_PER_DAY=200;
+const OPEN_MIN=10*60,CLOSE_MIN=24*60,DAY_MIN=CLOSE_MIN-OPEN_MIN,REAL_SEC_PER_DAY=160;
 const KWH_YEN=31,BASE_LIGHT_W=1500,RENT_BASE=3000,RENT_PER_MACHINE=400,START_MONEY=50000,GOAL=12;
 const ITEMS={
- pbt:  {name:'パズドラバトルトーナメント',price:200000,gacha:200,max:12,watt:180,credit:100,mins:4,cr:[1,3],attr:1.0,kind:'game',pose:'sit'},
+ pbt:  {name:'パズドラバトルトーナメント',price:1000000,gacha:200,max:12,watt:180,credit:100,mins:4,cr:[1,3],attr:1.0,kind:'game',pose:'sit'},
  vend: {name:'ドリンク自販機',note:'1本150円（仕入40%）',price:50000,max:3,watt:400,attr:0.1,kind:'shop',w:1000,walls:['right','left','back'],buyP:0.22,spend:[150,150],costRate:0.4,label:'ドリンク',stay:0.5},
  foodv:{name:'フード自販機',note:'カップ麺・ホットスナック 200〜400円（仕入50%）',price:60000,max:2,watt:500,attr:0.1,kind:'shop',w:1000,walls:['right','left','back'],buyP:0.12,spend:[200,400],step:100,costRate:0.5,label:'フード自販機',stay:1},
  goods:{name:'パズドラグッズ棚',note:'客単価600〜2,000円（仕入50%）',price:80000,max:3,watt:60,attr:0.3,kind:'shop',w:1600,walls:['left','back','right'],buyP:0.06,spend:[600,2000],costRate:0.5,label:'グッズ',stay:1.5},
@@ -265,7 +265,7 @@ function isMonthEnd(day){return dateOf(day).getMonth()!==dateOf(day+1).getMonth(
 function daysToMonthEnd(day){let k=0;while(!isMonthEnd(day+k))k++;return k;}
 function dateLabel(day){const d=dateOf(day);return `${d.getMonth()+1}月${d.getDate()}日(${WD[d.getDay()]})`;}
 // ---- management layer (評判・スタッフ・料金・宣伝・天気・故障・ライバル) ----
-const CREDIT_LIMIT=1000000,INTEREST_DAY=0.05;
+const CREDIT_LIMIT=1000000,INTEREST_DAY=0.10;
 const VIPS=['ホルス大好き兄貴','イシスちゃんすこすこ勢','白メタ勢','ガンホー大株主','ゼウス推しの富豪','ラーちゃん信者','アテナ様親衛隊','ルシファー一筋おじさん','魔法石1万個おじさん','ゴッドフェス皆勤賞'];
 const STAFF_WAGE=8000,REPAIR_COST=15000,MAINT_PER_PBT=800,OWNER_COVERS=4,PER_STAFF=6;
 const PRICES={'100':{label:'1プレイ100円',credit:100,dem:1,rep:0},'50':{label:'2プレイ100円',credit:50,dem:1.3,rep:1.5},'150':{label:'1プレイ150円',credit:150,dem:0.75,rep:-2}};
@@ -568,7 +568,7 @@ function showContract(t){const T=ITEMS[t];const loan=T.price-Math.max(0,G.money)
   <p class="cno">契約日：${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日　貸主：ドラゴン金融（株）</p>
   <table><tr><td>借入目的</td><td>${T.name} の購入</td></tr><tr><td>今回の借入額</td><td><b>${yen(loan)}</b></td></tr>
   <tr><td>借入後の所持金</td><td style="color:#c0392b"><b>${yen(after)}</b></td></tr>
-  <tr><td>利率</td><td style="color:#c0392b"><b>10日で5割（日5%）</b><br><small>毎日閉店時に借入残高×5%を徴収</small></td></tr>
+  <tr><td>利率</td><td style="color:#c0392b"><b>10日で10割（日10%）</b><br><small>毎日閉店時に借入残高×10%を徴収</small></td></tr>
   <tr><td>返済方法</td><td>売上から自動充当</td></tr><tr><td>借入限度</td><td>所持金 −${yen(CREDIT_LIMIT).slice(1)} まで</td></tr></table>
   <ol class="terms"><li>月末（${d.getMonth()+1}月末・あと${toEnd}日）の閉店時に所持金がマイナスの場合、<b>直ちに倒産</b>となります。</li>
   <li>利息は借入残高がある限り毎日発生し、残高に加算されます。</li><li>本契約の解除・返品には応じません。</li></ol>
@@ -612,7 +612,7 @@ function renderUI(){if(!G)return;if(!Number.isFinite(G.money))normalize(G);const
   $('sStat').innerHTML=`<span>${W.i} ${W.l}（来客×${W.m}）</span><span title="評判">評判 <b style="color:#e0a400">${stars(G.rep)}</b> ${Math.round(G.rep)}</span>`
    +(G.rival&&G.rival.days>0?`<div class="ev" style="background:#555">ライバル店が営業中（あと${G.rival.days}日・来客×${rivalMult()}）</div>`:'')
    +(G.enjo>0?`<div class="ev" style="background:#34495e">炎上中（あと${G.enjo}日・来客×0.8）</div>`:'')+(G.foodClosed>0?`<div class="ev" style="background:#34495e">食堂 営業停止中（あと${G.foodClosed}日）</div>`:'')+((G.promos||[]).length?`<div class="evn" style="color:#1a7f37">宣伝中：${G.promos.map(p=>PROMOS[p.k].label+' あと'+p.days+'日').join('、')}</div>`:'')
-   +(G.money<0?`<div class="ev" style="background:#c0392b">借金中！ 月末（あと${daysToMonthEnd(G.day)}日）の閉店時に赤字だと倒産・利息は闇金並みの10日で5割（日5%）</div>`:'');
+   +(G.money<0?`<div class="ev" style="background:#c0392b">借金中！ 月末（あと${daysToMonthEnd(G.day)}日）の閉店時に赤字だと倒産・利息は闇金並みの10日で10割（日10%）</div>`:'');
   const need=staffNeed(),sh=shortage(),broken=machines.filter(m=>m.broken).length;
   const mgHTML=`<div class="mrow"><span>料金</span><div class="seg">${Object.entries(PRICES).map(([k,p])=>`<button data-price="${k}" class="${(G.price||'100')===k?'on':''}">${p.label.replace('1プレイ','')}</button>`).join('')}</div></div>
    <div class="mrow"><span>スタッフ ${G.staff||0}人<br><small style="color:${sh?'#c0392b':'#888'}">必要${need}人${sh?'・人手不足！':''}・日給${yen(STAFF_WAGE)}</small></span><div class="seg"><button data-staff="-1" ${G.staff?'':'disabled'}>－</button><button data-staff="1">雇う</button></div></div>
@@ -632,7 +632,7 @@ function showReport(rep){const T=rep.T,c=rep.c;SIM.paused=true;
   <table><tr><td>PBTプレイ料金（${T.credits}回）</td><td>${yen(T.sales.pbt)}</td></tr><tr><td>PBTキャラガチャ（${T.pulls}回）</td><td>${yen(T.sales.pgacha)}</td></tr>${SHOPS.filter(k=>T.sales[k]||count(k)).map(k=>`<tr><td>${ITEMS[k].label}売上</td><td>${yen(T.sales[k]||0)}</td></tr>`).join('')}
   ${T.vip?`<tr><td colspan="2" style="color:#b8860b;font-weight:700">✨ ${T.vip.name}が来店し、ガチャに ${yen(T.vip.spent)} 使ってくれた！</td></tr>`:''}<tr class="sum"><td>売上合計</td><td>${yen(rep.sales)}</td></tr>
   <tr><td>レベニューシェア（PBT売上の15%）</td><td>-${yen(c.share)}</td></tr><tr><td>家賃</td><td>-${yen(c.rent)}</td></tr><tr><td>電気代（${c.kwh.toFixed(1)}kWh）</td><td>-${yen(c.elec)}</td></tr>
-  ${c.stock?`<tr><td>仕入・原価（物販・飲食）</td><td>-${yen(c.stock)}</td></tr>`:''}${c.staff?`<tr><td>人件費（食堂）</td><td>-${yen(c.staff)}</td></tr>`:''}${c.wage?`<tr><td>スタッフ給与（${G.staff}人）</td><td>-${yen(c.wage)}</td></tr>`:''}${c.maint?`<tr><td>保守契約</td><td>-${yen(c.maint)}</td></tr>`:''}${c.repair?`<tr><td>修理費（${c.broken}台）</td><td>-${yen(c.repair)}</td></tr>`:''}${c.loss?`<tr><td>特別損失（万引き・追徴課税）</td><td>-${yen(c.loss)}</td></tr>`:''}${c.interest?`<tr><td>支払利息（10日で5割）</td><td>-${yen(c.interest)}</td></tr>`:''}
+  ${c.stock?`<tr><td>仕入・原価（物販・飲食）</td><td>-${yen(c.stock)}</td></tr>`:''}${c.staff?`<tr><td>人件費（食堂）</td><td>-${yen(c.staff)}</td></tr>`:''}${c.wage?`<tr><td>スタッフ給与（${G.staff}人）</td><td>-${yen(c.wage)}</td></tr>`:''}${c.maint?`<tr><td>保守契約</td><td>-${yen(c.maint)}</td></tr>`:''}${c.repair?`<tr><td>修理費（${c.broken}台）</td><td>-${yen(c.repair)}</td></tr>`:''}${c.loss?`<tr><td>特別損失（万引き・追徴課税）</td><td>-${yen(c.loss)}</td></tr>`:''}${c.interest?`<tr><td>支払利息（10日で10割）</td><td>-${yen(c.interest)}</td></tr>`:''}
   <tr><td>経費率</td><td>${rep.sales>0?Math.round(c.total/rep.sales*100):0}%</td></tr><tr class="sum"><td>本日の利益</td><td style="color:${rep.sales-c.total<0?'#c0392b':'#1a7f37'}">${yen(rep.sales-c.total)}</td></tr>
   <tr><td>来客数</td><td>${T.visitors}人</td></tr><tr><td>ガチャを回した客</td><td>${T.payers}人</td></tr><tr><td>1人の最高利用額</td><td>${yen(T.maxSpend)}</td></tr><tr><td>物販を買った回数</td><td>${T.buyers}回</td></tr><tr><td>プレイして帰った客</td><td>${T.served}人</td></tr><tr><td>待ちきれず帰った客</td><td>${T.lost}人</td></tr>
   <tr><td>故障</td><td>${T.breaks}回</td></tr><tr><td>評判</td><td>${Math.round(rep.rep0)} → <b>${Math.round(rep.rep1)}</b>（${rep.rep1>=rep.rep0?'+':''}${Math.round(rep.rep1-rep.rep0)}）</td></tr>
@@ -647,7 +647,7 @@ function showOver(){SIM.paused=true;$('modal').innerHTML=`<div class="card"><h3 
   <table><tr><td>営業日数</td><td>${G.day-1}日</td></tr><tr><td>PBT筐体</td><td>${count('pbt')}台</td></tr><tr><td>累計売上</td><td>${yen(G.total.sales)}</td></tr><tr><td>累計来客数</td><td>${G.total.visitors.toLocaleString()}人</td></tr></table>
   <button id="restart" class="big">最初からやり直す</button></div>`;$('modal').style.display='flex';
   $('restart').onclick=()=>{try{localStorage.removeItem('pbtSim2')}catch(e){}G=newGame();G.today=freshToday();rebuild();$('modal').style.display='none';SIM.paused=false;G.closing=false;renderUI();};}
-function rankOf(d){const a=dateOf(d),mi=(a.getFullYear()-START_DATE.getFullYear())*12+a.getMonth()-START_DATE.getMonth();return ['SS','SS','S','A','B'][mi]||'C';}
+function rankOf(d){const a=dateOf(d),mi=(a.getFullYear()-START_DATE.getFullYear())*12+a.getMonth()-START_DATE.getMonth();return mi<=3?'SS':['S','A','B'][mi-4]||'C';}
 function showClear(){SIM.paused=true;$('modal').innerHTML=`<div class="card clear"><h3>ゲームクリア！</h3><p>PBT筐体<b>${GOAL}台</b>体制で、${G.clearDate||''}の月末決算を黒字で乗り切りました！<br>ここからは全設備を無制限に増設できます（12台ごとに店舗が拡張）。</p>
   <div class="rank">経営ランク <b>${rankOf(G.clearDay)}</b></div><table><tr><td>かかった日数</td><td>${G.clearDay}日目（${G.clearDate||''}）</td></tr><tr><td>評判</td><td>${stars(G.rep)} ${Math.round(G.rep)}</td></tr><tr><td>累計売上</td><td>${yen(G.total.sales)}</td></tr><tr><td>累計来客数</td><td>${G.total.visitors.toLocaleString()}人</td></tr><tr><td>所持金</td><td>${yen(G.money)}</td></tr></table>
   <button id="goOn" class="big">このまま営業を続ける</button></div>`;$('modal').style.display='flex';$('goOn').onclick=()=>{$('modal').style.display='none';SIM.paused=false;};}
