@@ -42,7 +42,7 @@ button.wide{grid-column:span 2}
 .seg{display:flex;gap:3px;flex-wrap:wrap;justify-content:flex-end}.seg button{padding:4px 5px;font-size:10px}.seg button small{font-size:8.5px;color:inherit;opacity:.8}
 .warn{background:#fdecea;color:#a12a1e;border-radius:6px;padding:5px 7px;margin-top:6px;font-size:11px}.good{background:#e8f6ec;color:#1a7f37;border-radius:6px;padding:5px 7px;margin-top:6px;font-size:11px}
 .fore{margin-top:6px;font-size:11px;color:#555}.rank{text-align:center;font-size:14px;margin:4px 0 8px}.rank b{font-size:30px;color:#d0349b;margin-left:6px}
-#toast{position:absolute;left:50%;top:10px;transform:translateX(-50%);background:linear-gradient(#ffe27a,#d4a017);color:#3a2a00;font-weight:800;font-size:15px;padding:8px 16px;border-radius:20px;box-shadow:0 3px 14px rgba(0,0,0,.25);opacity:0;transition:opacity .4s;pointer-events:none;z-index:4;white-space:nowrap}
+#toast{position:absolute;left:50%;top:100px;transform:translateX(-50%);background:linear-gradient(#ffe27a,#d4a017);color:#3a2a00;font-weight:800;font-size:15px;padding:8px 16px;border-radius:20px;box-shadow:0 3px 14px rgba(0,0,0,.25);opacity:0;transition:opacity .4s;pointer-events:none;z-index:4;white-space:nowrap}
 #telop{position:absolute;left:0;right:0;bottom:16px;height:38px;background:linear-gradient(180deg,#d4001a,#9e0012);border-top:3px solid #ffd54a;border-bottom:3px solid #ffd54a;overflow:hidden;display:none;z-index:4;box-shadow:0 2px 12px rgba(0,0,0,.35)}
 #telop b{position:absolute;left:0;top:0;bottom:0;z-index:2;background:#ffd54a;color:#9e0012;font-size:15px;line-height:32px;padding:0 10px;font-weight:900;letter-spacing:.1em}
 #telop .tl{position:absolute;top:0;left:100%;white-space:nowrap;color:#fff;font-size:17px;font-weight:900;line-height:32px;text-shadow:0 2px 0 #5a0008;animation:telop 13s linear infinite}
@@ -54,6 +54,7 @@ button.wide{grid-column:span 2}
 #contract .cno{text-align:right;font-size:9.5px;color:#555;margin:0 0 4px}#contract td{padding:3px 2px}#contract td:first-child{white-space:nowrap;color:#444}
 #contract .terms{margin:6px 0 6px 16px;padding:0;font-size:10px;line-height:1.5}#contract .agree{display:block;margin:6px 0;font-weight:700}
 #contract .btn2{display:flex;gap:8px}#contract .btn2 button{flex:1;padding:8px;font-size:12px;font-weight:700}#contract .danger{background:#a01818;color:#fff;border-color:#a01818}#contract .danger:disabled{opacity:.4}
+#chart{position:absolute;left:8px;top:8px;width:calc(100% - 16px);height:84px;background:rgba(255,255,255,.9);border:1px solid #dde1e7;border-radius:8px;display:none;z-index:3;pointer-events:none;box-shadow:0 1px 6px rgba(0,0,0,.08)}
 #hint{position:absolute;right:8px;bottom:6px;font-size:10px;color:#8a92a0;pointer-events:none}
 </style></head><body>
 <div id="app">
@@ -99,7 +100,7 @@ button.wide{grid-column:span 2}
   <button id="simExit" class="big">3Dビューアに戻る</button>
  </div>
  </div>
- <div id="view"><canvas id="c"></canvas><div id="hint">ドラッグで回転</div><div id="modal"></div><div id="contract"></div><div id="toast"></div><div id="telop"><b id="telopLab">速報</b><div class="tl"><span id="telopTxt"></span></div></div></div>
+ <div id="view"><canvas id="c"></canvas><div id="hint">ドラッグで回転</div><div id="modal"></div><canvas id="chart"></canvas><div id="contract"></div><div id="toast"></div><div id="telop"><b id="telopLab">速報</b><div class="tl"><span id="telopTxt"></span></div></div></div>
 </div>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
 <script type="module">
@@ -410,7 +411,7 @@ function buildRoom(){const z1=roomZ1();if(z1===roomIslands)return false;roomIsla
 let breakTex=canvasTex(320,104,(c,W,H)=>{c.fillStyle='#c0392b';c.fillRect(0,0,W,H);c.fillStyle='#fff';c.font='900 56px sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText('故障中',W/2,H/2+2);});
 const machG=new THREE.Group(),peopleG=new THREE.Group(),fxG=new THREE.Group();simG.add(machG,peopleG,fxG);
 function newGame(){return {enjo:0,foodClosed:0,rep:40,staff:0,price:'100',maint:false,promos:[],rival:null,wx:'sun',wxNext:'cloud',red:0,over:false,day:1,money:START_MONEY,min:OPEN_MIN,items:[{type:'pbt',slot:0}],cleared:false,clearDay:0,total:{sales:0,visitors:0},today:null,closing:false};}
-function freshToday(){const z=()=>Object.fromEntries(SHOPS.map(k=>[k,0]));return {sales:{pbt:0,pgacha:0,...z()},pulls:0,payers:0,maxSpend:0,breaks:0,vip:null,bad:null,loss:0,cost:z(),buyers:0,visitors:0,served:0,lost:0,credits:0};}
+function freshToday(){const z=()=>Object.fromEntries(SHOPS.map(k=>[k,0]));return {sales:{pbt:0,pgacha:0,...z()},pulls:0,payers:0,maxSpend:0,breaks:0,vip:null,bad:null,loss:0,series:[],cost:z(),buyers:0,visitors:0,served:0,lost:0,credits:0};}
 let machines=[],customers=[];
 function pbtSlot(i){const b=PBT_SLOTS[i%12];return {x:b.x,z:b.z+ISLAND_PITCH*Math.floor(i/12),rot:b.rot};}
 const SLOTS={pbt:PBT_SLOTS,other:OTHER_SLOTS,vend:VEND_SLOTS,bench:BENCH_SLOTS};
@@ -551,7 +552,7 @@ function closeDay(){
   else if(G.day>=10&&Math.random()<0.06&&!(G.lastRival&&G.day-G.lastRival<15)){G.rival={days:7};G.lastRival=G.day;rep.rivalNew=true;}
   rep.debt=G.money<0;rep.monthEnd=isMonthEnd(G.day);if(rep.monthEnd&&G.money<0){G.over=true;rep.over=true;}
   if(rep.monthEnd&&G.money>=0&&count('pbt')>=GOAL&&!G.cleared){G.cleared=true;G.clearDay=G.day;G.clearDate=dateLabel(G.day);rep.clear=true;}rep.toEnd=daysToMonthEnd(G.day+1)+1;
-  rep.bad=T.bad&&T.bad.fired?T.bad:null;if(G.enjo>0)G.enjo--;if(G.foodClosed>0)G.foodClosed--;
+  rep.bad=T.bad&&T.bad.fired?T.bad:null;G.prevSeries=(T.series||[]).concat([[CLOSE_MIN,sales,c.total]]);if(G.enjo>0)G.enjo--;if(G.foodClosed>0)G.foodClosed--;
   G.day++;G.min=OPEN_MIN;G.today=freshToday();G.today.bad=planBad();G.wx=G.wxNext||rollWx(G.day);G.wxNext=rollWx(G.day+1);rep.wxNext=G.wx;
   for(const cu of customers)if(cu.mesh)peopleG.remove(cu.mesh);customers=[];machines.forEach(m=>{m.busy=null;m.queue=[]});
   save();return rep;}
@@ -589,6 +590,26 @@ function rebuildMachinesOnly(){for(const c of customers)if(c.mesh)peopleG.remove
 const yen=v=>(v<0?'-¥':'¥')+Math.abs(Math.round(v)).toLocaleString('ja-JP');
 const $=id=>document.getElementById(id);
 let lastShop='',lastMg='',lastTelop='';
+function salesNow(){return Object.values(G.today.sales).reduce((a,b)=>a+b,0);}
+function recordSeries(){const S_=G.today.series||(G.today.series=[]);const last=S_[S_.length-1];
+  if(!last||G.min-last[0]>=5||G.min>=CLOSE_MIN){S_.push([Math.round(G.min),salesNow(),costs(Math.max(0,(G.min-OPEN_MIN)/DAY_MIN)).total]);}}
+function drawChart(){const cv=$('chart');if(!cv||!SIM.on||!G)return;const r=cv.getBoundingClientRect();const dpr=Math.min(2,devicePixelRatio||1);
+  const W=Math.max(10,r.width),H=Math.max(10,r.height);if(cv.width!==Math.round(W*dpr)){cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);}
+  const g=cv.getContext('2d');g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,W,H);
+  const T=G.today.series||[],Y=G.prevSeries||[];const L=46,R=8,Tp=16,B=14,pw=W-L-R,ph=H-Tp-B;
+  const now=salesNow(),nowC=costs(Math.max(0,(G.min-OPEN_MIN)/DAY_MIN)).total;
+  let mx=Math.max(1000,now,nowC,...T.map(p=>Math.max(p[1],p[2])),...Y.map(p=>p[1]));const st=Math.pow(10,Math.floor(Math.log10(mx)));mx=Math.ceil(mx/st*1.05)*st;
+  const X=m=>L+(m-OPEN_MIN)/DAY_MIN*pw,Yv=v=>Tp+ph-v/mx*ph;
+  g.font='10px sans-serif';g.fillStyle='#8a92a0';g.strokeStyle='#e3e6ec';g.lineWidth=1;
+  for(const h of [12,15,18,21,24]){const x=X(h*60);g.beginPath();g.moveTo(x,Tp);g.lineTo(x,Tp+ph);g.stroke();g.textAlign='center';g.fillText(h+'時',x,H-2);}
+  for(const f of [0,0.5,1]){const y=Yv(mx*f);g.beginPath();g.moveTo(L,y);g.lineTo(L+pw,y);g.stroke();g.textAlign='right';g.fillText(mx*f>=10000?Math.round(mx*f/10000*10)/10+'万':Math.round(mx*f).toLocaleString(),L-4,y+3);}
+  const line=(pts,idx,col,dash,wd)=>{if(pts.length<1)return;g.save();g.strokeStyle=col;g.lineWidth=wd;g.setLineDash(dash);g.beginPath();g.moveTo(X(OPEN_MIN),Yv(0));for(const p of pts)g.lineTo(X(p[0]),Yv(p[idx]));g.stroke();g.restore();};
+  line(Y,1,'#b8bfcc',[4,3],1.5);
+  const Tn=T.concat([[G.min,now,nowC]]);line(Tn,2,'#e05555',[],1.5);line(Tn,1,'#2b5fd9',[],2.2);
+  g.fillStyle='#2b5fd9';g.beginPath();g.arc(X(G.min),Yv(now),3,0,7);g.fill();
+  g.textAlign='left';g.font='bold 11px sans-serif';g.fillStyle='#2b5fd9';g.fillText('本日売上 '+yen(now),L,11);
+  const w1=g.measureText('本日売上 '+yen(now)).width;g.fillStyle='#e05555';g.fillText('経費 '+yen(nowC),L+w1+12,11);
+  const w2=g.measureText('経費 '+yen(nowC)).width;g.fillStyle='#9aa1ad';g.font='10px sans-serif';g.fillText('┅ 前日売上'+(Y.length?' '+yen(Y[Y.length-1][1]):''),L+w1+w2+24,11);}
 function renderTelop(){const el=$('telop');if(!el)return;const v=G&&G.today&&G.today.vip;
   const vipShow=v&&!(v.done&&performance.now()-v.doneAt>15000)&&SIM.on;
   const b=G&&G.today&&G.today.bad;let badT=null;
@@ -624,7 +645,7 @@ function renderUI(){if(!G)return;if(!Number.isFinite(G.money))normalize(G);const
   const shopHTML=ORDER.map(t=>{const I=ITEMS[t];const r=canBuy(t);const lab=r==='max'?'上限':r==='money'?'借入限度':G.money<I.price?'借金で購入':'購入';
     return `<div class="item"><div><b>${I.name}</b><span>${yen(I.price)}　${count(t)}/${maxOf(t)===Infinity?'∞':I.max}${I.note?'<br>'+I.note:''}${I.kind==='game'?`<br>1プレイ${I.credit}円＋キャラガチャ1回${I.gacha}円・${I.watt}W`:I.watt?`<br>${I.watt}W`:''}</span></div><button data-buy="${t}" ${r?'disabled':''}>${lab}</button></div>`}).join('');
   if(shopHTML!==lastShop){lastShop=shopHTML;$('shop').innerHTML=shopHTML;}
-  renderTelop();
+  renderTelop();drawChart();
 
   document.querySelectorAll('[data-sp]').forEach(b=>b.classList.toggle('on',(+b.dataset.sp)===(SIM.paused?0:SIM.speed)));}
 function showReport(rep){const T=rep.T,c=rep.c;SIM.paused=true;
@@ -663,9 +684,9 @@ function normalize(g){const d=newGame();for(const k of ['rep','staff','price','m
   if(!Number.isFinite(g.money)){g.money=Number.isFinite(g.lastMoney)?g.lastMoney:100000;g.recovered=true;}
   if(!Number.isFinite(g.min)||g.min<OPEN_MIN||g.min>CLOSE_MIN)g.min=OPEN_MIN;return g;}
 function enterSim(){ensureAudio();SIM.on=true;G=normalize(load()||newGame());G.closing=false;rebuild();
-  layoutG.visible=false;fpLine.visible=false;grid.visible=false;simG.visible=true;$('normalUI').style.display='none';$('simUI').style.display='block';$('hint').style.display='none';
+  layoutG.visible=false;fpLine.visible=false;grid.visible=false;simG.visible=true;$('normalUI').style.display='none';$('simUI').style.display='block';$('chart').style.display='block';$('hint').style.display='none';
   BOX=ROOMBOX;th=-0.42;ph=0.88;fit();SIM.paused=false;lastMg='';renderUI();if(G.over)showOver();}
-function exitSim(){SIM.on=false;$('telop').style.display='none';save();simG.visible=false;layoutG.visible=true;fpLine.visible=true;grid.visible=$('grid').classList.contains('on');
+function exitSim(){SIM.on=false;$('telop').style.display='none';$('chart').style.display='none';save();simG.visible=false;layoutG.visible=true;fpLine.visible=true;grid.visible=$('grid').classList.contains('on');
   $('normalUI').style.display='block';$('simUI').style.display='none';$('modal').style.display='none';setLayout(cur);}
 $('mgmt').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled||!G)return;
   if(b.dataset.price){G.price=b.dataset.price;}
@@ -686,6 +707,7 @@ let lastT=performance.now(),uiAcc=0;
 function simTick(){const now=performance.now();const dt=Math.min(0.1,(now-lastT)/1000);lastT=now;if(!SIM.on||!G)return;
   if(!SIM.paused&&!G.closing){let dm=dt*SIM.speed*DAY_MIN/REAL_SEC_PER_DAY;
     while(dm>0){const s=Math.min(dm,0.5);G.min+=s;stepGame(s);dm-=s;if(G.min>=CLOSE_MIN){G.min=CLOSE_MIN;G.closing=true;break;}}
+    recordSeries();
     if(G.closing){const rep=closeDay();showReport(rep);}}
   stepVisual(SIM.paused?0:dt);uiAcc+=dt;if(uiAcc>0.25){uiAcc=0;renderUI();}}
 // headless balance test hook
