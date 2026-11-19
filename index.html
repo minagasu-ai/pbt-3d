@@ -850,7 +850,7 @@ function pipInit(){if(PIP.S)return;const P=new THREE.Scene();P.background=new TH
   mk('nico',20000,tx('#20232e','#0d0f16','',(c,W,H)=>{c.fillStyle='#333a4d';for(let i=0;i<6;i++)c.fillRect(30+i*82,120,60,160);c.fillStyle='#ffd54a';c.fillRect(0,300,W,8);}),s=>{});}
 const NICO_CMT=['wwwww','8888888','ティンニン！','かわいい','パズバト10周年まだ？','てま崩壊','なんなすみません','消費者庁ｷﾀ━━━━','初見です','神回','うぽつ','石油王いる？','ガチャ回せ','ｗｗｗ','おつ','草','店長〜！','パズバト２はよ'];
 function pipEl(k,i){let el=document.getElementById('pip_'+k);if(!el){el=document.createElement('div');el.id='pip_'+k;el.className='pipw';el.innerHTML=`<b class="pl"></b><div class="cm"></div>`;$('view').appendChild(el);}
-  el.style.left=(8+i*(PIP.W+6))+'px';el.style.right='auto';el.style.top='auto';el.style.bottom='62px';el.style.width=PIP.W+'px';el.style.height=PIP.H+'px';el.style.display='block';return el;}
+  el.style.right=(8+i*(PIP.W+6))+'px';el.style.left='auto';el.style.top='auto';el.style.bottom='62px';el.style.width=PIP.W+'px';el.style.height=PIP.H+'px';el.style.display='block';return el;}
 function renderPiP(){const act=SIM.on&&G?['sns','cup','nico'].filter(k=>(G.promos||[]).some(p=>p.k===k)):[];
   for(const k of ['sns','cup','nico'])if(!act.includes(k)){const el=document.getElementById('pip_'+k);if(el)el.style.display='none';}
   if(!act.length)return;pipInit();const {W,H}=size();const now=performance.now()/1000;R.setScissorTest(true);
@@ -861,7 +861,7 @@ function renderPiP(){const act=SIM.on&&G?['sns','cup','nico'].filter(k=>(G.promo
       for(const f of s.fx){f.position.y-=f.userData.v*0.016;f.rotation.x+=0.1;f.rotation.y+=0.07;if(f.position.y<0)f.position.y=2800;}}
     else{u.arms[1].rotation.x=-2.6+Math.sin(now*8)*0.5;u.arms[0].rotation.x=0;u.head.rotation.z=Math.sin(now*2)*0.12;s.t.position.y=Math.abs(Math.sin(now*2.5))*40;
       const cm=el.querySelector('.cm');if(!el._t||now-el._t>0.7){el._t=now;const sp=document.createElement('span');sp.textContent=NICO_CMT[Math.floor(Math.random()*NICO_CMT.length)];sp.style.top=(16+Math.random()*(PIP.H-34))+'px';cm.appendChild(sp);setTimeout(()=>sp.remove(),4200);}}
-    const x=8+i*(PIP.W+6),y=62;R.setScissor(x,y,PIP.W,PIP.H);R.setViewport(x,y,PIP.W,PIP.H);R.render(PIP.S,s.cam);});
+    const x=W-8-(i+1)*PIP.W-i*6,y=62;R.setScissor(x,y,PIP.W,PIP.H);R.setViewport(x,y,PIP.W,PIP.H);R.render(PIP.S,s.cam);});
   R.setScissorTest(false);R.setViewport(0,0,W,H);}
 // ---- sound (チャリーン) : synthesized with WebAudio ----
 let AC=null,sfxOn=true;try{sfxOn=localStorage.getItem('pbtSfx')!=='0'}catch(e){}
