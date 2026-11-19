@@ -1289,6 +1289,9 @@ function simTick(){const now=performance.now();const dt=Math.min(0.1,(now-lastT)
 // ---- しゃべる（吹き出し）：パズドラ語録 ----
 const PAZ_LINES=["パズバト１０周年はどうした？！", "てま崩壊！", "なんなすみません", "消費者庁コラボ第２弾！", "パズバト２はよ！", "ゴッドフェス来い〜！", "確定演出きた！？", "魔法石10個くれ〜！", "スキル上げ失敗…", "ゲリラダンジョン開幕！", "10コンボ決めたる！", "落ちコンきたー！", "ガチャ爆死…", "ノーコンクリア！", "覚醒スキルはよ！", "タマゴ割れろ〜！", "コラボ復刻まだ？", "チャレダン難しすぎ！", "ドロップ強化！", "ここは私の城！", "虹の番人どこ〜？", "ノエルドラゴンかわいい", "パズル力が足りない…", "6個消しで回復！", "L字消し決まった！", "十字消しで軽減じゃ！", "根性で耐えた！", "先制攻撃いたい…", "毒ドロップやめて〜", "お邪魔ドロップ邪魔！", "ロック解除はよ！", "スキル溜まった！", "変身！", "超覚醒させたい", "アシスト装備した？", "潜在たまご出た！", "ドロップ目覚め〜", "エンハンス乗った！", "倍率高すぎワロタ", "ワンパン余裕！", "リーダー誰にしよ", "フレンド借りるね", "スタミナ足りない…", "スタミナ回復した！", "ログインボーナス！", "今日は何曜ダンジョン？", "テクニカル行こ〜", "降臨チャレンジ！", "裏ボス強すぎ！", "周回、周回、また周回", "ランキングダンジョン！", "王冠ほしい〜", "ランダン上位目指す！", "メダル交換しなきゃ", "モンスター交換所！", "BOXパンパン…", "売却ミスった…", "合成しなきゃ", "究極進化！", "進化素材足りない", "ダブり出た…", "ピィ集めなきゃ", "＋ポイント振らなきゃ", "コイン足りない…", "魔法石いくつある？", "課金は計画的に！", "ガチャは悪い文明…", "もう一回だけ…！", "天井ってどこ？", "コラボガチャ引く？", "推しキャラ来た〜！", "星６確定！？", "フェス限ゲット！", "おめでとう演出！", "タマゴ金色だった！", "虹たまご〜！", "バトルトーナメント開幕！", "対戦相手まだ〜？", "勝ったら筐体ゆずって", "1プレイ100円だよ！", "キャラガチャ回す？", "筐体ピカピカに磨いた", "POP貼り直さなきゃ", "今日も満員御礼！", "いらっしゃいませ〜！", "ありがとうございました〜", "店長は私です！", "バイト募集中！", "レシート要りますか？", "店内で走らないで〜", "ケンカはダメだよ？", "両成敗するよ？", "お客さん来ないかな", "売上ノルマ…", "家賃高すぎ…", "電気代こわい…", "月末の支払い…", "借金はダメ、ゼッタイ", "石油王まだかな〜", "パズバト２導入したい！", "1億円って何円？", "ちょっと休憩…", "おなかすいた〜", "31アイス食べたい", "同人誌、新刊出てる！", "クレーンゲーム下手…", "ガチャガチャ回したい", "ジュース補充しなきゃ", "グッズ完売したい！", "夢は全国制覇！"];
 const pazLine=()=>PAZ_LINES[Math.floor(Math.random()*PAZ_LINES.length)];
+// 3Dビューアのティンニンは続編を心待ちにしている子：半分以上は続編まだ〜系のセリフ
+const SEQ_LINES=["石油王～　パズバト２買って～", "ダイケ～", "パズバトの続編まだ～（チンチン）", "パズバト２はよ～！", "続編はいつですか～？", "10周年イベントまだ～？", "パズバト２ください！", "ガンホーさ〜ん、続編〜！", "筐体ごと予約したい！", "次は全国大会もやって〜", "続編のロケテ行きたい！", "パズバト２のポスター貼る場所あけてあるのに〜", "サンタさんにパズバト２お願いした！", "毎日続編の夢見てる…", "続編出たらお店全部入れ替える！", "パズバト２、1億円でも買う！", "アーケード版、また遊びたいよ〜", "続編まだ〜？　まだ〜？", "お年玉ぜんぶパズバト２に使う！", "パズバト２が来るまでここで待つ！"];
+const vtLine=()=>Math.random()<0.6?SEQ_LINES[Math.floor(Math.random()*SEQ_LINES.length)]:pazLine();
 function bubbleTex(text){const f='900 60px "Hiragino Sans","Noto Sans JP",sans-serif';const m=document.createElement('canvas').getContext('2d');m.font=f;const tw=Math.ceil(m.measureText(text).width);
   const W=tw+64,H=128;const t=canvasTex(W,H,(c)=>{c.fillStyle='#fff';c.strokeStyle='#ff6fae';c.lineWidth=7;c.beginPath();c.roundRect(5,5,W-10,H-34,30);c.fill();c.stroke();
     c.beginPath();c.moveTo(W/2-16,H-31);c.lineTo(W/2,H-6);c.lineTo(W/2+16,H-31);c.fill();c.beginPath();c.moveTo(W/2-16,H-30);c.lineTo(W/2,H-6);c.lineTo(W/2+16,H-30);c.stroke();
@@ -1327,8 +1330,8 @@ function vtDecide(){const L=LAY[cur],R=VT.per,r=Math.random();
       for(const k in VT.moved){const cc=layoutG.children[k];if(cc&&+k!==i){const q=cabCenter(cc.position,cc.rotation.y);if(Math.abs(q.x-x)<900&&Math.abs(q.z-z)<900)z+=950;}}
       VT.Cd=new THREE.Vector3(x,0,z);VT.Rd=[0,Math.PI/2,-Math.PI/2,Math.PI][Math.floor(Math.random()*4)];}
     VT.back=back;VT.mode='toCarry';say(VT,back?'やっぱ戻す！':'模様替えじゃ〜！',1.8);return;}
-  if(r<0.7){VT.mode='tantrum';VT.t=0;say(VT,pazLine());return;}
-  VT.u=null;VT.path=vtPathTo(VT.pt+(Math.random()-.5)*R.P*0.8);VT.mode='walk';if(Math.random()<0.4)say(VT,pazLine());}
+  if(r<0.7){VT.mode='tantrum';VT.t=0;say(VT,vtLine());return;}
+  VT.u=null;VT.path=vtPathTo(VT.pt+(Math.random()-.5)*R.P*0.8);VT.mode='walk';if(Math.random()<0.4)say(VT,vtLine());}
 function vtLimbs(a,b){const u=VT.mesh.userData;u.legs[0].rotation.x=a;u.legs[1].rotation.x=-a;u.arms[0].rotation.x=b[0];u.arms[1].rotation.x=b[1];}
 function vtWalk(dt,sp){const M=VT.mesh;let left=sp*dt;while(left>0&&VT.path.length){const p=VT.path[0],d=p.clone().sub(M.position);d.y=0;const Ld=d.length();
     if(Ld<=left){M.position.x=p.x;M.position.z=p.z;VT.path.shift();left-=Ld;}else{d.multiplyScalar(left/Ld);M.position.add(d);M.rotation.y=Math.atan2(d.x,d.z);left=0;}}
@@ -1343,14 +1346,14 @@ function vtStep(dt){if(!VT.mesh)return;bubStep(VT,dt);
       else if(VT.mode==='walkOut'){VT.mode='idle';VT.wait=1+Math.random()*1.5;M.rotation.y=Math.atan2(-M.position.x,-M.position.z);}
       else{VT.mode='idle';VT.wait=0.8+Math.random()*2;M.rotation.y=Math.atan2(-M.position.x,-M.position.z)+(Math.random()-.5);}}}
   else if(VT.mode==='idle'){vtLimbs(u.legs[0].rotation.x*0.8,[u.arms[0].rotation.x*0.8,u.arms[1].rotation.x*0.8]);u.head.rotation.y=Math.sin(VT.t*2)*0.4;VT.wait-=dt;
-    if(VT.wait<=0){u.head.rotation.y=0;vtDecide();}else if(Math.random()<dt*0.12&&!(VT.bubT>0))say(VT,pazLine());}
+    if(VT.wait<=0){u.head.rotation.y=0;vtDecide();}else if(Math.random()<dt*0.12&&!(VT.bubT>0))say(VT,vtLine());}
   else if(VT.mode==='tantrum'){const a=Math.sin(VT.t*16);{const ph=Math.floor(VT.t*16/Math.PI);if(ph!==VT.rph){VT.rph=ph;se.stomp(0.5);}}vtLimbs(a*0.5,[-2.6+a*.6,-2.6-a*.6]);M.position.y=Math.abs(a)*90;M.rotation.y+=dt*3;if(VT.t>2.2){M.position.y=0;VT.mode='idle';VT.wait=1;}}
   else if(VT.mode==='lift'||VT.mode==='carry'||VT.mode==='drop'){const c=layoutG.children[VT.ci];const ry=c.rotation.y,off=new THREE.Vector3(0,0,421).applyAxisAngle(new THREE.Vector3(0,1,0),ry);
     const holdY=2050;
     if(VT.mode==='lift'){const T=Math.min(1,VT.t/1.0);const ctr=VT.C0.clone().lerp(M.position,T);c.position.set(ctr.x-off.x,holdY*T*T,ctr.z-off.z);vtLimbs(0,[-3.0,-3.0]);M.position.y=Math.sin(VT.t*30)*15*(1-T);
       if(T>=1){VT.mode='carry';VT.t=0;
         const out=VT.Cd.clone().add(VT.back?new THREE.Vector3(0,0,700+421).applyAxisAngle(new THREE.Vector3(0,1,0),VT.Rd):new THREE.Vector3(Math.sign(VT.Cd.x||1)*900,0,0));VT.S=out;
-        VT.path=vtViaPer(out);say(VT,pazLine());}}
+        VT.path=vtViaPer(out);say(VT,vtLine());}}
     else if(VT.mode==='carry'){const done=vtWalk(dt,700);VT.st=(VT.st||0)-dt;if(VT.st<=0&&!done){VT.st=0.4;se.stomp(0.45);}const a=Math.sin(VT.t*8)*0.5;vtLimbs(a,[-3.0+a*0.1,-3.0-a*0.1]);M.position.y=Math.abs(Math.sin(VT.t*8))*20;
       c.rotation.y+=(VT.Rd-c.rotation.y)*Math.min(1,dt*1.5);const o2=new THREE.Vector3(0,0,421).applyAxisAngle(new THREE.Vector3(0,1,0),c.rotation.y);
       c.position.set(M.position.x-o2.x,holdY+Math.sin(VT.t*8)*30,M.position.z-o2.z);
@@ -1358,12 +1361,12 @@ function vtStep(dt){if(!VT.mesh)return;bubStep(VT,dt);
     else{const T=Math.min(1,VT.t/0.8);c.rotation.y=VT.Rd;const o2=new THREE.Vector3(0,0,421).applyAxisAngle(new THREE.Vector3(0,1,0),VT.Rd);const ctr=VT.P0.clone().lerp(VT.Cd,T);
       c.position.set(ctr.x-o2.x,holdY*(1-T)*(1-T),ctr.z-o2.z);vtLimbs(0,[-3+2.2*T,-3+2.2*T]);
       if(T>=1){c.position.y=0;se.drop();const o=VT.moved[VT.ci];if(o&&Math.abs(c.position.x-o.x)+Math.abs(c.position.z-o.z)<20&&Math.abs(c.rotation.y-o.ry)<0.01){c.position.set(o.x,0,o.z);c.rotation.y=o.ry;delete VT.moved[VT.ci];}
-        say(VT,VT.back?'元通り！ヨシ！':pazLine());VT.ci=null;VT.mode='walkOut';const t0=vtNearestT(M.position);VT.pt=t0;VT.path=[vtPt(t0)];}}}
+        say(VT,VT.back?'元通り！ヨシ！':vtLine());VT.ci=null;VT.mode='walkOut';const t0=vtNearestT(M.position);VT.pt=t0;VT.path=[vtPt(t0)];}}}
   else if(VT.mode==='hop'){const T=Math.min(1,VT.t/0.6);M.position.lerpVectors(VT.A,VT.Pn,T);M.position.y=1030*T+Math.sin(Math.PI*T)*450;vtLimbs(-0.6,[-2.4,-2.4]);if(T>=1){VT.mode='climb';VT.t=0;}}
   else if(VT.mode==='climb'){const T=Math.min(1,VT.t/1.1);VT.st=(VT.st||0)-dt;if(VT.st<=0){VT.st=0.2;se.tap();}M.position.lerpVectors(VT.Pn,VT.Tp,T);M.position.y=1030+760*T;const a=Math.sin(VT.t*14);vtLimbs(a*0.8,[-2.6+a*.5,-2.6-a*.5]);
     if(T>=1){VT.mode='rage';VT.t=0;VT.nx=0.2;M.rotation.y=VT.u.rot?Math.PI:0;}}
   else if(VT.mode==='rage'){const a=Math.sin(VT.t*12);{const ph=Math.floor(VT.t*7/Math.PI);if(ph!==VT.rph){VT.rph=ph;se.stomp(0.9);se.rattle();}}M.position.y=1790+Math.abs(Math.sin(VT.t*7))*230;vtLimbs(a*0.6,[-2.8+a*.7,-2.8-a*.7]);M.rotation.y=(VT.u.rot?Math.PI:0)+Math.sin(VT.t*3)*0.9;shake(true);
-    if(VT.t>VT.nx){VT.nx=VT.t+1.7;say(VT,pazLine(),1.6);}
+    if(VT.t>VT.nx){VT.nx=VT.t+1.7;say(VT,vtLine(),1.6);}
     if(VT.t>5.2){shake(false);se.whoosh();VT.mode='jump';VT.t=0;VT.J0=M.position.clone();VT.J0.y=1790;}}
   else if(VT.mode==='jump'){const T=Math.min(1,VT.t/0.85);M.position.lerpVectors(VT.J0,VT.A,T);M.position.y=1790*(1-T)+Math.sin(Math.PI*T)*800;M.rotation.y+=dt*12;vtLimbs(0.4,[-3,-3]);
     if(T>=1){M.position.y=0;M.rotation.y=VT.u.rot?Math.PI:0;se.land();say(VT,'スタッ！',1.2);VT.mode='idle';VT.wait=1.4;VT.u=null;VT.ui=null;}}}
