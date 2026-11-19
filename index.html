@@ -516,7 +516,8 @@ function buildRoom(){const z1=roomZ1(),x1=roomX1(),key=z1+'_'+x1;if(key===roomIs
   return true;}
 let breakTex=canvasTex(320,104,(c,W,H)=>{c.fillStyle='#c0392b';c.fillRect(0,0,W,H);c.fillStyle='#fff';c.font='900 56px sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText('故障中',W/2,H/2+2);});
 const machG=new THREE.Group(),peopleG=new THREE.Group(),fxG=new THREE.Group();simG.add(machG,peopleG,fxG);
-function newGame(){return {monthSales:0,caa:null,due:0,dueParts:{rent:0,elec:0,share:0,stock:0},enjo:0,foodClosed:0,rep:40,price:'100',promos:[],rival:null,wx:'sun',wxNext:'cloud',red:0,over:false,day:1,money:START_MONEY,min:OPEN_MIN,items:[{type:'pbt',slot:0}],cleared:false,clearDay:0,total:{sales:0,visitors:0},today:null,closing:false};}
+function newGame(){const _g=newGame0();_g.layoutV=3;return _g;}
+function newGame0(){return {monthSales:0,caa:null,due:0,dueParts:{rent:0,elec:0,share:0,stock:0},enjo:0,foodClosed:0,rep:40,price:'100',promos:[],rival:null,wx:'sun',wxNext:'cloud',red:0,over:false,day:1,money:START_MONEY,min:OPEN_MIN,items:[{type:'pbt',slot:0}],cleared:false,clearDay:0,total:{sales:0,visitors:0},today:null,closing:false};}
 function freshToday(){const z=()=>Object.fromEntries(SHOPS.map(k=>[k,0]));return {raid:(r=>r<0.12?{at:OPEN_MIN+120+Math.random()*480,who:r<0.07?'police':'tax'}:null)(Math.random()),fight:{at:OPEN_MIN+90+Math.random()*560,done:false},sales:{pbt:0,pgacha:0,...z()},pulls:0,payers:0,maxSpend:0,breaks:0,vip:null,bvip:null,caa:null,bad:null,loss:0,series:[],cost:z(),buyers:0,visitors:0,served:0,lost:0,credits:0};}
 let machines=[],customers=[];
 const ROW0=-4300,ROWP=3000,PER_ROW=8;
@@ -540,7 +541,10 @@ function addMachine(it){
   machines.push(m);return m;}
 function seatPos(m){return toWorld(m,0,m.seatL[1]);}
 function queuePos(m,k){return toWorld(m,(k%2?1:-1)*180*(k>0?1:0),m.seatL[1]+520*(k+1));}
-function rebuild(){for(const it of G.items)if(it.w==='back'){it.w=null;it.p=null;}
+function rebuild(){
+  // 店のサイズが変わった古いセーブ：設備を今の壁に置き直す（壁の外に置かれて客がすり抜けるのを防ぐ）
+  if(G.layoutV!==3){G.layoutV=3;G.extra=0;for(const it of G.items)if(!isGame(it.type)){it.w=null;it.p=null;}}
+  {const WD=WALLDEF(roomZ1());for(const it of G.items){if(isGame(it.type)||!it.w)continue;const seg=WD[it.w],hw=ITEMS[it.type].w/2;if(!seg||it.p-hw<seg.a-1||it.p+hw>seg.b+1){it.w=null;it.p=null;}}}
   for(const it of G.items)if(!isGame(it.type)&&(it.w==null||it.p==null))placeItem(it);roomIslands=0;buildRoom();if(SIM.on&&!SIM.headless){BOX=ROOMBOX;fit();}machG.clear();peopleG.clear();fxG.clear();machines=[];customers=[];G.items.forEach(addMachine);staffReset();}
 const count=t=>G.items.filter(i=>i.type===t).length;
 const benches=()=>count('bench');
