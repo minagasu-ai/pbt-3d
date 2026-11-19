@@ -904,7 +904,7 @@ function spawn(){
   if(!m.busy){m.busy=c;c.dest='seat';}else{m.queue.push(c);c.dest='queue';}
   routeTo(c,destPos(c));if(SIM.headless)arrive(c);}
 function destPos(c){if(c.dest==='seat')return seatPos(c.m);if(c.dest==='exit')return ENTRANCE.clone();if(c.dest==='vend')return c.vendPos;return queuePos(c.m,c.m.queue.indexOf(c));}
-function routeTo(c,p){if(SIM.headless)return;if(SIM.speed>=10&&c.state!==undefined&&c.m!==undefined&&!c.isStaff){c.mesh.position.set(p.x,0,p.z);c.path=[];c.moving=false;arrive(c);return;}const f=c.mesh.position.clone();c.path=[];
+function routeTo(c,p){if(SIM.headless)return;if(c.mesh&&c.pose==='sit'&&c.mesh.userData&&c.mesh.userData.legs===undefined)pose(c,'stand');if(SIM.speed>=10&&c.state!==undefined&&c.m!==undefined&&!c.isStaff){c.mesh.position.set(p.x,0,p.z);c.path=[];c.moving=false;arrive(c);return;}const f=c.mesh.position.clone();c.path=[];
   const outF=f.z>ROOM.z1+100,outP=p.z>ROOM.z1+100,p0=p;if(outF){c.path.push(new THREE.Vector3(0,0,ZF_LANE));f.set(0,0,ZF_LANE);}if(outP)p=new THREE.Vector3(0,0,ZF_LANE);
   const wf=walkX(f.x),wp=walkX(p.x);c.path.push(new THREE.Vector3(wf,0,f.z));
   if(wf!==wp){const zl=Math.abs(f.z-ZF_LANE)+Math.abs(p.z-ZF_LANE)<=Math.abs(f.z-ZB_LANE)+Math.abs(p.z-ZB_LANE)?ZF_LANE:ZB_LANE;c.path.push(new THREE.Vector3(wf,0,zl),new THREE.Vector3(wp,0,zl));}
@@ -921,7 +921,7 @@ function arrive(c){c.moving=false;
 // 待ち客は休憩ベンチに座って順番を待つ
 function freeBenchSeat(){for(const m of machines){if(m.type!=='bench')continue;if(!m.bseats)m.bseats=[null,null,null,null];for(let i=0;i<4;i++){if(m.bseats[i])continue;const zz=i<2?150:1250,x=i%2?400:-400;
     const pos=toWorld(m,x,zz),t=toWorld(m,x,700);return {m,i,pos,face:Math.atan2(t.x-pos.x,t.z-pos.z)};}}return null;}
-function releaseBench(c){if(c.bench){if(c.bench.m.bseats)c.bench.m.bseats[c.bench.i]=null;c.bench=null;}}
+function releaseBench(c){if(c.bench){if(c.bench.m.bseats)c.bench.m.bseats[c.bench.i]=null;c.bench=null;if(c.mesh&&c.pose==='sit')pose(c,'stand');}}
 function faceMachine(c){const p=seatPos(c.m);const t=toWorld(c.m,0,0);c.mesh.rotation.y=Math.atan2(t.x-p.x,t.z-p.z);}
 function leave(c,lost){if(lost)G.today.lost++;else G.today.served++;
   c.stops=[];if(!lost&&!badActive('blackout')){for(const t of SHOPS){if(t==='food'&&G.foodClosed>0)continue;const ms=machines.filter(m=>m.type===t);if(!ms.length)continue;const p=Math.min(0.35,ITEMS[t].buyP*(1+0.25*(ms.length-1)))*(shortage()?0.7:1);
