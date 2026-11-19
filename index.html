@@ -60,7 +60,10 @@ button.wide{grid-column:span 2}
 .pipw .cm span{position:absolute;left:100%;white-space:nowrap;color:#fff;font-weight:700;font-size:9.5px;text-shadow:0 0 2px #000,0 0 2px #000;animation:nicoflow 4s linear forwards}@keyframes nicoflow{to{transform:translateX(-260px)}}
 #cutin{display:none;position:absolute;left:0;right:0;top:34%;z-index:6;pointer-events:none;text-align:center}
 #cutin .ci-band{display:flex;align-items:center;justify-content:center;gap:14px;background:linear-gradient(90deg,#0b1f5c,#1d3c9a 40%,#b0002a 60%,#5c0016);color:#fff;padding:8px 10px;transform:skewY(-4deg);border-top:4px solid #ffd54a;border-bottom:4px solid #ffd54a;box-shadow:0 6px 18px rgba(0,0,0,.5)}
-#cutin .ci-l,#cutin .ci-r{display:flex;flex-direction:column;min-width:0}#cutin .ci-l{align-items:flex-end}#cutin .ci-r{align-items:flex-start}
+#cutin .ci-l,#cutin .ci-r{display:flex;align-items:flex-end;gap:4px;min-width:0}#cutin .ci-r{flex-direction:row-reverse}#cutin .ci-n{display:flex;flex-direction:column;padding-bottom:4px}#cutin .ci-l .ci-n{align-items:flex-start}#cutin .ci-r .ci-n{align-items:flex-end}
+#cutin .ci-p{width:136px;height:136px;object-fit:contain;margin:-60px 0 -12px;filter:drop-shadow(0 0 6px rgba(255,213,74,.9)) drop-shadow(0 4px 0 rgba(0,0,0,.6))}#cutin.go .ci-l .ci-p{animation:ciSlL .5s .1s cubic-bezier(.2,1.3,.4,1) both}#cutin.go .ci-r .ci-p{animation:ciSlR .5s .1s cubic-bezier(.2,1.3,.4,1) both}
+@keyframes ciSlL{from{transform:translateX(-160px);opacity:0}to{transform:none;opacity:1}}@keyframes ciSlR{from{transform:translateX(160px);opacity:0}to{transform:none;opacity:1}}
+@media (max-width:560px){#cutin .ci-p{width:84px;height:84px;margin-top:-34px}#cutin b{font-size:18px}#cutin .ci-vs{font-size:28px}#cutin .ci-band{gap:12px}#cutin .ci-vs{margin:0 4px}}
 #cutin small{font-size:10px;opacity:.85;white-space:nowrap}#cutin b{font-family:'Dela Gothic One','Hiragino Sans',sans-serif;font-size:24px;letter-spacing:.04em;white-space:nowrap;text-shadow:0 2px 0 #000}
 #cutin .ci-vs{font-family:'Dela Gothic One',sans-serif;font-size:36px;color:#ffd54a;text-shadow:0 0 10px #ff2a2a,0 3px 0 #000;transform:rotate(-8deg)}
 #cutin .ci-sub{display:inline-block;margin-top:10px;background:rgba(0,0,0,.82);color:#fff;font-size:12px;font-weight:700;padding:4px 10px;border-radius:4px;transform:skewY(-4deg)}
@@ -814,8 +817,24 @@ function makeOfficer(who){const p=makePerson();const col=RAID_INFO[who].col;p.tr
   else if(who==='caa'){p.add(box(90,120,10,mat(0xffffff),0,1080,175),box(40,300,8,mat(0x2b5fd9),0,1250,172));}
   else{p.add(box(80,50,10,mat(0xd4af37),180,1150,150),box(420,300,110,mat(0x3a2a1a),330,520,0),box(260,40,20,mat(0xffffff),0,1280,172));}
   return p;}
+// ---- カットイン用ポートレート（3Dモデルを別レンダラで描いて画像化／職員はシルエット） ----
+const PORT={};
+function portRender(kind){if(PORT[kind])return PORT[kind];try{
+  if(!PORT._r){PORT._r=new THREE.WebGLRenderer({alpha:true,antialias:true,preserveDrawingBuffer:true});PORT._r.setSize(320,320);PORT._r.setClearColor(0,0);PORT._r.outputColorSpace=R.outputColorSpace;PORT._r.toneMapping=R.toneMapping;}
+  const sc=new THREE.Scene();sc.add(new THREE.HemisphereLight(0xffffff,0x8090a0,1.6));const dl=new THREE.DirectionalLight(0xffffff,2.2);dl.position.set(1,2,3);sc.add(dl);const rl=new THREE.DirectionalLight(0xffd54a,1.5);rl.position.set(-3,1,-1);sc.add(rl);
+  const cam=new THREE.PerspectiveCamera(30,1,10,50000);let obj;
+  if(kind==='tin'){obj=makeTinnin();for(let i=1;i<obj.children.length;i++)obj.children[i].visible=false;obj.rotation.y=-0.85;sc.add(obj);cam.position.set(-120,1230,1450);cam.lookAt(-60,1170,0);}
+  else{if(!tmpl)return null;obj=tmpl.clone(true);obj.rotation.y=-0.5;sc.add(obj);obj.updateMatrixWorld(true);const b=new THREE.Box3().setFromObject(obj),h=b.max.y-b.min.y,c=b.getCenter(new THREE.Vector3());
+    const ty=b.min.y+h*0.66;cam.position.set(c.x+250,ty+120,c.z+1500);cam.lookAt(c.x,ty-60,c.z);}
+  PORT._r.render(sc,cam);PORT[kind]=PORT._r.domElement.toDataURL('image/png');return PORT[kind];}catch(e){return null;}}
+function portSil(who){const col={police:'#2f6bff',caa:'#ff9f1a',tax:'#3ad07a'}[who]||'#fff';
+  const hat=who==='police'?'<path d="M38 52 Q60 30 92 40 L104 58 Q70 54 36 62 Z"/><rect x="34" y="58" width="74" height="8" rx="3"/><circle cx="74" cy="46" r="5" fill="'+col+'"/>':'';
+  const acc=who==='caa'?'<rect x="54" y="80" width="18" height="9" rx="2" fill="none" stroke="'+col+'" stroke-width="3"/><rect x="76" y="80" width="18" height="9" rx="2" fill="none" stroke="'+col+'" stroke-width="3"/><path d="M72 84h4" stroke="'+col+'" stroke-width="3"/><rect x="94" y="150" width="34" height="44" rx="2" fill="#fff" opacity=".85" transform="rotate(-12 110 170)"/>'
+   :who==='tax'?'<path d="M70 118 L76 126 L72 176 L66 186 L60 176 L64 126 Z" fill="'+col+'"/><rect x="92" y="156" width="40" height="30" rx="4" fill="#222" stroke="'+col+'" stroke-width="3"/><rect x="104" y="150" width="16" height="8" rx="3" fill="none" stroke="'+col+'" stroke-width="3"/>':'<path d="M58 132 l12 0 l-6 14z" fill="'+col+'"/>';
+  return 'data:image/svg+xml,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 200"><defs><filter id="g"><feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="${col}"/></filter></defs><g fill="#0d0f16" filter="url(#g)"><path d="M10 200 Q14 128 54 118 L68 112 L88 112 L106 118 Q146 128 150 200 Z"/><rect x="62" y="96" width="30" height="24"/><ellipse cx="76" cy="78" rx="27" ry="31"/>${hat}</g><g>${acc}</g><path d="M60 82 l12 3" stroke="#ff3030" stroke-width="3.5" stroke-linecap="round"/><path d="M80 85 l12 -3" stroke="#ff3030" stroke-width="3.5" stroke-linecap="round"/></svg>`);}
+function ciCard(img,org,name,side,flip){return `<div class="ci-${side}">${img?`<img class="ci-p${flip?' fl':''}" src="${img}">`:''}<div class="ci-n"><small>${org}</small><b>${name}</b></div></div>`;}
 function showCutin(who,crime,method){se.impact();setTimeout(()=>who==='police'?se.siren():se.alarm(),500);const I=RAID_INFO[who];let el=document.getElementById('cutin');if(!el){el=document.createElement('div');el.id='cutin';$('view').appendChild(el);}
-  el.innerHTML=`<div class="ci-band"><div class="ci-l"><small>${I.org}</small><b>${I.name}</b></div><div class="ci-vs">VS</div><div class="ci-r"><small>パズバト専門店 店長</small><b>ティンニン</b></div></div><div class="ci-sub"><span class="ci-tag">ガサ入れ</span>容疑：${crime}</div><div class="ci-m">${method}！</div>`;
+  el.className='';el.innerHTML=`<div class="ci-band">${ciCard(portSil(who),I.org,I.name,'l')}<div class="ci-vs">VS</div>${ciCard(portRender('tin'),'パズバト専門店 店長','ティンニン','r')}</div><div class="ci-sub"><span class="ci-tag">ガサ入れ</span>容疑：${crime}</div><div class="ci-m">${method}！</div>`;
   el.style.display='block';el.classList.remove('go');void el.offsetWidth;el.classList.add('go');clearTimeout(el._t);el._t=setTimeout(()=>{el.style.display='none';},3600);}
 function startRaid(who){const I=RAID_INFO[who],crime=I.crimes[Math.floor(Math.random()*I.crimes.length)];
   const games=machines.filter(m=>m.T.kind==='game'&&!m.broken);const methods=Object.keys(DUELS).filter(k=>k!=='pbt'||games.length);const method=methods[Math.floor(Math.random()*methods.length)];
@@ -1343,7 +1362,7 @@ function vtPathTo(t1){const R=VT.per,P=R.P,t0=VT.pt,d=((t1-t0)%P+P)%P,dir=d<=P/2
 function vtViaPer(dst){const t0=vtNearestT(VT.mesh.position);VT.pt=t0;const a=[vtPt(t0)];return a.concat(vtPathTo(vtNearestT(dst)),[dst.clone()]);}
 function vtVisible(){return VT.on&&!SIM.on&&tmpl&&!LAY[cur].big;}
 function vtReset(){if(!VT.mesh){VT.mesh=makeTinnin();S.add(VT.mesh);}VT.per=vtPer();VT.pt=VT.per.w*0.85;VT.mesh.position.copy(vtPt(VT.pt));VT.mesh.rotation.set(0,Math.PI,0);
-  if(VT.mesh&&VT.mode==='antic')vtAnticReset();if(VT.mesh&&(VT.mode==='sumo'||VT.mode==='kbattle')){VT.mesh.children[0].scale.set(1,1,1);vtAnticReset();}VT.mode='idle';VT.wait=1.2;VT.path=[];VT.u=null;VT.ui=null;VT.ci=null;VT.moved={};VT.mesh.visible=vtVisible();if(VT.bub)VT.bub.visible=false;}
+  if(VT.mesh&&VT.mode==='antic')vtAnticReset();if(VT.mesh&&(VT.mode==='sumo'||VT.mode==='kbattle')){const g=VT.mesh.children[0];g.scale.y=g.scale.x;vtAnticReset();}VT.mode='idle';VT.wait=1.2;VT.path=[];VT.u=null;VT.ui=null;VT.ci=null;VT.moved={};VT.mesh.visible=vtVisible();if(VT.bub)VT.bub.visible=false;}
 function vtLocal(u,lx,lz,y=0){const s=u.rot?-1:1;return new THREE.Vector3(u.x+s*lx,y,(u.z||0)+s*lz);}
 const cabCenter=(pos,ry)=>pos.clone().add(new THREE.Vector3(0,0,421).applyAxisAngle(new THREE.Vector3(0,1,0),ry));
 // ---- ビューアのティンニンの暇つぶし行動（ゴロゴロ・逆立ち・側転・バク転…） ----
@@ -1370,7 +1389,7 @@ function vtAnticStep(dt){const M=VT.mesh,g=M.children[0],u=M.userData,A=VT.ant;A
   if(VT.t>=A.dur){vtAnticReset();if(['roll','cartwheel','crawl','moonwalk'].includes(A.k)){const t0=vtNearestT(M.position);VT.pt=t0;VT.mode='walkOut';VT.path=[vtPt(t0)];}else{VT.mode='idle';VT.wait=0.6+Math.random();}}}
 // ---- ビューア：筐体と相撲 → ときどき筐体が反撃して肉弾戦（カットイン付き） ----
 function vCutin(){let el=document.getElementById('cutin');if(!el){el=document.createElement('div');el.id='cutin';$('view').appendChild(el);}
-  el.className='kb';el.innerHTML=`<div class="ci-band"><div class="ci-l"><small>やられっぱなしの</small><b>PBT筐体</b></div><div class="ci-vs">VS</div><div class="ci-r"><small>暇をもてあます店長</small><b>ティンニン</b></div></div><div class="ci-sub"><span class="ci-tag">逆襲</span>ついに筐体がキレた！ 肉弾戦スタート！</div><div class="ci-m">ファイト！</div>`;
+  el.className='kb';el.innerHTML=`<div class="ci-band">${ciCard(portRender('cab'),'やられっぱなしの','PBT筐体','l')}<div class="ci-vs">VS</div>${ciCard(portRender('tin'),'暇をもてあます店長','ティンニン','r')}</div><div class="ci-sub"><span class="ci-tag">逆襲</span>ついに筐体がキレた！ 肉弾戦スタート！</div><div class="ci-m">ファイト！</div>`;
   el.style.display='block';el.classList.remove('go');void el.offsetWidth;el.classList.add('go');clearTimeout(el._t);el._t=setTimeout(()=>{el.style.display='none';},3000);se.impact();setTimeout(()=>se.whoosh(),350);}
 function vtSumoStart(i){const c=layoutG.children[i];if(!c)return false;VT.ci=i;VT.c0={x:c.position.x,z:c.position.z,ry:c.rotation.y};
   const fr=c.localToWorld(new THREE.Vector3(0,0,1180));fr.y=0;VT.path=vtPathTo(vtNearestT(fr)).concat([fr]);VT.mode='toSumo';VT.T0=fr;return true;}
@@ -1405,13 +1424,13 @@ function vtSumoStep(dt){const M=VT.mesh,g=M.children[0],u=M.userData,c=layoutG.c
     const ph=Math.floor(t*22/Math.PI);if(ph!==VT.rph){VT.rph=ph;if(ph%2)se.hit();}if(!VT.h5){VT.h5=1;say(VT,'オラオラオラ〜！',1.5);}}
   else if(t>=6.2&&t<7.4){for(const a of u.arms)a.rotation.x=0;const T=Math.min(1,(t-6.2)/1.0);
     if(VT.win){setTin(220,Math.sin(Math.PI*Math.min(1,T*1.6))*700);u.arms[0].rotation.x=-3;u.arms[1].rotation.x=-3;setCab(100-100*T,Math.sin(Math.PI*T)*1500,T*Math.PI*2);if(!VT.h6){VT.h6=1;se.whoosh();say(VT,'ティンニン・アッパー！',1.4);}if(T>=1&&!VT.h7){VT.h7=1;se.drop();}}
-    else{const k=Math.min(1,T*1.4);setCab(100+(1300-100)*k,Math.sin(Math.PI*k)*900,0);if(k>=1){g.scale.set(1,0.25,1);if(!VT.h7){VT.h7=1;se.drop();}}}}
+    else{const k=Math.min(1,T*1.4);setCab(100+(1300-100)*k,Math.sin(Math.PI*k)*900,0);if(k>=1){g.scale.y=g.scale.x*0.25;if(!VT.h7){VT.h7=1;se.drop();}}}}
   else if(t>=7.4&&t<8.6){const T=(t-7.4)/1.2;
     if(VT.win){setCab(0);setTin(220);u.arms[0].rotation.x=-3;u.arms[1].rotation.x=-3;g.position.y=Math.abs(Math.sin(t*8))*100;if(!VT.h8){VT.h8=1;se.win();say(VT,'勝利！ 筐体に勝った〜！',2);}}
-    else{setCab(1200*(1-Math.min(1,T*2)),Math.sin(Math.PI*Math.min(1,T*2))*500,0);if(T>0.5){g.scale.set(1,1,1);g.rotation.z=Math.sin(t*9)*0.2;u.head.rotation.y=Math.sin(t*12)*0.5;if(!VT.h8){VT.h8=1;se.lose();say(VT,'きゅ〜…筐体つよい…',2);}}}}
+    else{setCab(1200*(1-Math.min(1,T*2)),Math.sin(Math.PI*Math.min(1,T*2))*500,0);if(T>0.5){g.scale.y=g.scale.x;g.rotation.z=Math.sin(t*9)*0.2;u.head.rotation.y=Math.sin(t*12)*0.5;if(!VT.h8){VT.h8=1;se.lose();say(VT,'きゅ〜…筐体つよい…',2);}}}}
   else if(t>=8.6)vtSumoEnd();}
 function vtSumoEnd(){const c=layoutG.children[VT.ci],C=VT.c0;if(c&&C){c.position.set(C.x,0,C.z);c.rotation.set(0,C.ry,0);}
-  const M=VT.mesh,g=M.children[0];g.scale.set(1,1,1);vtAnticReset();for(const k of ['f0','f1','f2','f3','f4','h1','h2','h3','h4','h5','h6','h7','h8'])VT[k]=0;
+  const M=VT.mesh,g=M.children[0];g.scale.y=g.scale.x;vtAnticReset();for(const k of ['f0','f1','f2','f3','f4','h1','h2','h3','h4','h5','h6','h7','h8'])VT[k]=0;
   VT.ci=null;VT.c0=null;const t0=vtNearestT(M.position);VT.pt=t0;VT.mode='walkOut';VT.path=[vtPt(t0)];}
 function vtDecide(){const L=LAY[cur],R=VT.per,r=Math.random();
   const still=L.u.map((u,i)=>i).filter(i=>!VT.moved[i]);
@@ -1432,9 +1451,24 @@ function vtDecide(){const L=LAY[cur],R=VT.per,r=Math.random();
   if(r<0.85){VT.mode='tantrum';VT.t=0;vtTalk();return;}
   VT.u=null;VT.path=vtPathTo(VT.pt+(Math.random()-.5)*R.P*0.8);VT.mode='walk';if(Math.random()<0.4)vtTalk();}
 function vtLimbs(a,b){const u=VT.mesh.userData;u.legs[0].rotation.x=a;u.legs[1].rotation.x=-a;u.arms[0].rotation.x=b[0];u.arms[1].rotation.x=b[1];}
-function vtWalk(dt,sp){const M=VT.mesh;let left=sp*dt;while(left>0&&VT.path.length){const p=VT.path[0],d=p.clone().sub(M.position);d.y=0;const Ld=d.length();
-    if(Ld<=left){M.position.x=p.x;M.position.z=p.z;VT.path.shift();left-=Ld;}else{d.multiplyScalar(left/Ld);M.position.add(d);M.rotation.y=Math.atan2(d.x,d.z);left=0;}}
-  return !VT.path.length;}
+// ---- ティンニンと筐体の当たり判定（筐体の床面を回転した長方形として扱う） ----
+const VT_RAD=230,CAB_HW=369,CAB_HD=421;
+function vtCabs(skip){const a=[];layoutG.children.forEach((c,i)=>{if(i===skip||c.position.y>200)return;const q=cabCenter(c.position,c.rotation.y);a.push({x:q.x,z:q.z,cs:Math.cos(c.rotation.y),sn:Math.sin(c.rotation.y)});});return a;}
+function vtHit(x,z,cabs){for(const b of cabs){const dx=x-b.x,dz=z-b.z,lx=dx*b.cs-dz*b.sn,lz=dx*b.sn+dz*b.cs;if(Math.abs(lx)<CAB_HW+VT_RAD&&Math.abs(lz)<CAB_HD+VT_RAD)return b;}return null;}
+function vtPush(M,cabs){for(let k=0;k<3;k++){const b=vtHit(M.position.x,M.position.z,cabs);if(!b)return;const dx=M.position.x-b.x,dz=M.position.z-b.z;let lx=dx*b.cs-dz*b.sn,lz=dx*b.sn+dz*b.cs;
+  const px=CAB_HW+VT_RAD+2-Math.abs(lx),pz=CAB_HD+VT_RAD+2-Math.abs(lz);if(px<pz)lx+=Math.sign(lx||1)*px;else lz+=Math.sign(lz||1)*pz;
+  M.position.x=b.x+lx*b.cs+lz*b.sn;M.position.z=b.z-lx*b.sn+lz*b.cs;}}
+function vtSkip(){return VT.mode==='toClimb'?VT.ui:(VT.mode==='toSumo'||VT.mode==='toCarry'||VT.mode==='carry')?VT.ci:-1;}
+function vtWalk(dt,sp){const M=VT.mesh,cabs=vtCabs(vtSkip());let left=sp*dt,guard=0;
+  while(left>0&&VT.path.length&&guard++<6){const p=VT.path[0],d=p.clone().sub(M.position);d.y=0;const Ld=d.length();
+    if(Ld<=left&&!vtHit(p.x,p.z,cabs)){M.position.x=p.x;M.position.z=p.z;VT.path.shift();left-=Ld;continue;}
+    if(Ld<=left){VT.path.shift();left-=Ld;continue;}
+    const st=Math.min(left,Ld),a0=Math.atan2(d.x,d.z);let moved=false;
+    for(const da of [0,0.5,-0.5,1.0,-1.0,1.5,-1.5,2.1,-2.1]){const a=a0+da*(VT.turn||1),nx=M.position.x+Math.sin(a)*st,nz=M.position.z+Math.cos(a)*st;
+      if(!vtHit(nx,nz,cabs)){M.position.x=nx;M.position.z=nz;M.rotation.y=a;moved=true;if(da)VT.turn=Math.sign(da)*(VT.turn||1);break;}}
+    if(!moved){VT.turn=-(VT.turn||1);VT.stuck=(VT.stuck||0)+dt;if(VT.stuck>1.5){VT.stuck=0;VT.path.shift();}}else VT.stuck=0;
+    left=0;}
+  vtPush(M,cabs);return !VT.path.length;}
 function vtStep(dt){if(!VT.mesh)return;bubStep(VT,dt);
   const vis=vtVisible();VT.mesh.visible=vis;if(!vis||!dt)return;const M=VT.mesh,u=M.userData;VT.t+=dt;
   const shake=on=>{const c=VT.ui!=null&&layoutG.children[VT.ui];if(c){c.rotation.z=on?Math.sin(VT.t*40)*0.02:0;}};
@@ -1447,7 +1481,7 @@ function vtStep(dt){if(!VT.mesh)return;bubStep(VT,dt);
       else{VT.mode='idle';VT.wait=0.8+Math.random()*2;M.rotation.y=Math.atan2(-M.position.x,-M.position.z)+(Math.random()-.5);}}}
   else if(VT.mode==='idle'){vtLimbs(u.legs[0].rotation.x*0.8,[u.arms[0].rotation.x*0.8,u.arms[1].rotation.x*0.8]);u.head.rotation.y=Math.sin(VT.t*2)*0.4;VT.wait-=dt;
     if(VT.wait<=0){u.head.rotation.y=0;vtDecide();}else if(Math.random()<dt*0.05&&!(VT.bubT>0))vtTalk();}
-  else if(VT.mode==='antic'){vtAnticStep(dt);}
+  else if(VT.mode==='antic'){vtAnticStep(dt);if(VT.mode==='antic'&&M.position.y<300)vtPush(M,vtCabs(-1));}
   else if(VT.mode==='sumo'||VT.mode==='kbattle'){vtSumoStep(dt);}
   else if(VT.mode==='tantrum'){const a=Math.sin(VT.t*16);{const ph=Math.floor(VT.t*16/Math.PI);if(ph!==VT.rph){VT.rph=ph;se.stomp(0.5);}}vtLimbs(a*0.5,[-2.6+a*.6,-2.6-a*.6]);M.position.y=Math.abs(a)*90;M.rotation.y+=dt*3;if(VT.t>2.2){M.position.y=0;VT.mode='idle';VT.wait=1;}}
   else if(VT.mode==='lift'||VT.mode==='carry'||VT.mode==='drop'){const c=layoutG.children[VT.ci];const ry=c.rotation.y,off=new THREE.Vector3(0,0,421).applyAxisAngle(new THREE.Vector3(0,1,0),ry);
