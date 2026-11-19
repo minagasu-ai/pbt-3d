@@ -308,7 +308,7 @@ const SIM={on:false,speed:1,paused:false,headless:false};
 const OPEN_MIN=10*60,CLOSE_MIN=24*60,DAY_MIN=CLOSE_MIN-OPEN_MIN,REAL_SEC_PER_DAY=160;
 const KWH_YEN=31,BASE_LIGHT_W=1500,RENT_BASE=2000,RENT_PER_MACHINE=200,START_MONEY=50000,GOAL_PRICE=100000000;
 const ITEMS={
- pbt:  {name:'パズドラバトルトーナメント',price:500000,gacha:200,max:18,watt:180,credit:100,mins:4,cr:[1,3],attr:1.0,kind:'game',pose:'sit'},
+ pbt:  {name:'パズドラバトルトーナメント',price:500000,gacha:200,max:18,watt:180,credit:100,mins:4,cr:[2,5],attr:1.0,kind:'game',pose:'sit'},
  pbt2: {name:'パズドラバトルトーナメント２',note:'開発費用＆導入費用込み・導入でクリア！ 1プレイ料金×2／ガチャ1回300円',price:100000000,gacha:300,max:18,watt:300,credit:200,cmul:2,mins:4,cr:[1,3],attr:2.0,kind:'game',pose:'sit'},
  bench:{name:'休憩ベンチ・テーブル',note:'待ちきれずに帰る客が減る（1台ごとに我慢＋5分・待ち列＋1）',price:30000,max:1,watt:0,attr:0,kind:'bench',w:1700,walls:['backC','left','right','backL','backR','frontL']},
  anime:{name:'アニメ上映モニター',note:'「パズドラクロス」アニメ上映中！ 集客アップ',price:120000,max:1,watt:150,attr:0.35,kind:'deco',w:1700,walls:['left','right','frontL']},
@@ -332,7 +332,7 @@ const EVENTS=[
  {m:10,d0:25,d1:31,name:'ハロウィンイベント',mult:1.35,col:'#e67e22'}];
 const WD='日月火水木金土';
 // in-machine character gacha (1回200円). heavy-tailed spend: most pull a little, a few whales up to 50回(1万円)
-const GACHA={p:0.3,pEvent:0.5,xm:1,xmEvent:1.5,alpha:1.35,cap:50,mins:0.25},REV_SHARE=0.10;
+const GACHA={p:0.55,pEvent:0.7,xm:2.6,xmEvent:3.6,alpha:1.35,cap:50,mins:0.25},REV_SHARE=0.10;
 function rollPulls(ev){if(Math.random()>(ev?GACHA.pEvent:GACHA.p))return 0;const u=Math.max(1e-6,Math.random());
   return Math.min(GACHA.cap,Math.max(1,Math.floor((ev?GACHA.xmEvent:GACHA.xm)/Math.pow(u,1/GACHA.alpha))));}
 function dateOf(day){const d=new Date(START_DATE);d.setDate(d.getDate()+day-1);return d;}
@@ -1153,7 +1153,7 @@ function breakMachine(m){m.broken=true;G.today.breaks++;se.brk();
 function repairAll(pay){if(machines.some(m=>m.broken))se.repair();let n=0;for(const m of machines)if(m.broken){m.broken=false;n++;if(m.bs){fxG.remove(m.bs);m.bs=null;}}if(pay&&n){G.money-=n*REPAIR_COST;}return n;}
 function stepGame(dm){
   // arrivals
-  const h=G.min/60;const lam=demandCurve(h)*0.13*Math.pow(0.6+attraction(),0.72)*demandMult();
+  const h=G.min/60;const lam=demandCurve(h)*0.05*Math.pow(0.6+attraction(),0.72)*demandMult();
   const bd=G.today.bad;if(bd&&!bd.fired&&G.min>=bd.start)fireBad(bd);
   if(G.caa&&G.day>=G.caa.day&&G.min>=G.caa.min&&!G.today.caa&&!RAID.on&&!FIGHT.on){G.caa=null;startRaid('caa');}
   const RD=G.today.raid;if(RD&&!RD.started&&G.min>=RD.at&&G.min<CLOSE_MIN-90&&!RAID.on&&!FIGHT.on&&!CATCH.on){RD.started=true;startRaid(RD.who||'police');}
@@ -1318,10 +1318,8 @@ function renderUI(){if(!G)return;if(!Number.isFinite(G.money))normalize(G);const
   const broken=machines.filter(m=>m.broken).length;
   const mgHTML=`<div class="mrow" style="display:block"><span>1プレイ料金<small>（高いほど遊ぶ人が減る）</small></span><div class="seg" style="margin-top:3px;justify-content:flex-start">${Object.entries(PRICES).map(([k,p])=>`<button data-price="${k}" class="${(G.price||'100')===k?'on':''}">${p.label}</button>`).join('')}</div></div>
    ${broken?`<div class="mrow"><span style="color:#c0392b">故障中 ${broken}台<br><small>閉店時に自動修理（${yen(REPAIR_COST)}/台）</small></span><div class="seg"><button data-repair="1">すぐ修理</button></div></div>`:''}
-   ${crimeHTML()}
-   ${heatHTML()}
    <div class="mrow" style="display:block"><span>宣伝<small>（同時に複数OK・倍率は合算）</small></span><div class="seg" style="margin-top:3px;justify-content:flex-start">${Object.entries(PROMOS).map(([k,p])=>`<button data-promo="${k}" ${G.money<p.price||(G.promos||[]).some(x=>x.k===k)||k==='nico'&&G.nicoMonth===dateOf(G.day).getFullYear()*12+dateOf(G.day).getMonth()?'disabled':''}>${p.label}<br><small>${yen(p.price)}・${p.days}日 来客×${p.mult}${k==='nico'?'<br>月1回まで・消費者庁が必ず来る':''}</small></button>`).join('')}</div></div>`;
-  const mg2=mgHTML+upHTML();if(mg2!==lastMg){lastMg=mg2;$('mgmt').innerHTML=mg2;}
+  const mg2=mgHTML+upHTML()+'<h2>裏稼業</h2>'+crimeHTML()+heatHTML();if(mg2!==lastMg){lastMg=mg2;$('mgmt').innerHTML=mg2;}
   $('sGoal').innerHTML=G.cleared?`クリア済み！ PBT2 ${count('pbt2')}/18台・PBT ${count('pbt')}/18台`:`目標：<span style="white-space:nowrap">パズドラバトルトーナメント２</span>の<br>開発費用＆導入費用<br><span style="white-space:nowrap">${GOAL_PRICE.toLocaleString()}円</span>を稼ごう！`;$('sGoalBar').style.width=(G.cleared?100:Math.max(0,Math.min(100,G.money/GOAL_PRICE*100)))+'%';
   const shopHTML=ORDER.map(t=>{const I=ITEMS[t];const r=canBuy(t);const lab=r==='max'?'上限':r==='money'?'資金不足':'購入';
     return `<div class="item"><div><b>${I.name}</b><span>${yen(I.price)}　${count(t)}/${maxOf(t)}${I.note?'<br>'+I.note:''}${I.kind==='game'?`${t==='pbt2'?'':`<br>キャラガチャ1回${I.gacha}円`}・${I.watt}W`:I.watt?`<br>${I.watt}W`:''}</span></div><button data-buy="${t}" ${r?'disabled':''}>${lab}</button></div>`}).join('');
