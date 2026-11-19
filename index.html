@@ -19,6 +19,7 @@ html,body{margin:0;height:100%;background:#fff!important;color-scheme:light only
 #c{display:block;width:100%;height:100%;touch-action:none}
 h1{font-size:12.5px;margin:0 0 4px;line-height:1.3}
 
+.autob{width:100%;margin-top:4px;font-weight:700;background:#fff4d6;border-color:#e0b84a;color:#7a5200}.autob.on{background:#ff9f1a;color:#fff;border-color:#d35400}
 .spLab{font-weight:700;font-size:10.5px;color:#3a1c71;margin:2px 0 2px}
 h1.gtitle{font-size:12px;text-align:center;color:#fff;background:linear-gradient(90deg,#3a1c71,#b0388f);border-radius:6px;padding:5px 4px;margin:-2px 0 6px;letter-spacing:.02em}
 h2{font-size:11px;margin:9px 0 4px;color:#2b5fd9;font-weight:700}
@@ -108,7 +109,7 @@ button.wide{grid-column:span 2}
   <div class="bar"><i id="sBar"></i></div><div id="sEvent"></div><div id="sStat"></div>
   <div>所持金</div><div id="sMoney">¥0</div>
   <div id="sToday" style="margin:3px 0 2px"></div><div id="sCost"></div>
-  <div class="spLab">倍速モード</div><div class="grid3" style="grid-template-columns:repeat(4,1fr) 34px"><button data-sp="0">停止</button><button data-sp="1" class="on">×1</button><button data-sp="3">×3</button><button data-sp="10">×10</button><button id="sfx" title="効果音">🔊</button></div>
+  <div class="spLab">倍速モード</div><div class="grid3" style="grid-template-columns:repeat(4,1fr) 34px"><button data-sp="0">停止</button><button data-sp="1" class="on">×1</button><button data-sp="3">×3</button><button data-sp="10">×10</button><button id="sfx" title="効果音">🔊</button></div><button id="autoBtn" class="autob">1か月オート（ティンニンにおまかせ）</button>
   <h2>経営</h2><div id="mgmt"></div>
   <h2 id="sGoal">目標：パズドラバトルトーナメント２導入</h2><div class="bar"><i id="sGoalBar"></i></div>
   <h2>購入・設置</h2><div id="shop"></div>
@@ -791,7 +792,7 @@ function spawn(){
   if(!m.busy){m.busy=c;c.dest='seat';}else{m.queue.push(c);c.dest='queue';}
   routeTo(c,destPos(c));if(SIM.headless)arrive(c);}
 function destPos(c){if(c.dest==='seat')return seatPos(c.m);if(c.dest==='exit')return ENTRANCE.clone();if(c.dest==='vend')return c.vendPos;return queuePos(c.m,c.m.queue.indexOf(c));}
-function routeTo(c,p){if(SIM.headless)return;const f=c.mesh.position.clone();c.path=[];
+function routeTo(c,p){if(SIM.headless)return;if(SIM.speed>=10&&c.state!==undefined&&c.m!==undefined&&!c.isStaff){c.mesh.position.set(p.x,0,p.z);c.path=[];c.moving=false;arrive(c);return;}const f=c.mesh.position.clone();c.path=[];
   const lf=laneZ(f.z),lp=laneZ(p.z),ax=(f.x+p.x>=0?1:-1)*AISLE;
   if(Math.abs(lf-lp)<1){c.path.push(new THREE.Vector3(f.x,0,lf),new THREE.Vector3(p.x,0,lp));}
   else c.path.push(new THREE.Vector3(f.x,0,lf),new THREE.Vector3(ax,0,lf),new THREE.Vector3(ax,0,lp),new THREE.Vector3(p.x,0,lp));
@@ -975,7 +976,8 @@ function renderUI(){if(!G)return;if(!Number.isFinite(G.money))normalize(G);const
   if(shopHTML!==lastShop){lastShop=shopHTML;$('shop').innerHTML=shopHTML;}
   renderTelop();drawChart();
 
-  document.querySelectorAll('[data-sp]').forEach(b=>b.classList.toggle('on',(+b.dataset.sp)===(SIM.paused?0:SIM.speed)));}
+  document.querySelectorAll('[data-sp]').forEach(b=>b.classList.toggle('on',(+b.dataset.sp)===(SIM.paused?0:SIM.speed)));
+  const ab=$('autoBtn');if(ab){const t=SIM.auto?`オート中… あと${SIM.auto.left}日（押すと停止）`:'1か月オート（ティンニンにおまかせ）';if(ab.textContent!==t)ab.textContent=t;ab.classList.toggle('on',!!SIM.auto);}}
 function showReport(rep){const T=rep.T,c=rep.c;SIM.paused=true;
   $('modal').innerHTML=`<div class="card"><h3>${rep.day}日目 ${rep.date} 決算　${WX[rep.wx||'cloud'].i}</h3>${rep.ev?`<div class="ev" style="background:${rep.ev.col}">${rep.ev.name} ボーナス週間（来客×${rep.ev.mult}・ガチャイベント）</div>`:''}
   <table><tr><td>PBTプレイ料金（${T.credits}回）</td><td>${yen(T.sales.pbt)}</td></tr><tr><td>PBTキャラガチャ（${T.pulls}回）</td><td>${yen(T.sales.pgacha)}</td></tr>${SHOPS.filter(k=>T.sales[k]||count(k)).map(k=>`<tr><td>${ITEMS[k].label}売上</td><td>${yen(T.sales[k]||0)}</td></tr>`).join('')}
@@ -994,7 +996,7 @@ function showReport(rep){const T=rep.T,c=rep.c;SIM.paused=true;
   <div class="fore">明日の天気：${WX[rep.wxNext].i} ${WX[rep.wxNext].l}（来客×${WX[rep.wxNext].m}）</div>
   ${rep.over?`<button id="overBtn" class="big" style="background:#c0392b;color:#fff;border-color:#c0392b">結果を見る</button>`:`<button id="nextDay" class="big">${rep.day+1}日目の営業を始める</button>`}</div>`;
   $('modal').style.display='flex';if(rep.over){$('overBtn').onclick=showOver;return;}$('nextDay').onclick=()=>{$('modal').style.display='none';SIM.paused=false;G.closing=false;renderUI();};}
-function showOver(){SIM.paused=true;$('modal').innerHTML=`<div class="card"><h3 style="color:#c0392b">倒産…</h3><p>月末の支払い後に赤字となり、資金繰りに行き詰まりました。</p>
+function showOver(){autoStop();SIM.paused=true;$('modal').innerHTML=`<div class="card"><h3 style="color:#c0392b">倒産…</h3><p>月末の支払い後に赤字となり、資金繰りに行き詰まりました。</p>
   <table><tr><td>営業日数</td><td>${G.day-1}日</td></tr><tr><td>PBT筐体</td><td>${count('pbt')}台</td></tr><tr><td>累計売上</td><td>${yen(G.total.sales)}</td></tr><tr><td>累計来客数</td><td>${G.total.visitors.toLocaleString()}人</td></tr></table>
   <button id="restart" class="big">最初からやり直す</button></div>`;$('modal').style.display='flex';
   $('restart').onclick=()=>{try{localStorage.removeItem('pbtSim2')}catch(e){}G=newGame();G.today=freshToday();rebuild();$('modal').style.display='none';SIM.paused=false;G.closing=false;renderUI();};}
@@ -1034,13 +1036,32 @@ document.querySelectorAll('[data-cam]').forEach(b=>b.onclick=()=>{SIM.cam=+b.dat
 $('simBtn').onclick=enterSim;$('simExit').onclick=exitSim;
 $('simReset').onclick=()=>{if($('simReset').dataset.arm){delete $('simReset').dataset.arm;$('simReset').textContent='最初からやり直す';try{localStorage.removeItem('pbtSim2')}catch(e){}G=newGame();G.today=freshToday();rebuild();$('modal').style.display='none';SIM.paused=false;renderUI();}
   else{$('simReset').dataset.arm=1;$('simReset').textContent='もう一度押すとリセット';setTimeout(()=>{delete $('simReset').dataset.arm;$('simReset').textContent='最初からやり直す'},3000);}};
-document.querySelectorAll('[data-sp]').forEach(b=>b.onclick=()=>{const v=+b.dataset.sp;if(v===0)SIM.paused=true;else{SIM.paused=false;SIM.speed=v;}renderUI();});
+document.querySelectorAll('[data-sp]').forEach(b=>b.onclick=()=>{if(SIM.auto)autoStop();const v=+b.dataset.sp;if(v===0)SIM.paused=true;else{SIM.paused=false;SIM.speed=v;}renderUI();});
+// ---- 1か月オートモード：ティンニンが自動で経営（×30・決算は自動で閉じる） ----
+const AUTO_LIST=['pbt','doujin','bench','anime','goods','gacha','vend','ice','crane','bench'];
+function autoBuy(){const reserve=monthBill().total+80000;let bought=[];
+  if(!G.cleared&&!canBuy('pbt2')&&G.money-ITEMS.pbt2.price>=reserve){doBuy('pbt2');return ['パズバト２'];}
+  for(let guard=0;guard<40;guard++){let did=false;
+    for(const t of AUTO_LIST){if(t==='bench'&&count('bench')>=2)continue;if(!canBuy(t)&&G.money-ITEMS[t].price>=reserve){doBuy(t);bought.push(ITEMS[t].name);did=true;break;}}
+    if(!did)break;}
+  for(const k of ['sns','cup']){const p=PROMOS[k];if(count('pbt')+count('pbt2')>=6&&!(G.promos||[]).some(x=>x.k===k)&&G.money-p.price>=reserve*1.5){G.money-=p.price;G.promos=(G.promos||[]).concat([{k,days:p.days}]);bought.push(p.label);}}
+  if(machines.some(m=>m.broken)&&G.money>=reserve)repairAll(true);
+  return bought;}
+function autoStart(){SIM.auto={left:30,prevSpeed:SIM.speed};SIM.speed=30;SIM.paused=false;if($('modal').style.display==='flex'&&$('nextDay'))$('nextDay').click();toast('1か月オート開始！ ティンニンにおまかせ');renderUI();}
+function autoStop(msg){if(!SIM.auto)return;SIM.speed=SIM.auto.prevSpeed||1;SIM.auto=null;if(msg)toast(msg);renderUI();}
+function autoAfterReport(rep){const A=SIM.auto;if(!A)return;A.left--;
+  if(rep.over){autoStop('倒産…オートを終了しました');return;}
+  const got=autoBuy();if(got.length&&$('modal').querySelector('.card')){const n=document.createElement('div');n.className='good';n.textContent='オート：'+got.join('・')+' を導入';const btn=$('nextDay');if(btn)btn.before(n);}
+  if(G.cleared&&!SIM.auto)return;if(!$('nextDay')){autoStop('クリア！オートを終了しました');return;}
+  if(A.left<=0){autoStop('1か月オート終了！');return;}
+  setTimeout(()=>{if(SIM.auto&&$('nextDay')&&$('modal').style.display==='flex')$('nextDay').click();},1300);}
+$('autoBtn').onclick=()=>{if(SIM.auto)autoStop('オートを止めました');else autoStart();};
 let lastT=performance.now(),uiAcc=0;
 function simTick(){const now=performance.now();const dt=Math.min(0.1,(now-lastT)/1000);lastT=now;vtStep(SIM.on?0:dt);if(!SIM.on||!G)return;
   if(!SIM.paused&&!G.closing){let dm=dt*SIM.speed*DAY_MIN/REAL_SEC_PER_DAY;
     while(dm>0){const s=Math.min(dm,0.5);G.min+=s;stepGame(s);dm-=s;if(G.min>=CLOSE_MIN){G.min=CLOSE_MIN;G.closing=true;break;}}
     recordSeries();
-    if(G.closing){const rep=closeDay();showReport(rep);}}
+    if(G.closing){const rep=closeDay();showReport(rep);if(SIM.auto)autoAfterReport(rep);}}
   stepVisual(SIM.paused?0:dt);uiAcc+=dt;if(uiAcc>0.25){uiAcc=0;renderUI();}}
 // ---- しゃべる（吹き出し）：パズドラ語録 ----
 const PAZ_LINES=["パズバト１０周年はどうした？！", "てま崩壊！", "なんなすみません", "消費者庁コラボ第２弾！", "パズバト２はよ！", "ゴッドフェス来い〜！", "確定演出きた！？", "魔法石10個くれ〜！", "スキル上げ失敗…", "ゲリラダンジョン開幕！", "10コンボ決めたる！", "落ちコンきたー！", "ガチャ爆死…", "ノーコンクリア！", "覚醒スキルはよ！", "タマゴ割れろ〜！", "コラボ復刻まだ？", "チャレダン難しすぎ！", "ドロップ強化！", "ここは私の城！", "虹の番人どこ〜？", "ノエルドラゴンかわいい", "パズル力が足りない…", "6個消しで回復！", "L字消し決まった！", "十字消しで軽減じゃ！", "根性で耐えた！", "先制攻撃いたい…", "毒ドロップやめて〜", "お邪魔ドロップ邪魔！", "ロック解除はよ！", "スキル溜まった！", "変身！", "超覚醒させたい", "アシスト装備した？", "潜在たまご出た！", "ドロップ目覚め〜", "エンハンス乗った！", "倍率高すぎワロタ", "ワンパン余裕！", "リーダー誰にしよ", "フレンド借りるね", "スタミナ足りない…", "スタミナ回復した！", "ログインボーナス！", "今日は何曜ダンジョン？", "テクニカル行こ〜", "降臨チャレンジ！", "裏ボス強すぎ！", "周回、周回、また周回", "ランキングダンジョン！", "王冠ほしい〜", "ランダン上位目指す！", "メダル交換しなきゃ", "モンスター交換所！", "BOXパンパン…", "売却ミスった…", "合成しなきゃ", "究極進化！", "進化素材足りない", "ダブり出た…", "ピィ集めなきゃ", "＋ポイント振らなきゃ", "コイン足りない…", "魔法石いくつある？", "課金は計画的に！", "ガチャは悪い文明…", "もう一回だけ…！", "天井ってどこ？", "コラボガチャ引く？", "推しキャラ来た〜！", "星６確定！？", "フェス限ゲット！", "おめでとう演出！", "タマゴ金色だった！", "虹たまご〜！", "バトルトーナメント開幕！", "対戦相手まだ〜？", "勝ったら筐体ゆずって", "1プレイ100円だよ！", "キャラガチャ回す？", "筐体ピカピカに磨いた", "POP貼り直さなきゃ", "今日も満員御礼！", "いらっしゃいませ〜！", "ありがとうございました〜", "店長は私です！", "バイト募集中！", "レシート要りますか？", "店内で走らないで〜", "ケンカはダメだよ？", "両成敗するよ？", "お客さん来ないかな", "売上ノルマ…", "家賃高すぎ…", "電気代こわい…", "月末の支払い…", "借金はダメ、ゼッタイ", "石油王まだかな〜", "パズバト２導入したい！", "1億円って何円？", "ちょっと休憩…", "おなかすいた〜", "31アイス食べたい", "同人誌、新刊出てる！", "クレーンゲーム下手…", "ガチャガチャ回したい", "ジュース補充しなきゃ", "グッズ完売したい！", "夢は全国制覇！"];
