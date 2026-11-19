@@ -825,8 +825,8 @@ function setJail(h){let rem=h*60,d=G.day,m=G.min;while(rem>0){const av=CLOSE_MIN
 function raidResolve(who,win,method,bet){const T=G.today;const res={who,win,method,gain:0,fine:0,hours:0,at:performance.now()};
   if(who==='pro'){res.bet=bet||RAID.bet;if(win){G.trophies=(G.trophies||[]).concat([res.bet]).slice(-30);G.rep=Math.min(100,G.rep+4);}
     else if(count('pbt')>=2){res.lostCab=true;G.loseCab=(G.loseCab||0)+1;G.rep=Math.max(0,G.rep-2);}else{res.pity=true;G.rep=Math.max(0,G.rep-3);}T.raidRes=res;return res;}heat()[who]=0;if(G.heatWhy)delete G.heatWhy[who];
-  if(win){if(who==='tax')G.evaded=0;res.mult=Math.round((1.5+Math.random()*0.5)*10)/10;res.gain=Math.round(Math.max(0,G.money)*(res.mult-1));G.money+=res.gain;G.rep=Math.min(100,G.rep+3);}
-  else if(who==='police'){res.hours=3+Math.floor(Math.random()*10);setJail(res.hours);G.rep=Math.max(0,G.rep-2);}
+  if(win){if(who==='tax')G.evaded=0;if(who==='police')G.fueiGain=0;res.mult=Math.round((1.5+Math.random()*0.5)*10)/10;res.gain=Math.round(Math.max(0,G.money)*(res.mult-1));G.money+=res.gain;G.rep=Math.min(100,G.rep+3);}
+  else if(who==='police'){res.hours=3+Math.floor(Math.random()*10);setJail(res.hours);G.rep=Math.max(0,G.rep-2);res.fine=Math.max(200000,Math.round((G.fueiGain||0)/10000)*10000);G.money-=res.fine;G.fueiGain=0;}
   else if(who==='caa'){const ms=(G.monthSales||0)+Object.values(T.sales).reduce((a,b)=>a+b,0);res.fine=Math.max(100000,Math.round(ms*0.45/10000)*10000);G.money-=res.fine;}
   else{res.fine=Math.max(200000,Math.round(((G.evaded||0)*1.5+Math.max(0,G.money)*0.25)/10000)*10000);G.money-=res.fine;G.evaded=0;}
   T.raidRes=res;return res;}
@@ -941,7 +941,7 @@ function raidStep(dt,k){if(!RAID.on)return;const Rd=RAID,S_=STAFF,u=S_.mesh.user
       if(Rd.who==='pro'){if(win){say(S_,'パズバトなめんな！ 一昨日来やがれ！',3);say(o,'くっ…「'+res.bet+'」は置いていくぜ…',3);popup(S_.mesh.position,'🏆 '+res.bet+' ゲット！','#b8860b');}
         else{say(S_,'うわぁぁん！',3);say(o,res.lostCab?'この筐体はいただいていくぜ！':'1台しかねえのか…筐体は勘弁してやるよ',3);popup(o.mesh.position,res.lostCab?'PBT筐体を1台持っていかれた…':'情けをかけられた…','#c0392b');}}
       else if(win){say(S_,'勝った！出直してきな！',3);say(o,'…今日のところは引き上げる',3);popup(S_.mesh.position,'💰 ×'+res.mult+' +¥'+res.gain.toLocaleString(),'#b8860b');if(D==='fist')fLie({mesh:o.mesh,s:-1},-1);}
-      else{say(S_,'ぐぬぬ…',3);say(o,Rd.who==='police'?'逮捕する！':Rd.who==='caa'?'課徴金を納付しなさい！':'追徴課税です！',3);if(D==='fist')fLie({mesh:S_.mesh,s:1},1);}}}
+      else{say(S_,'ぐぬぬ…',3);say(o,Rd.who==='police'?'逮捕する！ 深夜営業の儲けは没収だ！':Rd.who==='caa'?'課徴金を納付しなさい！':'追徴課税です！',3);if(D==='fist')fLie({mesh:S_.mesh,s:1},1);}}}
   else if(Rd.phase==='result'){for(const a of u.arms)a.rotation.x*=0.9;if(Rd.t>3){Rd.phase='leave';raidFocus(false);pose(o,'stand');o.mesh.rotation.set(0,0,0);o.mesh.position.y=0;
       const jail=Rd.who==='police'&&!Rd.win;if(jail){se.jail();S_.mode='jail';S_.mesh.visible=false;routeTo(o,ENTRANCE.clone());}
       else{routeTo(o,ENTRANCE.clone());staffPoseReset();S_.mesh.rotation.set(0,0,0);if(Rd.method==='pbt'){const m=Rd.m2||Rd.m;const p=toWorld(m,560,m.seatL[1]);S_.mesh.position.set(p.x,0,p.z);}S_.mode='return';S_.run=false;staffRoute(null,true);}
@@ -1215,7 +1215,7 @@ function closeDay(){
   const rep={day:G.day,ev:eventOf(G.day),date:dateLabel(G.day),wx:G.wx,sales,T:JSON.parse(JSON.stringify(T)),c,money:G.money,pbt:count('pbt'),rep0,rep1:G.rep,sh,rivalNow:G.rival&&G.rival.days>0};
   repairAll(false);
   {const S=soft();rep.fresh0=S.fresh;S.fresh=Math.max(0,S.fresh-(0.8+S.fresh*0.01));if(S.chara>0)S.chara--;if(S.collab>0)S.collab--;rep.fresh1=S.fresh;
-   const H=heat();for(const k in H)H[k]=Math.max(0,H[k]-1.5);if(G.fuei)addHeat('police',9,'風営法違反（無許可で深夜営業・年齢確認なし）');rep.heat={...H};
+   const H=heat();for(const k in H)H[k]=Math.max(0,H[k]-1.5);if(G.fuei)G.fueiGain=(G.fueiGain||0)+Math.round(sales*0.2);if(G.fuei)addHeat('police',9,'風営法違反（無許可で深夜営業・年齢確認なし）');rep.heat={...H};
    G.mProfit=(G.mProfit||0)+sales-c.total;}
   G.promos=(G.promos||[]).map(p=>({...p,days:p.days-1})).filter(p=>p.days>0);
   if(G.rival){G.rival.days--;if(G.rival.days<=0){G.rival=null;rep.rivalEnd=true;}}
@@ -1277,7 +1277,7 @@ function renderTelop(){const el=$('telop');if(!el)return;el.classList.remove('wa
   if(SIM.on&&rn&&(RAID.on||(rr&&performance.now()-rr.at<10000))){const I=RAID_INFO[rn.who];let t,lab='ガサ入れ',bad=false;
     if(rr&&(!RAID.on||RAID.phase==='result'||RAID.phase==='leave')){if(rr.who==='pro'){bad=!rr.win;lab=rr.win?'勝利':'敗北';t=rr.win?`ティンニン、自称プロパズドラーを撃破！ 「${rr.bet}」をゲット！`:rr.lostCab?'自称プロパズドラーに負けて、PBT筐体を1台持っていかれた…':'自称プロパズドラーに負けたが、筐体は勘弁してもらえた…';}
     else if(rr.win){lab='勝利';t=`ティンニン、${I.name}を撃退！ 所持金×${rr.mult}（+${yen(rr.gain)}）＆評判アップ！`;}
-      else{bad=true;lab='敗北';t=rr.who==='police'?`ティンニン逮捕！ 懲役${rr.hours}時間… その間お店は営業停止`:rr.who==='caa'?`課徴金 ${yen(rr.fine)} を納付させられました…`:`追徴課税 ${yen(rr.fine)} を徴収されました…`;}}
+      else{bad=true;lab='敗北';t=rr.who==='police'?`ティンニン逮捕！ 懲役${rr.hours}時間（営業停止）＋罰金 ${yen(rr.fine)}（深夜営業の儲けを没収）`:rr.who==='caa'?`課徴金 ${yen(rr.fine)} を納付させられました…`:`追徴課税 ${yen(rr.fine)} を徴収されました…`;}}
     else if(rn.duel){lab='対決';t=`${I.name} VS ティンニン ─ ${DUELS[rn.method]}！${rn.who==='pro'?'（PBT筐体1台を賭けて）':''}`;}
     else t=rn.who==='pro'?`道場破り！ 自称プロパズドラーが「${rn.crime}」を賭けて勝負を挑んできた！`:`${I.org}が来店！ 容疑：${rn.crime}`;
     el.style.display='block';el.classList.toggle('bad',bad);$('telopLab').textContent=lab;if(t!==lastTelop){lastTelop=t;$('telopTxt').textContent=t;}return;}
@@ -1349,7 +1349,7 @@ function promoBuy(k,boost){const p=PROMOS[k];if(G.money<p.price)return;G.money-=
   popup(ENTRANCE.clone().setZ(ROOM.z1-800),p.label+(boost?'（盛り）':'')+'！','#e67e22');save();}
 const CRIMES=[{k:'fuei',l:'風営法を無視しますか？',on:'深夜営業・年齢確認なし（来客×1.25）',who:'警察'},{k:'tax',l:'脱税しときますか？',on:'月末の税金を払わない',who:'税務署'},{k:'ad',l:'優良誤認させますか？',on:'宣伝を盛る（効果×1.6）',who:'消費者庁'}];
 function crimeOn(k){return k==='fuei'?!!G.fuei:!!(G.crime&&G.crime[k]);}
-function crimeHTML(){return `<div class="crime"><b>裏稼業スイッチ<small>ONにすると儲かるが疑惑度が上がる</small></b>${CRIMES.map(c=>{const on=crimeOn(c.k);return `<div class="mrow"><span>${c.l}<small>${on?c.on+'・'+c.who+'の疑惑度↑':'OFF（クリーン営業）'}</small></span><div class="seg"><button data-crime="${c.k}" class="${on?'on':''}" style="${on?'background:#c0392b;color:#fff;border-color:#c0392b':''}">${on?'ON':'OFF'}</button></div></div>`;}).join('')}</div>`;}
+function crimeHTML(){return `<div class="crime"><b>裏稼業スイッチ<small>ONにすると儲かるが疑惑度が上がる</small></b>${CRIMES.map(c=>{const on=crimeOn(c.k);return `<div class="mrow"><span>${c.l}<small>${on?c.on+'・'+c.who+'の疑惑度↑':'OFF（クリーン営業）'}${c.k==='fuei'&&G.fueiGain?'<br>深夜営業の儲け '+yen(G.fueiGain)+'（捕まると没収）':''}${c.k==='tax'&&G.evaded?'<br>脱税額 '+yen(G.evaded)+'（バレると1.5倍で追徴）':''}</small></span><div class="seg"><button data-crime="${c.k}" class="${on?'on':''}" style="${on?'background:#c0392b;color:#fff;border-color:#c0392b':''}">${on?'ON':'OFF'}</button></div></div>`;}).join('')}</div>`;}
 function heatHTML(){const H=heat(),L={police:'👮 警察',tax:'💼 税務署',caa:'📢 消費者庁'};if(!Object.values(H).some(v=>v>0.5))return '';
   return `<div class="heat"><b>疑惑度</b>${Object.keys(L).map(k=>`<span>${L[k]}<i><u style="width:${Math.round(H[k])}%;background:${H[k]>=60?'#c0392b':H[k]>=20?'#e67e22':'#8a92a0'}"></u></i></span>`).join('')}<small>20%を超えるとガサ入れが来ることがあります</small></div>`;}
 function upHTML(){const S=soft(),own=ORDER.filter(t=>count(t)>0);
@@ -1363,7 +1363,7 @@ function showReport(rep){const T=rep.T,c=rep.c;SIM.paused=true;se.bell();
   const sales=[[`PBT（${T.credits}回）`,T.sales.pbt],[`ガチャ（${T.pulls}回）`,T.sales.pgacha]].concat(SHOPS.filter(k=>T.sales[k]||count(k)).map(k=>[ITEMS[k].label,T.sales[k]||0]));
   const notes=[T.vip?`<div class="good">✨ ${T.vip.name}が来店、ガチャに ${yen(T.vip.spent)}！</div>`:'',T.bvip&&T.bvip.done?`<div class="good">✨ ${T.bvip.who}が${T.bvip.item}を ${yen(T.bvip.amount)} 分ご購入！</div>`:'',
    rep.catch?(rep.catch.ok?`<div class="good">${rep.catch.kind==='thief'?'万引き犯':'ゴト師'}をティンニンが確保！${rep.catch.kind==='goto'?' 感謝状 +¥10,000':''}</div>`:`<div class="warn">${rep.catch.kind==='thief'?'万引き犯':'ゴト師'}に逃げられた… 被害 ${yen(rep.catch.loot)}</div>`):'',
-   rep.raid&&rep.raid.who==='pro'?(rep.raid.win?`<div class="good">道場破りの自称プロパズドラーに勝利！ 戦利品「${rep.raid.bet}」</div>`:`<div class="warn">道場破りに敗北… ${rep.raid.lostCab?'PBT筐体を1台持っていかれた':'筐体は勘弁してもらえた'}</div>`):rep.raid?(rep.raid.win?`<div class="good">${RAID_NAME[rep.raid.who]}のガサ入れ → ${DUELS[rep.raid.method]||'勝負'}で勝利！ 所持金×${rep.raid.mult}（+${yen(rep.raid.gain)}）</div>`:`<div class="warn">${RAID_NAME[rep.raid.who]}のガサ入れ → 敗北… ${rep.raid.who==='police'?'懲役'+rep.raid.hours+'時間（営業停止）':rep.raid.who==='caa'?'課徴金 '+yen(rep.raid.fine):'追徴課税 '+yen(rep.raid.fine)}</div>`):'',
+   rep.raid&&rep.raid.who==='pro'?(rep.raid.win?`<div class="good">道場破りの自称プロパズドラーに勝利！ 戦利品「${rep.raid.bet}」</div>`:`<div class="warn">道場破りに敗北… ${rep.raid.lostCab?'PBT筐体を1台持っていかれた':'筐体は勘弁してもらえた'}</div>`):rep.raid?(rep.raid.win?`<div class="good">${RAID_NAME[rep.raid.who]}のガサ入れ → ${DUELS[rep.raid.method]||'勝負'}で勝利！ 所持金×${rep.raid.mult}（+${yen(rep.raid.gain)}）</div>`:`<div class="warn">${RAID_NAME[rep.raid.who]}のガサ入れ → 敗北… ${rep.raid.who==='police'?'懲役'+rep.raid.hours+'時間（営業停止）＋罰金'+yen(rep.raid.fine):rep.raid.who==='caa'?'課徴金 '+yen(rep.raid.fine):'追徴課税 '+yen(rep.raid.fine)}</div>`):'',
    rep.fight?`<div class="good">ケンカ発生 → ティンニンが物理で鎮圧</div>`:'',rep.rivalNew?`<div class="warn">ライバル店オープン！ 7日間 来客減（評判70以上なら影響小）</div>`:'',rep.rivalEnd?`<div class="good">ライバル店の勢いが落ち着きました</div>`:'',
    rep.caa?`<div class="warn">消費者庁コラボ：ニコ生宣伝が優良誤認で行政指導。今月の売上 ${yen(rep.caa.amount)} を回収…</div>`:'',rep.bad?`<div class="warn">悲報：${rep.bad.name}${rep.bad.end>rep.bad.start?`（${hm(rep.bad.start)}〜${hm(rep.bad.end)}）`:''}</div>`:'',
    rep.debt&&!rep.over?`<div class="warn">赤字です。月末（あと${rep.toEnd}日）の支払い後も赤字だと倒産！</div>`:'',rep.billWarn?`<div class="warn"><b>【注意】</b>月末請求予定 ${yen(rep.billWarn)} に所持金 ${yen(rep.money)} では足りません！</div>`:'',rep.monthEnd&&!rep.over?`<div class="good">月末を乗り切りました！</div>`:''].join('');
