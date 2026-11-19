@@ -120,7 +120,7 @@ button.wide{grid-column:span 2}
   <div class="bar"><i id="sBar"></i></div><div id="sEvent"></div><div id="sStat"></div>
   <div>所持金</div><div id="sMoney">¥0</div>
   <div id="sToday" style="margin:3px 0 2px"></div><div id="sCost"></div>
-  <div class="spLab">倍速モード</div><div class="grid3" style="grid-template-columns:repeat(4,1fr) 34px"><button data-sp="0">停止</button><button data-sp="1" class="on">×1</button><button data-sp="3">×3</button><button data-sp="10">×10</button><button id="sfx" title="効果音">🔊</button></div><button id="autoBtn" class="autob">1か月オート（ティンニンにおまかせ）</button><div class="autoSp"><span>オート速度</span><button data-asp="1" class="on">等倍</button><button data-asp="2">×2</button><button data-asp="5">×5</button><button data-asp="10">×10</button></div>
+  <div class="spLab">倍速モード</div><div class="grid3" style="grid-template-columns:repeat(4,1fr) 30px 30px"><button data-sp="0">停止</button><button data-sp="1" class="on">×1</button><button data-sp="3">×3</button><button data-sp="10">×10</button><button id="sfx" title="効果音（全体）">🔊</button><button id="amb" title="店内の環境音（賑わい）">🎮</button></div><button id="autoBtn" class="autob">1か月オート（ティンニンにおまかせ）</button><div class="autoSp"><span>オート速度</span><button data-asp="1" class="on">等倍</button><button data-asp="2">×2</button><button data-asp="5">×5</button><button data-asp="10">×10</button></div>
   <h2>経営</h2><div id="mgmt"></div>
   <h2 id="sGoal">目標：パズドラバトルトーナメント２導入</h2><div class="bar"><i id="sGoalBar"></i></div>
   <h2>購入・設置</h2><div id="shop"></div>
@@ -867,6 +867,43 @@ function renderPiP(){const act=SIM.on&&G?['sns','cup','nico'].filter(k=>(G.promo
 let AC=null,sfxOn=true;try{sfxOn=localStorage.getItem('pbtSfx')!=='0'}catch(e){}
 function ensureAudio(){if(SIM.headless)return;try{if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();}catch(e){}}
 function ping(t,f,vol,dur){const o=AC.createOscillator(),g=AC.createGain();o.type='sine';o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+0.004);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);o.connect(g).connect(AC.destination);o.start(t);o.stop(t+dur+0.02);}
+// ---- 店内の環境音（ゲーセンの賑わい）：雑踏・話し声・各台のピコピコ音・ボタン連打・オリジナルのデモ曲 ----
+let ambOn=true;try{ambOn=localStorage.getItem('pbtAmb')!=='0'}catch(e){}
+const AMB={init:false};
+function ambInit(){if(AMB.init||!AC)return;AMB.init=true;
+  const master=AC.createGain();master.gain.value=0;master.connect(AC.destination);AMB.master=master;
+  const len=AC.sampleRate*2,buf=AC.createBuffer(1,len,AC.sampleRate),d=buf.getChannelData(0);let b=0;for(let i=0;i<len;i++){const w=Math.random()*2-1;b=(b+0.02*w)/1.02;d[i]=w*0.6+b*3;}AMB.noise=buf;
+  const mk=(rate,type,f,q,vol)=>{const s=AC.createBufferSource();s.buffer=buf;s.loop=true;s.playbackRate.value=rate;const fl=AC.createBiquadFilter();fl.type=type;fl.frequency.value=f;fl.Q.value=q;const g=AC.createGain();g.gain.value=vol;s.connect(fl).connect(g).connect(master);s.start();return {g,fl};};
+  AMB.crowd=mk(1,'bandpass',650,0.6,0.05);AMB.rumble=mk(0.5,'lowpass',170,0.7,0.10);
+  AMB.t={voice:0,blip:0,click:0,boom:0,jingle:0};AMB.seqT=AC.currentTime+0.1;AMB.step=0;}
+function ambOut(pan){const p=AC.createStereoPanner?AC.createStereoPanner():null;const g=AC.createGain();if(p){p.pan.value=pan;g.connect(p).connect(AMB.master);}else g.connect(AMB.master);return g;}
+function ambVoice(t,vol){const g=ambOut(Math.random()*1.6-0.8);const n=2+Math.floor(Math.random()*4);let tt=t;
+  for(let i=0;i<n;i++){const s=AC.createBufferSource();s.buffer=AMB.noise;const bp=AC.createBiquadFilter();bp.type='bandpass';bp.Q.value=7+Math.random()*5;const f0=380+Math.random()*520;bp.frequency.setValueAtTime(f0,tt);bp.frequency.linearRampToValueAtTime(f0*(0.8+Math.random()*0.5),tt+0.15);
+    const e=AC.createGain();const dur=0.07+Math.random()*0.13;e.gain.setValueAtTime(0,tt);e.gain.linearRampToValueAtTime(vol,tt+0.02);e.gain.linearRampToValueAtTime(0,tt+dur);s.connect(bp).connect(e).connect(g);s.start(tt,Math.random()*1.5,dur+0.05);tt+=dur+0.02+Math.random()*0.06;}}
+const AMB_SCALE=[0,2,4,7,9,12,14,16,19,21];
+function ambNote(out,t,midi,dur,type,vol){const o=AC.createOscillator();o.type=type;o.frequency.setValueAtTime(440*Math.pow(2,(midi-69)/12),t);const e=AC.createGain();e.gain.setValueAtTime(vol,t);e.gain.exponentialRampToValueAtTime(0.0005,t+dur);o.connect(e).connect(out);o.start(t);o.stop(t+dur+0.02);}
+function ambBlip(t){const out=ambOut(Math.random()*1.8-0.9),base=60+Math.floor(Math.random()*12),n=3+Math.floor(Math.random()*6),up=Math.random()<0.6,type=Math.random()<0.6?'square':'triangle';
+  for(let i=0;i<n;i++){const k=up?i:n-1-i;ambNote(out,t+i*0.055,base+AMB_SCALE[k%AMB_SCALE.length],0.09,type,0.025);}}
+function ambClick(t){const out=ambOut(Math.random()*1.8-0.9),n=2+Math.floor(Math.random()*5);for(let i=0;i<n;i++){const s=AC.createBufferSource();s.buffer=AMB.noise;const hp=AC.createBiquadFilter();hp.type='highpass';hp.frequency.value=2500;const e=AC.createGain();const tt=t+i*(0.07+Math.random()*0.05);
+  e.gain.setValueAtTime(0.05,tt);e.gain.exponentialRampToValueAtTime(0.0005,tt+0.025);s.connect(hp).connect(e).connect(out);s.start(tt,Math.random(),0.04);}}
+function ambBoom(t){const out=ambOut(Math.random()*1.6-0.8);const s=AC.createBufferSource();s.buffer=AMB.noise;const lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.setValueAtTime(1800,t);lp.frequency.exponentialRampToValueAtTime(120,t+0.35);
+  const e=AC.createGain();e.gain.setValueAtTime(0.07,t);e.gain.exponentialRampToValueAtTime(0.0005,t+0.4);s.connect(lp).connect(e).connect(out);s.start(t,Math.random(),0.45);}
+function ambJingle(t){const out=ambOut(Math.random()*1.2-0.6),seq=[72,76,79,84,79,84,88];seq.forEach((m,i)=>ambNote(out,t+i*0.09,m,i===seq.length-1?0.5:0.12,'square',0.022));}
+// 遠くで鳴っている別のゲーム機のデモ曲（このゲーム用のオリジナル）
+const AMB_A={bpm:138,mel:[72,0,76,79,76,0,74,72,69,0,72,74,76,0,79,0],bass:[48,48,55,55,53,53,50,50]};
+const AMB_B={bpm:104,mel:[69,72,76,72,71,0,67,0,69,72,74,76,79,0,76,0],bass:[45,45,52,52,43,43,48,48]};
+function ambSeq(){const ahead=AC.currentTime+0.3;const spb=60/AMB_A.bpm/4;
+  if(!AMB.outA){AMB.outA=ambOut(-0.6);AMB.outA.gain.value=0.5;AMB.outB=ambOut(0.65);AMB.outB.gain.value=0.45;AMB.seqT=AC.currentTime+0.1;AMB.seqTB=AMB.seqT;AMB.stepB=0;}
+  while(AMB.seqT<ahead){const s=AMB.step%16;if(AMB_A.mel[s])ambNote(AMB.outA,AMB.seqT,AMB_A.mel[s],spb*1.6,'square',0.012);if(s%2===0)ambNote(AMB.outA,AMB.seqT,AMB_A.bass[(s/2)|0],spb*1.8,'triangle',0.02);AMB.seqT+=spb;AMB.step++;}
+  const spbB=60/AMB_B.bpm/4;while(AMB.seqTB<ahead){const s=AMB.stepB%16;if(AMB_B.mel[s])ambNote(AMB.outB,AMB.seqTB,AMB_B.mel[s],spbB*1.8,'triangle',0.016);if(s%4===0)ambNote(AMB.outB,AMB.seqTB,AMB_B.bass[(s/2)|0],spbB*3,'sine',0.03);AMB.seqTB+=spbB;AMB.stepB++;}}
+function ambTick(dt){if(!AC||AC.state!=='running')return;ambInit();if(!AMB.master)return;
+  const play=ambOn&&sfxOn&&SIM.on&&G&&!SIM.paused&&!G.closing&&G.min<CLOSE_MIN;const busy=machines.filter(m=>m.busy).length,ncu=customers.length;
+  const I=play?Math.min(1.3,0.3+busy/10+ncu/40):0;const t=AC.currentTime;AMB.master.gain.setTargetAtTime(I*0.9,t,0.6);
+  AMB.crowd.g.gain.setTargetAtTime(0.02+Math.min(0.08,ncu*0.003),t,0.8);AMB.crowd.fl.frequency.setTargetAtTime(520+Math.sin(t*0.37)*120,t,0.5);
+  if(!play){AMB.seqT=t+0.1;AMB.seqTB=t+0.1;return;}
+  ambSeq();const r=(k,rate,fn)=>{AMB.t[k]-=dt;if(AMB.t[k]<=0){AMB.t[k]=(0.5+Math.random())/Math.max(0.05,rate);fn(t+0.02+Math.random()*0.1);}};
+  if(ncu)r('voice',0.6+ncu*0.12,tt=>ambVoice(tt,0.06+Math.random()*0.05));
+  if(busy){r('blip',busy*0.35,ambBlip);r('click',busy*0.6,ambClick);r('boom',busy*0.07,ambBoom);r('jingle',busy*0.03,ambJingle);}}
 function coin(big){if(!sfxOn||!AC||SIM.headless||AC.state!=='running')return;const t=AC.currentTime;if(t-(coin.last||0)<(big?0.25:0.07))return;coin.last=t;
   const k=0.97+Math.random()*0.06,n=big?4:1;for(let i=0;i<n;i++){const s=t+i*0.09;ping(s,1975*k,0.12,0.18);ping(s+0.055,2637*k,0.13,0.45);ping(s+0.055,5274*k,0.03,0.25);}}
 // ---- popups ----
@@ -1162,7 +1199,8 @@ $('mgmt').addEventListener('click',e=>{const b=e.target.closest('button');if(!b|
   save();renderUI();});
 $('shop').addEventListener('click',e=>{const b=e.target.closest('[data-buy]');if(b&&!b.disabled)buy(b.dataset.buy);});
 $('simUI').addEventListener('click',ensureAudio,true);
-function renderSfx(){$('sfx').textContent=sfxOn?'🔊':'🔇';$('sfx').classList.toggle('on',sfxOn);}
+function renderSfx(){$('sfx').textContent=sfxOn?'🔊':'🔇';$('sfx').classList.toggle('on',sfxOn);$('amb').textContent=ambOn?'🎮':'🔕';$('amb').classList.toggle('on',ambOn);}
+$('amb').onclick=()=>{ambOn=!ambOn;try{localStorage.setItem('pbtAmb',ambOn?'1':'0')}catch(e){}ensureAudio();renderSfx();};
 $('sfx').onclick=()=>{sfxOn=!sfxOn;try{localStorage.setItem('pbtSfx',sfxOn?'1':'0')}catch(e){}ensureAudio();renderSfx();if(sfxOn)coin(false);};renderSfx();
 const SIM_CAMS=[[-0.7,0.95],[0,0.85],[-Math.PI/2,0.0001]];
 function camBtns(){document.querySelectorAll('[data-cam]').forEach(b=>b.classList.toggle('on',+b.dataset.cam===(SIM.cam||0)));}
@@ -1192,7 +1230,7 @@ function autoAfterReport(rep){const A=SIM.auto;if(!A)return;A.left--;
 document.querySelectorAll('[data-asp]').forEach(b=>b.onclick=()=>{SIM.autoSpeed=+b.dataset.asp;if(SIM.auto)SIM.speed=SIM.autoSpeed;renderUI();});
 $('autoBtn').onclick=()=>{if(SIM.auto)autoStop('オートを止めました');else autoStart();};
 let lastT=performance.now(),uiAcc=0;
-function simTick(){const now=performance.now();const dt=Math.min(0.1,(now-lastT)/1000);lastT=now;vtStep(SIM.on?0:dt);if(!SIM.on||!G)return;
+function simTick(){const now=performance.now();const dt=Math.min(0.1,(now-lastT)/1000);lastT=now;vtStep(SIM.on?0:dt);try{ambTick(dt);}catch(e){}if(!SIM.on||!G)return;
   if(!SIM.paused&&!G.closing){let dm=dt*SIM.speed*DAY_MIN/REAL_SEC_PER_DAY;
     while(dm>0){const s=Math.min(dm,0.5);G.min+=s;stepGame(s);dm-=s;if(G.min>=CLOSE_MIN){G.min=CLOSE_MIN;G.closing=true;break;}}
     recordSeries();
