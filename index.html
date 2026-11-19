@@ -11,6 +11,8 @@ html,body{margin:0;height:100%;background:#fff!important;color-scheme:light only
 #view{position:relative;flex:1 1 auto;height:100%;min-width:0}
 #c{display:block;width:100%;height:100%;touch-action:none}
 h1{font-size:12.5px;margin:0 0 4px;line-height:1.3}
+
+.spLab{font-weight:700;font-size:10.5px;color:#3a1c71;margin:2px 0 2px}
 h1.gtitle{font-size:12px;text-align:center;color:#fff;background:linear-gradient(90deg,#3a1c71,#b0388f);border-radius:6px;padding:5px 4px;margin:-2px 0 6px;letter-spacing:.02em}
 h2{font-size:11px;margin:9px 0 4px;color:#2b5fd9;font-weight:700}
 table{border-collapse:collapse;width:100%}
@@ -83,7 +85,7 @@ button.wide{grid-column:span 2}
   </div>
   <h2>表示</h2>
   <div class="grid">
-   <button id="pop" class="on">POP</button><button id="grid" class="on">床グリッド</button>
+   <button id="pop" class="on">POP</button><button id="grid" class="on">床グリッド</button><button id="tnBtn" class="on wide">ティンニン</button>
    <button id="fs" class="wide">全画面（横向き）</button>
   </div>
   <div class="note">1本指で回転／2本指でズーム・移動<br>直列＝同じ向きに横一列、並列＝背中合わせ（図2）。2台は図2にない参考配置。</div>
@@ -95,7 +97,7 @@ button.wide{grid-column:span 2}
   <div class="bar"><i id="sBar"></i></div><div id="sEvent"></div><div id="sStat"></div>
   <div>所持金</div><div id="sMoney">¥0</div>
   <div id="sToday" style="margin:3px 0 2px"></div><div id="sCost"></div>
-  <div class="grid3" style="grid-template-columns:repeat(4,1fr) 34px"><button data-sp="0">停止</button><button data-sp="1" class="on">×1</button><button data-sp="2">×2</button><button data-sp="4">×4</button><button id="sfx" title="効果音">🔊</button></div>
+  <div class="spLab">倍速モード</div><div class="grid3" style="grid-template-columns:repeat(4,1fr) 34px"><button data-sp="0">停止</button><button data-sp="1" class="on">×1</button><button data-sp="3">×3</button><button data-sp="10">×10</button><button id="sfx" title="効果音">🔊</button></div>
   <h2>経営</h2><div id="mgmt"></div>
   <h2 id="sGoal">目標：パズドラバトルトーナメント２導入</h2><div class="bar"><i id="sGoalBar"></i></div>
   <h2>購入・設置</h2><div id="shop"></div>
@@ -221,7 +223,8 @@ function setLayout(k){
   {const [a0,a1,b0,b1]=L.fp;const k=Math.max(1,Math.ceil(Math.max(a1-a0,b1-b0)*1.3/12000));grid.scale.set(k,1,k);grid.position.set(L.big?(a0+a1)/2:0,.5,L.big?(b0+b1)/2:0);floor.scale.set(k,k,1);floor.position.set(grid.position.x,0,grid.position.z);}
   const [x0,x1,z0,z1]=L.fp;
   fpLine.geometry.setFromPoints([new THREE.Vector3(x0,0,z0),new THREE.Vector3(x1,0,z0),new THREE.Vector3(x1,0,z1),new THREE.Vector3(x0,0,z1)]);fpLine.computeLineDistances();
-  layoutG.updateMatrixWorld(true);if(L.big){const [a0,a1,b0,b1]=L.fp;BOX=new THREE.Box3(new THREE.Vector3(a0,0,b0),new THREE.Vector3(a1,2200,b1));}else{BOX=new THREE.Box3().setFromObject(layoutG);BOX.min.y=0;}
+  layoutG.updateMatrixWorld(true);if(L.big){const [a0,a1,b0,b1]=L.fp;BOX=new THREE.Box3(new THREE.Vector3(a0,0,b0),new THREE.Vector3(a1,2200,b1));}else{BOX=new THREE.Box3().setFromObject(layoutG);BOX.min.y=0;if(typeof VT!=='undefined'&&VT.on){BOX.min.x-=600;BOX.max.x+=600;BOX.min.z-=600;BOX.max.z+=600;BOX.max.y=Math.max(BOX.max.y,3500);}}
+  if(typeof vtReset==='function'&&typeof VT!=='undefined')vtReset();
   setView(curView);
 }
 document.querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>setLayout(b.dataset.l));
@@ -298,10 +301,13 @@ const VIPS=Array.from({length:100},(_,i)=>RED_T[(Math.floor(i/50)*4+i%4)%RED_T.l
 const BIG_T={doujin:[['{c}本の買い占め勢','{c}本'],['{c}カプ厨の同人ハンター','{c}合同誌']],goods:[['{c}推しのコレクター','{c}グッズ一式'],['{c}祭壇職人','{c}アクスタ全種']],
  gacha:[['{c}シークレット狙いの職人','ガチャガチャ'],['{c}コンプ勢','カプセルトイ']],crane:[['{c}ぬいぐるみハンター','クレーンゲーム'],['{c}フィギュア救出隊','クレーンゲーム']],
  vend:[['{c}コスプレの大所帯','ドリンク'],['{c}オフ会の幹事','差し入れドリンク']],ice:[['{c}ファンの大家族','31アイス'],['{c}推し活オフ会','トリプルアイス']]};
-function bigBuyer(t){if(t==='doujin'&&Math.random()<0.08)return ['パズドラ変態紳士','エロ同人'];const T=BIG_T[t][Math.floor(Math.random()*2)],c=CHARS[Math.floor(Math.random()*CHARS.length)];return [T[0].replace('{c}',c),T[1].replace('{c}',c)];}
+// 大口客の呼び名：後ろほど大口（キッズ→すこすこ勢→ニキ→ガール→石油王）
+const TIER_T=['{c}大好きキッズ','{c}すこすこ勢','{c}大好きニキ','{c}大好きガール','{c}推しの石油王'];
+const tierName=(tier,c)=>TIER_T[Math.max(0,Math.min(4,tier))].replace('{c}',c||CHARS[Math.floor(Math.random()*CHARS.length)]);
+function bigBuyer(t,tier){const T=BIG_T[t][Math.floor(Math.random()*2)],c=CHARS[Math.floor(Math.random()*CHARS.length)];return [tierName(tier,c),T[1].replace('{c}',c)];}
 const REPAIR_COST=15000;
-const PRICES={'100':{label:'100円',credit:100,dem:1,rep:0},'200':{label:'200円',credit:200,dem:0.7,rep:0},'300':{label:'300円',credit:300,dem:0.5,rep:-0.5},'400':{label:'400円',credit:400,dem:0.37,rep:-1},'500':{label:'500円',credit:500,dem:0.28,rep:-1.5}};
-const PROMOS={sns:{label:'SNS広告',price:50000,days:5,mult:1.3},cup:{label:'店内トーナメント開催',price:100000,days:2,mult:1.6,rep:4},nico:{label:'ニコニコ生放送',price:200000,days:7,mult:2.2,rep:2}};
+const PRICES={'100':{label:'100円',credit:100,dem:1,rep:0},'200':{label:'200円',credit:200,dem:0.7,rep:0},'500':{label:'500円',credit:500,dem:0.38,rep:-1},'1000':{label:'1,000円',credit:1000,dem:0.2,rep:-2}};
+const PROMOS={sns:{label:'SNS広告',price:30000,days:5,mult:1.3},cup:{label:'店内イベント開催',price:50000,days:2,mult:1.6,rep:4},nico:{label:'ニコニコ生放送',price:100000,days:7,mult:2.2,rep:2}};
 const WX={sun:{l:'晴れ',i:'☀',m:1.05},cloud:{l:'くもり',i:'☁',m:1},rain:{l:'雨',i:'☂',m:0.8},snow:{l:'雪',i:'❄',m:0.6}};
 function rollWx(day){const mo=dateOf(day).getMonth()+1,winter=[12,1,2].includes(mo),r=Math.random();
   if(winter)return r<.4?'sun':r<.7?'cloud':r<.88?'rain':'snow';return r<.45?'sun':r<.72?'cloud':'rain';}
@@ -628,15 +634,15 @@ function pickMachine(){
   const cap=2+benches();same.sort((a,b)=>a.queue.length-b.queue.length);return same[0].queue.length<cap?same[0]:null;}
 function spawnVIP(){
   const ms=machines.filter(m=>m.T.kind==='game'&&!m.broken);if(!ms.length)return;ms.sort((a,b)=>(a.busy?1:0)+a.queue.length-((b.busy?1:0)+b.queue.length));const m=ms[0];
-  const name=VIPS[Math.floor(Math.random()*VIPS.length)];const amount=Math.max(2000,Math.round(-G.money*(0.3+0.7*Math.random())/200)*200);
+  const vr=Math.random(),name=tierName(Math.floor(vr*5));const amount=Math.max(2000,Math.round(-G.money*(0.3+0.7*vr)/200)*200);
   G.today.vip={name,amount,spent:0};G.today.visitors++;G.total.visitors++;
   const c={m,vip:name,state:'walk',patience:9999,path:[],credits:1,creditLeft:0,mesh:null,vipPulls:amount/200};
   if(!SIM.headless){c.mesh=makePerson(0xd4af37);c.mesh.scale.setScalar(1.15);c.mesh.position.copy(ENTRANCE);peopleG.add(c.mesh);}
   customers.push(c);if(!m.busy){m.busy=c;c.dest='seat';}else{m.queue.unshift(c);c.dest='queue';}
   routeTo(c,destPos(c));if(SIM.headless)arrive(c);}
 function spawnBVIP(){const ts=SHOPS.filter(t=>machines.some(m=>m.type===t));if(!ts.length)return;const t=ts[Math.floor(Math.random()*ts.length)];
-  const ms=machines.filter(m=>m.type===t),m=ms[Math.floor(Math.random()*ms.length)];const [who,item]=bigBuyer(t);
-  const amount=Math.max(1000,Math.round(G.money*(0.1+1.9*Math.pow(Math.random(),4))/100)*100);
+  const ms=machines.filter(m=>m.type===t),m=ms[Math.floor(Math.random()*ms.length)];const bu=Math.random(),[who,item]=bigBuyer(t,Math.floor(bu*5));
+  const amount=Math.max(1000,Math.round(G.money*(0.1+1.9*Math.pow(bu,4))/100)*100);
   G.today.bvip={who,item,amount,done:false};G.today.visitors++;G.total.visitors++;
   const c={m,state:'walk',patience:9999,path:[],credits:0,creditLeft:0,mesh:null,bamount:amount,stops:[m]};
   if(!SIM.headless){c.mesh=makePerson(0xd4af37);c.mesh.scale.setScalar(1.15);c.mesh.position.copy(ENTRANCE);peopleG.add(c.mesh);}
@@ -706,7 +712,7 @@ function stepGame(dm){
 }
 function stepVisual(dt){
   staffStep(dt);
-  const sp=2600*Math.min(2.5,Math.sqrt(SIM.speed));
+  const sp=2600*Math.min(3.2,Math.sqrt(SIM.speed));
   for(const c of customers){if(!c.moving||!c.mesh)continue;let left=sp*dt;
     while(left>0&&c.path.length){const p=c.path[0];const d=p.clone().sub(c.mesh.position);d.y=0;const L=d.length();
       if(L<=left){c.mesh.position.copy(p);c.path.shift();left-=L;}else{d.multiplyScalar(left/L);c.mesh.position.add(d);c.mesh.rotation.y=Math.atan2(d.x,d.z);left=0;}}
@@ -903,12 +909,53 @@ $('simReset').onclick=()=>{if($('simReset').dataset.arm){delete $('simReset').da
   else{$('simReset').dataset.arm=1;$('simReset').textContent='もう一度押すとリセット';setTimeout(()=>{delete $('simReset').dataset.arm;$('simReset').textContent='最初からやり直す'},3000);}};
 document.querySelectorAll('[data-sp]').forEach(b=>b.onclick=()=>{const v=+b.dataset.sp;if(v===0)SIM.paused=true;else{SIM.paused=false;SIM.speed=v;}renderUI();});
 let lastT=performance.now(),uiAcc=0;
-function simTick(){const now=performance.now();const dt=Math.min(0.1,(now-lastT)/1000);lastT=now;if(!SIM.on||!G)return;
+function simTick(){const now=performance.now();const dt=Math.min(0.1,(now-lastT)/1000);lastT=now;vtStep(SIM.on?0:dt);if(!SIM.on||!G)return;
   if(!SIM.paused&&!G.closing){let dm=dt*SIM.speed*DAY_MIN/REAL_SEC_PER_DAY;
     while(dm>0){const s=Math.min(dm,0.5);G.min+=s;stepGame(s);dm-=s;if(G.min>=CLOSE_MIN){G.min=CLOSE_MIN;G.closing=true;break;}}
     recordSeries();
     if(G.closing){const rep=closeDay();showReport(rep);}}
   stepVisual(SIM.paused?0:dt);uiAcc+=dt;if(uiAcc>0.25){uiAcc=0;renderUI();}}
+// ---- 3Dビューア用ティンニン（筐体のまわりをうろつく・よじ登って暴れる） ----
+var VT={on:true,mesh:null,mode:'idle',t:0,wait:1.5,path:[],P:0,per:null,pt:0,u:null,fx:[]};
+try{VT.on=localStorage.getItem('pbtTin')!=='0'}catch(e){}
+function vtPer(){const L=LAY[cur];const [a0,a1,b0,b1]=L.fp,m=520;const x0=a0-m,x1=a1+m,z0=b0-m,z1=b1+m,w=x1-x0,h=z1-z0;return {x0,x1,z0,z1,w,h,P:2*(w+h)};}
+function vtPt(t){const R=VT.per;t=((t%R.P)+R.P)%R.P;if(t<R.w)return new THREE.Vector3(R.x0+t,0,R.z0);t-=R.w;if(t<R.h)return new THREE.Vector3(R.x1,0,R.z0+t);t-=R.h;if(t<R.w)return new THREE.Vector3(R.x1-t,0,R.z1);t-=R.w;return new THREE.Vector3(R.x0,0,R.z1-t);}
+function vtPathTo(t1){const R=VT.per,P=R.P,t0=VT.pt,d=((t1-t0)%P+P)%P,dir=d<=P/2?1:-1,dist=dir>0?d:P-d;
+  const cs=[0,R.w,R.w+R.h,2*R.w+R.h].map(c=>({c,tr:dir>0?((c-t0)%P+P)%P:((t0-c)%P+P)%P})).filter(o=>o.tr>1&&o.tr<dist).sort((a,b)=>a.tr-b.tr);
+  VT.path=cs.map(o=>vtPt(o.c)).concat([vtPt(t1)]);VT.pt=((t1%P)+P)%P;}
+function vtVisible(){return VT.on&&!SIM.on&&tmpl&&!LAY[cur].big;}
+function vtReset(){if(!VT.mesh){VT.mesh=makeTinnin();S.add(VT.mesh);}VT.per=vtPer();VT.pt=VT.per.w*0.85;VT.mesh.position.copy(vtPt(VT.pt));VT.mesh.rotation.set(0,Math.PI,0);
+  VT.mode='idle';VT.wait=1.2;VT.path=[];VT.u=null;VT.mesh.visible=vtVisible();}
+function vtPop(pos,text,col){const t=canvasTex(640,140,(c,W,H)=>{c.font='900 92px sans-serif';c.textAlign='center';c.textBaseline='middle';c.lineWidth=16;c.strokeStyle='#fff';c.strokeText(text,W/2,H/2);c.fillStyle=col;c.fillText(text,W/2,H/2);});
+  const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true,depthTest:false}));s.scale.set(1500,330,1);s.position.set(pos.x,pos.y+1900,pos.z);s.userData.life=1.4;S.add(s);VT.fx.push(s);}
+const VT_LINES=['ガオー！','オラオラ〜！','ウオオオ！','ここは私の城！','パズバトしろ〜！','10周年まだ〜！？'];
+function vtLocal(u,lx,lz,y=0){const s=u.rot?-1:1;return new THREE.Vector3(u.x+s*lx,y,(u.z||0)+s*lz);}
+function vtDecide(){const L=LAY[cur],R=VT.per,r=Math.random();
+  if(r<0.45&&L.u.length){const i=Math.floor(Math.random()*L.u.length),u=L.u[i];VT.u=u;VT.ui=i;VT.lx=(Math.random()-.5)*260;
+    const front=u.rot?R.z0:R.z1;const tp=u.rot?(u.x-R.x0):(R.w+R.h+(R.x1-u.x));vtPathTo(tp);VT.mode='toClimb';return;}
+  if(r<0.6){VT.mode='tantrum';VT.t=0;vtPop(VT.mesh.position,'ムキー！','#e67e22');return;}
+  VT.u=null;vtPathTo(VT.pt+(Math.random()-.5)*R.P*0.8);VT.mode='walk';}
+function vtLimbs(a,b){const u=VT.mesh.userData;u.legs[0].rotation.x=a;u.legs[1].rotation.x=-a;u.arms[0].rotation.x=b[0];u.arms[1].rotation.x=b[1];}
+function vtStep(dt){if(!VT.mesh)return;for(const s of [...VT.fx]){s.userData.life-=dt;s.position.y+=dt*500;s.material.opacity=Math.min(1,s.userData.life*1.5);if(s.userData.life<=0){S.remove(s);s.material.map.dispose();s.material.dispose();VT.fx.splice(VT.fx.indexOf(s),1);}}
+  const vis=vtVisible();VT.mesh.visible=vis;if(!vis||!dt)return;const M=VT.mesh,u=M.userData;VT.t+=dt;
+  const shake=on=>{const c=VT.ui!=null&&layoutG.children[VT.ui];if(c){c.rotation.z=on?Math.sin(VT.t*40)*0.02:0;}};
+  if(VT.mode==='walk'||VT.mode==='toClimb'){let left=950*dt;while(left>0&&VT.path.length){const p=VT.path[0],d=p.clone().sub(M.position);d.y=0;const Ld=d.length();
+      if(Ld<=left){M.position.x=p.x;M.position.z=p.z;VT.path.shift();left-=Ld;}else{d.multiplyScalar(left/Ld);M.position.add(d);M.rotation.y=Math.atan2(d.x,d.z);left=0;}}
+    const a=Math.sin(VT.t*9)*0.6;vtLimbs(a,[-a*.8,a*.8]);M.position.y=Math.abs(Math.sin(VT.t*9))*25;
+    if(!VT.path.length){M.position.y=0;if(VT.mode==='toClimb'){VT.mode='hop';VT.t=0;VT.A=M.position.clone();VT.Pn=vtLocal(VT.u,VT.lx,720,1030);VT.Tp=vtLocal(VT.u,VT.lx,110,1790);M.rotation.y=VT.u.rot?0:Math.PI;}
+      else{VT.mode='idle';VT.wait=0.8+Math.random()*2;M.rotation.y=Math.atan2(-M.position.x,-M.position.z)+(Math.random()-.5);}}}
+  else if(VT.mode==='idle'){vtLimbs(u.legs[0].rotation.x*0.8,[u.arms[0].rotation.x*0.8,u.arms[1].rotation.x*0.8]);u.head.rotation.y=Math.sin(VT.t*2)*0.4;VT.wait-=dt;if(VT.wait<=0){u.head.rotation.y=0;vtDecide();}}
+  else if(VT.mode==='tantrum'){const a=Math.sin(VT.t*16);vtLimbs(a*0.5,[-2.6+a*.6,-2.6-a*.6]);M.position.y=Math.abs(a)*90;M.rotation.y+=dt*3;if(VT.t>2.2){M.position.y=0;VT.mode='idle';VT.wait=1;}}
+  else if(VT.mode==='hop'){const T=Math.min(1,VT.t/0.6);M.position.lerpVectors(VT.A,VT.Pn,T);M.position.y=1030*T+Math.sin(Math.PI*T)*450;vtLimbs(-0.6,[-2.4,-2.4]);if(T>=1){VT.mode='climb';VT.t=0;}}
+  else if(VT.mode==='climb'){const T=Math.min(1,VT.t/1.1);M.position.lerpVectors(VT.Pn,VT.Tp,T);M.position.y=1030+760*T;const a=Math.sin(VT.t*14);vtLimbs(a*0.8,[-2.6+a*.5,-2.6-a*.5]);
+    if(T>=1){VT.mode='rage';VT.t=0;VT.nx=0.3;M.rotation.y=VT.u.rot?Math.PI:0;}}
+  else if(VT.mode==='rage'){const a=Math.sin(VT.t*12);M.position.y=1790+Math.abs(Math.sin(VT.t*7))*230;vtLimbs(a*0.6,[-2.8+a*.7,-2.8-a*.7]);M.rotation.y=(VT.u.rot?Math.PI:0)+Math.sin(VT.t*3)*0.9;shake(true);
+    if(VT.t>VT.nx){VT.nx=VT.t+1.2;vtPop(M.position,VT_LINES[Math.floor(Math.random()*VT_LINES.length)],['#d6336c','#c0392b','#2b5fd9','#e67e22'][Math.floor(Math.random()*4)]);}
+    if(VT.t>4.8){shake(false);VT.mode='jump';VT.t=0;VT.J0=M.position.clone();VT.J0.y=1790;}}
+  else if(VT.mode==='jump'){const T=Math.min(1,VT.t/0.85);M.position.lerpVectors(VT.J0,VT.A,T);M.position.y=1790*(1-T)+Math.sin(Math.PI*T)*800;M.rotation.y+=dt*12;vtLimbs(0.4,[-3,-3]);
+    if(T>=1){M.position.y=0;M.rotation.y=VT.u.rot?Math.PI:0;vtPop(M.position,'スタッ！','#1a7f37');VT.mode='idle';VT.wait=1.4;VT.u=null;VT.ui=null;}}}
+$('tnBtn').classList.toggle('on',VT.on);
+$('tnBtn').onclick=()=>{VT.on=!VT.on;$('tnBtn').classList.toggle('on',VT.on);try{localStorage.setItem('pbtTin',VT.on?'1':'0')}catch(e){}setLayout(cur);};
 // headless balance test hook
 window.__simBalance=(days)=>{SIM.headless=true;const g0=G;G=newGame();G.today=freshToday();machines=[];customers=[];G.items.forEach(addMachine);const log=[];
   for(let d=0;d<days&&!G.cleared&&!G.over;d++){while(G.min<CLOSE_MIN){G.min+=0.5;stepGame(0.5);}const r=closeDay();
