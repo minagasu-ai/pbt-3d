@@ -2,7 +2,7 @@
 <html lang="ja"><head><meta charset="utf-8"><meta name="color-scheme" content="light only">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>パズドラバトルトーナメント筐体 3Dモデル</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&text=%E3%83%91%E3%82%BA%E3%83%89%E3%83%A9%E3%83%90%E3%83%88%E3%83%AB%E3%83%BC%E3%83%8A%E3%83%A1%E3%83%B3%E5%B0%82%E9%96%80%E5%BA%97%E7%B5%8C%E5%96%B6%E3%82%B7%E3%83%9F%E3%83%A5%E3%83%AC%E3%83%A7%E2%98%85VS%E3%83%86%E3%82%A3%E3%83%8B%E8%AD%A6%E5%AF%9F%E5%AE%98%E6%B6%88%E8%B2%BB%E8%80%85%E5%BA%81%E3%81%AE%E8%81%B7%E5%93%A1%E7%A8%8E%E5%8B%99%E7%BD%B2%E3%81%A7%E6%AE%B4%E3%82%8A%E5%90%88%E3%81%84%E8%85%95%E7%9B%B8%E6%92%B2%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E5%8B%9D%E8%B2%A0%EF%BC%810123456789%2CPBT%E7%AD%90%E4%BD%93%E3%83%95%E3%82%A1%E3%82%A4&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&text=%E3%83%91%E3%82%BA%E3%83%89%E3%83%A9%E3%83%90%E3%83%88%E3%83%AB%E3%83%BC%E3%83%8A%E3%83%A1%E3%83%B3%E5%B0%82%E9%96%80%E5%BA%97%E7%B5%8C%E5%96%B6%E3%82%B7%E3%83%9F%E3%83%A5%E3%83%AC%E3%83%A7%E2%98%85VS%E3%83%86%E3%82%A3%E3%83%8B%E8%AD%A6%E5%AF%9F%E5%AE%98%E6%B6%88%E8%B2%BB%E8%80%85%E5%BA%81%E3%81%AE%E8%81%B7%E5%93%A1%E7%A8%8E%E5%8B%99%E7%BD%B2%E3%81%A7%E6%AE%B4%E3%82%8A%E5%90%88%E3%81%84%E8%85%95%E7%9B%B8%E6%92%B2%E3%81%98%E3%82%83%E3%82%93%E3%81%91%E5%8B%9D%E8%B2%A0%EF%BC%810123456789%2CPBT%E7%AD%90%E4%BD%93%E3%83%95%E3%82%A1%E3%82%A4%E3%82%AB%E3%82%B6&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:#fff!important;color-scheme:light only;font-family:"Hiragino Sans","Noto Sans JP",sans-serif;color:#222;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none}
@@ -1362,7 +1362,7 @@ function vtPathTo(t1){const R=VT.per,P=R.P,t0=VT.pt,d=((t1-t0)%P+P)%P,dir=d<=P/2
 function vtViaPer(dst){const t0=vtNearestT(VT.mesh.position);VT.pt=t0;const a=[vtPt(t0)];return a.concat(vtPathTo(vtNearestT(dst)),[dst.clone()]);}
 function vtVisible(){return VT.on&&!SIM.on&&tmpl&&!LAY[cur].big;}
 function vtReset(){if(!VT.mesh){VT.mesh=makeTinnin();S.add(VT.mesh);}VT.per=vtPer();VT.pt=VT.per.w*0.85;VT.mesh.position.copy(vtPt(VT.pt));VT.mesh.rotation.set(0,Math.PI,0);
-  if(VT.mesh&&VT.mode==='antic')vtAnticReset();if(VT.mesh&&(VT.mode==='sumo'||VT.mode==='kbattle')){const g=VT.mesh.children[0];g.scale.y=g.scale.x;vtAnticReset();}VT.mode='idle';VT.wait=1.2;VT.path=[];VT.u=null;VT.ui=null;VT.ci=null;VT.moved={};VT.mesh.visible=vtVisible();if(VT.bub)VT.bub.visible=false;}
+  if(VT.mesh&&VT.mode==='antic')vtAnticReset();if(VT.mesh&&VT.mode==='robo'){VT.rb=null;const g=VT.mesh.children[0];g.scale.y=g.scale.x;vtAnticReset();}if(VT.mesh&&(VT.mode==='sumo'||VT.mode==='kbattle')){const g=VT.mesh.children[0];g.scale.y=g.scale.x;vtAnticReset();}VT.mode='idle';VT.wait=1.2;VT.path=[];VT.u=null;VT.ui=null;VT.ci=null;VT.moved={};VT.mesh.visible=vtVisible();if(VT.bub)VT.bub.visible=false;}
 function vtLocal(u,lx,lz,y=0){const s=u.rot?-1:1;return new THREE.Vector3(u.x+s*lx,y,(u.z||0)+s*lz);}
 const cabCenter=(pos,ry)=>pos.clone().add(new THREE.Vector3(0,0,421).applyAxisAngle(new THREE.Vector3(0,1,0),ry));
 // ---- ビューアのティンニンの暇つぶし行動（ゴロゴロ・逆立ち・側転・バク転…） ----
@@ -1388,9 +1388,67 @@ function vtAnticReset(){const M=VT.mesh,g=M.children[0],u=M.userData;g.rotation.
 function vtAnticStep(dt){const M=VT.mesh,g=M.children[0],u=M.userData,A=VT.ant;A.step(Math.min(1,VT.t/A.dur),VT.t,dt,M,g,u);
   if(VT.t>=A.dur){vtAnticReset();if(['roll','cartwheel','crawl','moonwalk'].includes(A.k)){const t0=vtNearestT(M.position);VT.pt=t0;VT.mode='walkOut';VT.path=[vtPt(t0)];}else{VT.mode='idle';VT.wait=0.6+Math.random();}}}
 // ---- ビューア：筐体と相撲 → ときどき筐体が反撃して肉弾戦（カットイン付き） ----
-function vCutin(){let el=document.getElementById('cutin');if(!el){el=document.createElement('div');el.id='cutin';$('view').appendChild(el);}
-  el.className='kb';el.innerHTML=`<div class="ci-band">${ciCard(portRender('cab'),'やられっぱなしの','PBT筐体','l')}<div class="ci-vs">VS</div>${ciCard(portRender('tin'),'暇をもてあます店長','ティンニン','r')}</div><div class="ci-sub"><span class="ci-tag">逆襲</span>ついに筐体がキレた！ 肉弾戦スタート！</div><div class="ci-m">ファイト！</div>`;
+function vCutin(robo){let el=document.getElementById('cutin');if(!el){el=document.createElement('div');el.id='cutin';$('view').appendChild(el);}
+  el.className='kb';el.innerHTML=`<div class="ci-band">${ciCard(portRender('cab'),robo?'全筐体合体！':'やられっぱなしの',robo?'PBTカイザー':'PBT筐体','l')}<div class="ci-vs">VS</div>${ciCard(portRender('tin'),'暇をもてあます店長','ティンニン','r')}</div><div class="ci-sub"><span class="ci-tag">逆襲</span>${robo?'筐体たちが合体した！ 巨大ロボ戦スタート！':'ついに筐体がキレた！ 肉弾戦スタート！'}</div><div class="ci-m">ファイト！</div>`;
   el.style.display='block';el.classList.remove('go');void el.offsetWidth;el.classList.add('go');clearTimeout(el._t);el._t=setTimeout(()=>{el.style.display='none';},3000);se.impact();setTimeout(()=>se.whoosh(),350);}
+// ---- 複数台表示時：筐体が合体ロボになって反撃 ----
+const ROBO_SLOTS=[[-420,0,0,'legL'],[420,0,0,'legR'],[-429,3898,1.57,'armL'],[429,3898,-1.57,'armR'],[0,4396,0,'head'],[-420,3700,0.55,'wingL'],[420,3700,-0.55,'wingR']];
+function roboOrder(n){return n===1?[[0,0,0,'leg']]:n===2?ROBO_SLOTS.slice(0,2):n===3?[ROBO_SLOTS[0],ROBO_SLOTS[1],ROBO_SLOTS[4]]:n===4?ROBO_SLOTS.slice(0,4):ROBO_SLOTS.slice(0,Math.min(7,n));}
+function vtRoboStart(){const C=VT.c0,main=VT.ci,kids=layoutG.children;
+  VT.rb={save:kids.map(c=>({x:c.position.x,y:c.position.y,z:c.position.z,rx:c.rotation.x,ry:c.rotation.y,rz:c.rotation.z})),parts:[],box0:BOX};
+  const others=kids.map((c,i)=>i).filter(i=>i!==main).sort((a,b)=>{const p=kids[main].position;return kids[a].position.distanceTo(p)-kids[b].position.distanceTo(p);});
+  const sl=roboOrder(others.length);others.slice(0,sl.length).forEach((i,k)=>VT.rb.parts.push({i,slot:sl[k]}));
+  VT.mode='robo';VT.t=0;say(VT,'えっ…ほかの筐体まで！？',1.6);
+  const f=new THREE.Vector3(Math.sin(C.ry),0,Math.cos(C.ry)),c=new THREE.Vector3(C.x,0,C.z).addScaledVector(f,600),r=5200;
+  const bx=new THREE.Box3(new THREE.Vector3(c.x-r,0,c.z-r),new THREE.Vector3(c.x+r,7400,c.z+r));try{camTo(bx,1.2);}catch(e){}}
+function vtRoboStep(dt){const M=VT.mesh,g=M.children[0],u=M.userData,C=VT.c0,RB=VT.rb,t=VT.t,kids=layoutG.children,main=kids[VT.ci];
+  const f=new THREE.Vector3(Math.sin(C.ry),0,Math.cos(C.ry)),rt=new THREE.Vector3(Math.cos(C.ry),0,-Math.sin(C.ry));
+  const setTin=(off,y=0)=>{M.position.set(VT.T0.x+f.x*off,y,VT.T0.z+f.z*off);};M.rotation.y=Math.atan2(-f.x,-f.z);
+  const ez=x=>x<0?0:x>1?1:x*x*(3-2*x);
+  // 合体後のロボ姿勢
+  let fwd=RB.fwd||0,lift=RB.lift||0,walk=0,punch=0,boom=-1;
+  const slotPos=(x,y,extraF=0)=>new THREE.Vector3(C.x,0,C.z).addScaledVector(rt,x).addScaledVector(f,fwd+extraF).setY(y+lift);
+  const place=(c,p,rz,rx=0)=>{c.position.copy(p);c.rotation.set(rx,C.ry,rz);};
+  const legH=RB.parts.some(p=>p.slot[3].startsWith('leg'))?2198:0;
+  // フェーズ
+  if(t<0.8){main.rotation.z=Math.sin(t*60)*0.03;return;}
+  const tg=t-0.8; // 合体 0..3.2
+  if(tg<3.4){RB.parts.forEach((p,k)=>{const s0=RB.save[p.i],T=ez((tg-k*0.3)/1.0),c=kids[p.i],[x,y,rz]=p.slot;const e=slotPos(x,y);
+      c.position.set(s0.x+(e.x-s0.x)*T,s0.y+(e.y-s0.y)*T+Math.sin(Math.PI*T)*1800,s0.z+(e.z-s0.z)*T);c.rotation.set(Math.sin(Math.PI*T)*1.2,s0.ry+(C.ry-s0.ry)*T,rz*T);
+      if(T>=1&&!p.in){p.in=1;se.drop();}});
+    const Tm=ez((tg-0.2)/1.4);place(main,slotPos(0,legH*Tm),Math.sin(tg*30)*0.02*(1-Tm));
+    if(tg>2.7&&!RB.p1){RB.p1=1;se.impact();say(VT,'合体ロボ「PBTカイザー」！？',2);}return;}
+  const tb=tg-3.4; // バトル
+  if(tb<1.4){walk=tb;fwd=Math.min(1,tb/1.4)*500;if(Math.floor(tb*4)!==RB.st){RB.st=Math.floor(tb*4);se.stomp(1);}}
+  else{fwd=500;}
+  if(tb>=1.4&&tb<2.4){punch=Math.sin(Math.PI*(tb-1.4)/1.0)*1500;if(!RB.p2){RB.p2=1;se.whoosh();say(VT,'ロケットパンチ！？',1.3);}}
+  if(VT.win&&tb>=5.0)boom=tb-5.0;
+  if(!VT.win&&tb>=4.6&&tb<5.8){const T=(tb-4.6)/1.2;fwd=500+ez(T)*1300;lift=Math.sin(Math.PI*T)*2200;}
+  if(!VT.win&&tb>=5.8)fwd=1800;
+  RB.fwd=fwd;RB.lift=lift;
+  const ret=tb>=7.2?ez((tb-7.2)/1.2):0;
+  // 配置
+  const all=[{i:VT.ci,slot:[0,legH,0,'main']}].concat(RB.parts);
+  all.forEach(p=>{const c=kids[p.i];let [x,y,rz,nm]=p.slot;let e;
+    if(nm==='main')e=slotPos(0,legH);else e=slotPos(x,y,nm==='armR'?punch:nm.startsWith('wing')?-900:0);
+    let rx=0;if(nm==='legL'||nm==='leg')rx=walk?Math.sin(walk*12)*0.12:0;if(nm==='legR')rx=walk?-Math.sin(walk*12)*0.12:0;
+    if(boom>=0){const a=Math.atan2(x||0.01,(y-2000)||0.01),T=Math.min(1,boom/1.4);if(!p.dir)p.dir=[x?Math.sign(x):(Math.random()-.5),Math.random()-.3];
+      e.addScaledVector(rt,p.dir[0]*2600*T).addScaledVector(f,p.dir[1]*2600*T);e.y=Math.max(0,e.y*(1-T)+Math.sin(Math.PI*T)*2500);rx=T*Math.PI*2*(p.dir[0]>0?1:-1);rz=rz*(1-T);}
+    if(ret>0){const s0=RB.save[p.i];e.lerp(new THREE.Vector3(s0.x,s0.y,s0.z),ret);c.position.copy(e);c.rotation.set(rx*(1-ret),C.ry+(s0.ry-C.ry)*ret,rz*(1-ret));}
+    else place(c,e,rz,rx);});
+  // ティンニン
+  if(tb<1.4){setTin(0);u.arms[0].rotation.x=-0.5;u.arms[1].rotation.x=-0.5;g.position.y=Math.abs(Math.sin(t*20))*20;}
+  else if(tb<2.0){const k=Math.min(1,Math.max(0,(tb-1.75)/0.25));if(k>0&&!RB.h1){RB.h1=1;se.hit();say(VT,'ぐはっ！',1.2);}setTin(1600*k,Math.sin(Math.PI*k)*700);g.rotation.x=-k*Math.PI*2;}
+  else if(tb<2.8){g.rotation.set(-Math.PI/2,0,0);g.position.set(0,160,0);setTin(1600);if(!RB.h2){RB.h2=1;se.land();}}
+  else if(tb<3.6){g.rotation.set(0,0,0);g.position.set(0,0,0);setTin(1600);if(!RB.h3){RB.h3=1;say(VT,'合体なんてずるい〜！',1.5);}}
+  else if(VT.win){if(tb<5.0){const T=Math.min(1,(tb-3.6)/1.4);setTin(1600-(1600+150)*T,Math.sin(Math.PI*Math.min(1,T*1.15))*5200);u.arms[0].rotation.x=-3;u.arms[1].rotation.x=-3;g.rotation.y=T*Math.PI*4;if(!RB.h4){RB.h4=1;se.jump();say(VT,'ティンニン・ギガアッパー！！',1.8);}}
+    else{g.rotation.y=0;setTin(-150);if(!RB.h5){RB.h5=1;se.impact();setTimeout(()=>se.drop(),500);}if(tb>6.4){g.position.y=Math.abs(Math.sin(t*8))*100;if(!RB.h6){RB.h6=1;se.win();say(VT,'合体ロボに勝った〜！',2.2);}}}}
+  else{setTin(1600);if(tb>=5.6&&tb<7.2){g.scale.y=g.scale.x*0.2;if(!RB.h4){RB.h4=1;se.drop();se.impact();}}
+    else if(tb>=7.2){g.scale.y=g.scale.x;g.rotation.z=Math.sin(t*9)*0.2;u.head.rotation.y=Math.sin(t*12)*0.5;if(!RB.h5){RB.h5=1;se.lose();say(VT,'きゅ〜…合体は反則…',2.2);}}
+    else{u.arms[0].rotation.x=-2.8;u.arms[1].rotation.x=-2.8;if(!RB.h6&&tb>4.8){RB.h6=1;say(VT,'うそでしょ〜！？',1.2);}}}
+  if(tb>=8.6)vtRoboEnd();}
+function vtRoboEnd(){const RB=VT.rb;if(RB){layoutG.children.forEach((c,i)=>{const s=RB.save[i];if(s){c.position.set(s.x,s.y,s.z);c.rotation.set(s.rx,s.ry,s.rz);}});try{if(RB.box0)camTo(RB.box0,1.0);}catch(e){}}
+  VT.rb=null;const M=VT.mesh,g=M.children[0];g.scale.y=g.scale.x;vtAnticReset();VT.ci=null;VT.c0=null;const t0=vtNearestT(M.position);VT.pt=t0;VT.mode='walkOut';VT.path=[vtPt(t0)];}
 function vtSumoStart(i){const c=layoutG.children[i];if(!c)return false;VT.ci=i;VT.c0={x:c.position.x,z:c.position.z,ry:c.rotation.y};
   const fr=c.localToWorld(new THREE.Vector3(0,0,1180));fr.y=0;VT.path=vtPathTo(vtNearestT(fr)).concat([fr]);VT.mode='toSumo';VT.T0=fr;return true;}
 function vtSumoStep(dt){const M=VT.mesh,g=M.children[0],u=M.userData,c=layoutG.children[VT.ci];if(!c){VT.mode='idle';return;}
@@ -1406,7 +1464,7 @@ function vtSumoStep(dt){const M=VT.mesh,g=M.children[0],u=M.userData,c=layoutG.c
       const p=(t-1.4)/3;setCab(-260*p,0,-0.05*Math.abs(Math.sin(t*16)),0);setTin(-260*p);const ph=Math.floor(t*16/Math.PI);if(ph!==VT.rph){VT.rph=ph;se.slap();}
       if(!VT.f3&&t>2){VT.f3=1;say(VT,'はっけよい、のこった！',1.6);}}
     else{g.rotation.x=0;for(const a of u.arms)a.rotation.x=0;
-      if(VT.counter){VT.mode='kbattle';VT.t=0;vCutin();say(VT,'えっ…！？',1.2);}
+      if(VT.counter){vCutin(layoutG.children.length>=2);if(layoutG.children.length>=2){vtRoboStart();}else{VT.mode='kbattle';VT.t=0;say(VT,'えっ…！？',1.2);}}
       else{const k=Math.min(1,(t-4.4)/0.6);setCab(-260*(1-k));setTin(-260*(1-k));if(k>=1){if(!VT.f4){VT.f4=1;say(VT,'ごっつぁんです！',1.6);}vtSumoEnd();}}}
     return;}
   // ---- 肉弾戦 ----
@@ -1453,7 +1511,8 @@ function vtDecide(){const L=LAY[cur],R=VT.per,r=Math.random();
 function vtLimbs(a,b){const u=VT.mesh.userData;u.legs[0].rotation.x=a;u.legs[1].rotation.x=-a;u.arms[0].rotation.x=b[0];u.arms[1].rotation.x=b[1];}
 // ---- ティンニンと筐体の当たり判定（筐体の床面を回転した長方形として扱う） ----
 const VT_RAD=230,CAB_HW=369,CAB_HD=421;
-function vtCabs(skip){const a=[];layoutG.children.forEach((c,i)=>{if(i===skip||c.position.y>200)return;const q=cabCenter(c.position,c.rotation.y);a.push({x:q.x,z:q.z,cs:Math.cos(c.rotation.y),sn:Math.sin(c.rotation.y)});});return a;}
+const VT_COLLIDE=false;
+function vtCabs(skip){const a=[];if(!VT_COLLIDE)return a;layoutG.children.forEach((c,i)=>{if(i===skip||c.position.y>200)return;const q=cabCenter(c.position,c.rotation.y);a.push({x:q.x,z:q.z,cs:Math.cos(c.rotation.y),sn:Math.sin(c.rotation.y)});});return a;}
 function vtHit(x,z,cabs){for(const b of cabs){const dx=x-b.x,dz=z-b.z,lx=dx*b.cs-dz*b.sn,lz=dx*b.sn+dz*b.cs;if(Math.abs(lx)<CAB_HW+VT_RAD&&Math.abs(lz)<CAB_HD+VT_RAD)return b;}return null;}
 function vtPush(M,cabs){for(let k=0;k<3;k++){const b=vtHit(M.position.x,M.position.z,cabs);if(!b)return;const dx=M.position.x-b.x,dz=M.position.z-b.z;let lx=dx*b.cs-dz*b.sn,lz=dx*b.sn+dz*b.cs;
   const px=CAB_HW+VT_RAD+2-Math.abs(lx),pz=CAB_HD+VT_RAD+2-Math.abs(lz);if(px<pz)lx+=Math.sign(lx||1)*px;else lz+=Math.sign(lz||1)*pz;
@@ -1483,6 +1542,7 @@ function vtStep(dt){if(!VT.mesh)return;bubStep(VT,dt);
     if(VT.wait<=0){u.head.rotation.y=0;vtDecide();}else if(Math.random()<dt*0.05&&!(VT.bubT>0))vtTalk();}
   else if(VT.mode==='antic'){vtAnticStep(dt);if(VT.mode==='antic'&&M.position.y<300)vtPush(M,vtCabs(-1));}
   else if(VT.mode==='sumo'||VT.mode==='kbattle'){vtSumoStep(dt);}
+  else if(VT.mode==='robo'){vtRoboStep(dt);}
   else if(VT.mode==='tantrum'){const a=Math.sin(VT.t*16);{const ph=Math.floor(VT.t*16/Math.PI);if(ph!==VT.rph){VT.rph=ph;se.stomp(0.5);}}vtLimbs(a*0.5,[-2.6+a*.6,-2.6-a*.6]);M.position.y=Math.abs(a)*90;M.rotation.y+=dt*3;if(VT.t>2.2){M.position.y=0;VT.mode='idle';VT.wait=1;}}
   else if(VT.mode==='lift'||VT.mode==='carry'||VT.mode==='drop'){const c=layoutG.children[VT.ci];const ry=c.rotation.y,off=new THREE.Vector3(0,0,421).applyAxisAngle(new THREE.Vector3(0,1,0),ry);
     const holdY=2050;
