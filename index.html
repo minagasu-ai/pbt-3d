@@ -280,7 +280,7 @@ const ITEMS={
  vend: {name:'ドリンク自販機',note:'1本150円（仕入30%）',price:50000,max:3,watt:400,attr:0.1,kind:'shop',w:1000,walls:['right','left','back'],buyP:0.22,spend:[150,150],costRate:0.3,label:'ドリンク',stay:0.5},
  goods:{name:'パズドラグッズ販売所',note:'客単価600〜2,000円（仕入35%）',price:150000,max:3,watt:60,attr:0.3,kind:'shop',w:1600,walls:['left','back','right'],buyP:0.07,spend:[600,2000],costRate:0.35,label:'グッズ',stay:1.5},
  gacha:{name:'パズドラガチャガチャ',note:'1回300円×1〜3回（原価30%）',price:80000,max:3,watt:20,attr:0.2,kind:'shop',w:950,walls:['left','back','right'],buyP:0.15,spend:[300,900],step:300,costRate:0.3,label:'ガチャガチャ',stay:1},
- doujin:{name:'パズドラ同人誌コーナー',note:'1冊500円×1〜2冊（委託40%）・月末ピンチに救世主が…？',price:100000,max:3,watt:30,attr:0.25,kind:'shop',w:1800,walls:['left','back','right'],buyP:0.035,spend:[500,1000],step:500,costRate:0.4,label:'同人誌',stay:3},
+ doujin:{name:'パズドラ同人誌コーナー',note:'1冊500円×1〜2冊（委託40%）・置いておくと、いいことがあるかも…？',price:100000,max:3,watt:30,attr:0.25,kind:'shop',w:1800,walls:['left','back','right'],buyP:0.035,spend:[500,1000],step:500,costRate:0.4,label:'同人誌',stay:3},
  crane:{name:'クレーンゲーム',note:'1回100円・数回遊ぶ（景品原価25%）',price:200000,max:3,watt:200,attr:0.4,kind:'shop',w:1100,walls:['left','back','right'],buyP:0.15,spend:[200,1500],step:100,costRate:0.25,label:'クレーンゲーム',stay:4},
  ice:  {name:'31アイス',note:'シングル〜トリプル 400〜1,100円（原価30%）',price:250000,max:3,watt:800,attr:0.35,kind:'shop',w:1800,walls:['back','left','right'],buyP:0.12,spend:[400,1100],step:10,costRate:0.3,label:'31アイス',stay:2}
 };
@@ -766,11 +766,10 @@ function spawnBVIP(){const ts=SHOPS.filter(t=>machines.some(m=>m.type===t));if(!
   if(!SIM.headless){c.mesh=makePerson(0xd4af37);c.mesh.scale.setScalar(1.15);c.mesh.position.copy(ENTRANCE);peopleG.add(c.mesh);}
   customers.push(c);nextStop(c);}
 // 月末の請求が払えないピンチに現れる救世主（初回のピンチ月は必ず、以降は低確率）
-function eroCheck(){if(G.today.bvip||G.min>=CLOSE_MIN-150||G.min<OPEN_MIN+60||daysToMonthEnd(G.day)>5)return;const d=dateOf(G.day),key=d.getFullYear()*12+d.getMonth();if(G.eroKey===key)return;
+function eroCheck(){if(!count('doujin')||G.today.bvip||G.min>=CLOSE_MIN-150||G.min<OPEN_MIN+60||daysToMonthEnd(G.day)>5)return;const d=dateOf(G.day),key=d.getFullYear()*12+d.getMonth();if(G.eroKey===key)return;
   if(monthBill().total<=G.money)return;G.eroKey=key;const go=!G.eroUsed||Math.random()<0.2;if(!go)return;G.eroUsed=true;spawnEro();}
-function spawnEro(){const ms=machines.filter(m=>m.type==='doujin');const pool=ms.length?ms:machines.filter(m=>m.T.kind==='shop');const m=pool.length?pool[Math.floor(Math.random()*pool.length)]:null;
+function spawnEro(){const ms=machines.filter(m=>m.type==='doujin');if(!ms.length)return;const m=ms[Math.floor(Math.random()*ms.length)];
   const amount=Math.max(5000,Math.round(monthBill().total/500)*500);G.today.bvip={who:'エロ同人収集ニキ',item:'エロ同人',amount,done:false};G.today.visitors++;G.total.visitors++;
-  if(!m){G.money+=amount;G.today.sales.doujin=(G.today.sales.doujin||0)+amount;G.today.bvip.done=true;G.today.bvip.doneAt=performance.now();return;}
   const c={m,state:'walk',patience:9999,path:[],credits:0,creditLeft:0,mesh:null,bamount:amount,noCost:true,stops:[m]};
   if(!SIM.headless){c.mesh=makePerson(0xd4af37);c.mesh.scale.setScalar(1.15);c.mesh.position.copy(ENTRANCE);peopleG.add(c.mesh);}customers.push(c);nextStop(c);}
 function toast(t){const el=$('toast');if(!el)return;el.textContent=t;el.style.opacity=1;clearTimeout(toast.h);toast.h=setTimeout(()=>el.style.opacity=0,4500);}
