@@ -869,7 +869,10 @@ function renderPiP(){const act=SIM.on&&G?['sns','cup','nico'].filter(k=>(G.promo
   R.setScissorTest(false);R.setViewport(0,0,W,H);}
 // ---- sound (チャリーン) : synthesized with WebAudio ----
 let AC=null,sfxOn=true;try{sfxOn=localStorage.getItem('pbtSfx')!=='0'}catch(e){}
-function ensureAudio(){if(SIM.headless)return;try{if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();}catch(e){}}
+// スマホ（特にiPhone）は、タップの処理の中で一度音を鳴らさないと音が出ない。無音を鳴らして「解錠」する
+function ensureAudio(){if(SIM.headless)return;try{if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();if(AC.state!=='running')AC.resume();
+  if(!AC._unlocked){const b=AC.createBuffer(1,1,22050),src=AC.createBufferSource();src.buffer=b;src.connect(AC.destination);src.start(0);if(AC.state==='running')AC._unlocked=true;}}catch(e){}}
+for(const ev of ['pointerdown','touchend','click','keydown'])document.addEventListener(ev,ensureAudio,true);
 function ping(t,f,vol,dur){const o=AC.createOscillator(),g=AC.createGain();o.type='sine';o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+0.004);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);o.connect(g).connect(AC.destination);o.start(t);o.stop(t+dur+0.02);}
 // ---- 効果音（ビューアのティンニン／シミュレーションの各イベント） ----
 const SE={last:{}};
@@ -911,7 +914,7 @@ const se={
 };
 const HIT_WORDS=/ドカッ|バキッ|ゴツン|ボコッ|ドスッ|バシッ|オラァ|ラリアット|ジャーマン|ドロップキック|ポーイ|ちゃぶ台/;
 function seForPop(text){if(HIT_WORDS.test(text))se.hit();else if(/スパーン/.test(text))se.slap();else if(/ガオー/.test(text))se.roar();else if(/ケンカ勃発/.test(text))se.alert();else if(/[✊✌✋]/.test(text))se.pop();}
-document.addEventListener('pointerdown',()=>{if(!SIM.on)ensureAudio();},true);
+
 // ---- 店内の環境音（ゲーセンの賑わい）：雑踏・話し声・各台のピコピコ音・ボタン連打・オリジナルのデモ曲 ----
 let ambOn=true;try{ambOn=localStorage.getItem('pbtAmb')!=='0'}catch(e){}
 const AMB={init:false};
