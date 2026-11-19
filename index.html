@@ -190,12 +190,18 @@ function fit(){
   if(!BOX)return;const {W,H}=size();if(!W||!H)return;
   cam.aspect=W/H;cam.updateProjectionMatrix();
   tgt.copy(BOX.getCenter(new THREE.Vector3()));
-  const pts=[];for(const x of [BOX.min.x,BOX.max.x])for(const y of [BOX.min.y,BOX.max.y])for(const z of [BOX.min.z,BOX.max.z])pts.push(new THREE.Vector3(x,y,z));
+  let pts;if(BOX.userData&&BOX.userData.pts)pts=BOX.userData.pts();else{pts=[];for(const x of [BOX.min.x,BOX.max.x])for(const y of [BOX.min.y,BOX.max.y])for(const z of [BOX.min.z,BOX.max.z])pts.push(new THREE.Vector3(x,y,z));}
   const pad=SIM.on?6:Math.max(10,Math.min(W,H)*0.04),top=SIM.on?100:pad,left=pad;
-  const ok=r=>{rad=r;place();for(const p of pts){const q=p.clone().project(cam);const sx=(q.x+1)/2*W,sy=(1-q.y)/2*H;
-    if(q.z>1||q.z<-1||sx<left||sx>W-pad||sy<top||sy>H-pad)return false}return true};
-  let lo=200,hi=90000;for(let i=0;i<44;i++){const m=(lo+hi)/2;if(ok(m))hi=m;else lo=m}
-  rad=hi;place();
+  const proj=()=>pts.map(p=>{const q=p.clone().project(cam);return [(q.x+1)/2*W,(1-q.y)/2*H,q.z];});
+  const ok=r=>{rad=r;place();for(const [sx,sy,qz] of proj()){if(qz>1||qz<-1||sx<left||sx>W-pad||sy<top||sy>H-pad)return false}return true};
+  const search=()=>{let lo=200,hi=90000;for(let i=0;i<44;i++){const m=(lo+hi)/2;if(ok(m))hi=m;else lo=m}rad=hi;place();};
+  search();
+  // 余白の中で上下左右の中央に寄せ直す（グラフと重ならないよう、使える範囲の真ん中に置く）
+  for(let it=0;it<3;it++){const P=proj();const xs=P.map(p=>p[0]),ys=P.map(p=>p[1]);
+    const dx=(left+W-pad)/2-(Math.min(...xs)+Math.max(...xs))/2,dy=(top+H-pad)/2-(Math.min(...ys)+Math.max(...ys))/2;
+    const wpp=2*rad*Math.tan(cam.fov*Math.PI/360)/H;cam.updateMatrixWorld();
+    const right=new THREE.Vector3().setFromMatrixColumn(cam.matrixWorld,0),up=new THREE.Vector3().setFromMatrixColumn(cam.matrixWorld,1);
+    tgt.addScaledVector(right,-dx*wpp).addScaledVector(up,dy*wpp);search();}
 }
 function setView(k){curView=k;[th,ph]=DIRV[k];document.querySelectorAll('[data-v]').forEach(b=>b.classList.toggle('on',b.dataset.v===k));fit();}
 // pointer handling
@@ -393,6 +399,8 @@ const VEND_SLOTS=[{x:5600,z:-4600,rot:-Math.PI/2},{x:5600,z:-3500,rot:-Math.PI/2
 const BENCH_SLOTS=[{x:5600,z:400,rot:-Math.PI/2},{x:5600,z:2000,rot:-Math.PI/2},{x:5600,z:3600,rot:-Math.PI/2}];
 const ENTRANCE=new THREE.Vector3(0,0,ROOM.z1+300);
 const ROOMBOX=new THREE.Box3(new THREE.Vector3(ROOM.x0,0,ROOM.z0),new THREE.Vector3(ROOM.x1,1700,ROOM.z1));
+// フィット用の点：床の四隅＋奥の壁の上端（看板まで画面に入れる）＋横壁の上端
+ROOMBOX.userData={};ROOMBOX.userData.pts=()=>[[ROOM.x0,0,ROOM.z0],[ROOM.x1,0,ROOM.z0],[ROOM.x0,0,ROOM.z1],[ROOM.x1,0,ROOM.z1],[ROOM.x0,2700,ROOM.z0],[ROOM.x1,2700,ROOM.z0],[ROOM.x0,760,ROOM.z1],[ROOM.x1,760,ROOM.z1]].map(a=>new THREE.Vector3(...a));
 // ---- helpers ----
 function canvasTex(w,h,draw){const c=document.createElement('canvas');c.width=w;c.height=h;const g=c.getContext('2d');draw(g,w,h);const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=4;return t;}
 const MAT={};function mat(col,o={}){const k=col+JSON.stringify(o);return MAT[k]||(MAT[k]=new THREE.MeshStandardMaterial({color:col,roughness:.6,metalness:.05,...o}));}
