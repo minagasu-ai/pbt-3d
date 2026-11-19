@@ -62,6 +62,7 @@ button.wide{grid-column:span 2}
 #cutin .ci-m{font-family:'Dela Gothic One',sans-serif;font-size:22px;color:#fff6c8;-webkit-text-stroke:1px #7a1f00;text-shadow:0 3px 0 #b0002a;margin-top:6px}
 #cutin.go .ci-band{animation:ciIn .45s cubic-bezier(.2,1.4,.4,1) both}#cutin.go .ci-sub{animation:ciIn .45s .25s both}#cutin.go .ci-m{animation:ciPop .5s .5s both}
 @keyframes ciIn{from{transform:translateX(-110%) skewY(-4deg)}to{transform:translateX(0) skewY(-4deg)}}@keyframes ciPop{from{transform:scale(2.4);opacity:0}to{transform:scale(1);opacity:1}}
+#sndHint{display:none;position:absolute;right:10px;top:10px;z-index:7;background:rgba(43,95,217,.92);color:#fff;font-size:12px;font-weight:700;padding:6px 12px;border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,.25);cursor:pointer;animation:hintPulse 1.6s ease-in-out infinite}@keyframes hintPulse{50%{transform:scale(1.05)}}
 #sCost{color:#1b2a4a;margin:0 0 6px}#sCost span{display:block;color:#888;font-size:9.5px}
 #sStat{display:flex;flex-wrap:wrap;justify-content:space-between;gap:2px 6px;font-size:10.5px;margin-bottom:4px}#sStat .ev,#sStat .evn{flex-basis:100%}
 .mrow{display:flex;justify-content:space-between;align-items:center;gap:4px;padding:4px 0;border-bottom:1px solid #e3e6ec}.mrow small{font-size:9px;color:#888}
@@ -873,6 +874,10 @@ let AC=null,sfxOn=true;try{sfxOn=localStorage.getItem('pbtSfx')!=='0'}catch(e){}
 function ensureAudio(){if(SIM.headless)return;try{if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();if(AC.state!=='running')AC.resume();
   if(!AC._unlocked){const b=AC.createBuffer(1,1,22050),src=AC.createBufferSource();src.buffer=b;src.connect(AC.destination);src.start(0);if(AC.state==='running')AC._unlocked=true;}}catch(e){}}
 for(const ev of ['pointerdown','touchend','click','keydown'])document.addEventListener(ev,ensureAudio,true);
+// 音がまだ出せない間は、画面右上に「クリックで音が出ます」の案内を出す（ブラウザの自動再生ブロック対策）
+(function(){const h=document.createElement('div');h.id='sndHint';h.textContent='🔇 画面をクリック（タップ）すると効果音が鳴ります';document.getElementById('view').appendChild(h);
+  setInterval(()=>{const need=sfxOn&&!(AC&&AC.state==='running');h.style.display=need?'block':'none';},500);
+  h.addEventListener('click',()=>{ensureAudio();se.pop();});})();
 function ping(t,f,vol,dur){const o=AC.createOscillator(),g=AC.createGain();o.type='sine';o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+0.004);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);o.connect(g).connect(AC.destination);o.start(t);o.stop(t+dur+0.02);}
 // ---- 効果音（ビューアのティンニン／シミュレーションの各イベント） ----
 const SE={last:{}};
