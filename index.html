@@ -565,8 +565,11 @@ function makePerson(col){const g=new THREE.Group();const m=new THREE.MeshStandar
   const l1=new THREE.Mesh(legGeo,m),l2=new THREE.Mesh(legGeo,m);l1.position.set(-90,330,0);l2.position.set(90,330,0);l1.castShadow=l2.castShadow=true;
   g.add(body,head,l1,l2);g.userData={body,head,l1,l2};return g;}
 function pose(c,p){const u=c.mesh.userData;c.pose=p;
-  if(p==='sit'){u.body.position.y=900;u.head.position.y=1340;for(const l of [u.l1,u.l2]){l.rotation.x=Math.PI/2;l.position.y=480;l.position.z=-260;}}
-  else{u.body.position.y=1180;u.head.position.y=1620;for(const l of [u.l1,u.l2]){l.rotation.x=0;l.position.y=330;l.position.z=0;}}}
+  // 座るとき：太ももは前（向いている方＝筐体側）へ水平に、すねは膝から下へまっすぐ
+  if(p==='sit'){u.body.position.y=900;u.head.position.y=1340;
+    if(!u.s1){u.s1=new THREE.Mesh(legGeo,u.l1.material);u.s2=new THREE.Mesh(legGeo,u.l1.material);u.s1.castShadow=u.s2.castShadow=true;c.mesh.add(u.s1,u.s2);}
+    for(const [l,s,x] of [[u.l1,u.s1,-90],[u.l2,u.s2,90]]){l.rotation.x=Math.PI/2;l.scale.set(1,0.75,1);l.position.set(x,470,230);s.visible=true;s.scale.set(1,0.75,1);s.position.set(x,240,440);}}
+  else{u.body.position.y=1180;u.head.position.y=1620;for(const l of [u.l1,u.l2]){l.rotation.x=0;l.scale.set(1,1,1);l.position.set(l===u.l1?-90:90,330,0);}if(u.s1){u.s1.visible=false;u.s2.visible=false;}}}
 // ---- 店長ティンニン（身長1500mm・ボクセル） ----
 function pixTex(w,h,draw){const c=document.createElement('canvas');c.width=w;c.height=h;const g=c.getContext('2d');const px=(x,y,col,ww=1,hh=1)=>{g.fillStyle=col;g.fillRect(x,y,ww,hh);};draw(px,w,h,g);
   const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.magFilter=THREE.NearestFilter;t.minFilter=THREE.NearestFilter;t.generateMipmaps=false;return t;}
