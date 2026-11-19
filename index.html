@@ -961,7 +961,7 @@ function renderUI(){if(!G)return;if(!Number.isFinite(G.money))normalize(G);const
   const broken=machines.filter(m=>m.broken).length;
   const mgHTML=`<div class="mrow" style="display:block"><span>1プレイ料金<small>（高いほど遊ぶ人が減る）</small></span><div class="seg" style="margin-top:3px;justify-content:flex-start">${Object.entries(PRICES).map(([k,p])=>`<button data-price="${k}" class="${(G.price||'100')===k?'on':''}">${p.label}</button>`).join('')}</div></div>
    ${broken?`<div class="mrow"><span style="color:#c0392b">故障中 ${broken}台<br><small>閉店時に自動修理（${yen(REPAIR_COST)}/台）</small></span><div class="seg"><button data-repair="1">すぐ修理</button></div></div>`:''}
-   <div class="mrow" style="display:block"><span>宣伝<small>（同時に複数OK・倍率は合算）</small></span><div class="seg" style="margin-top:3px;justify-content:flex-start">${Object.entries(PROMOS).map(([k,p])=>`<button data-promo="${k}" ${G.money<p.price||(G.promos||[]).some(x=>x.k===k)?'disabled':''}>${p.label}<br><small>${yen(p.price)}・${p.days}日 来客×${p.mult}</small></button>`).join('')}</div></div>`;
+   <div class="mrow" style="display:block"><span>宣伝<small>（同時に複数OK・倍率は合算）</small></span><div class="seg" style="margin-top:3px;justify-content:flex-start">${Object.entries(PROMOS).map(([k,p])=>`<button data-promo="${k}" ${G.money<p.price||(G.promos||[]).some(x=>x.k===k)||k==='nico'&&G.nicoMonth===dateOf(G.day).getFullYear()*12+dateOf(G.day).getMonth()?'disabled':''}>${p.label}<br><small>${yen(p.price)}・${p.days}日 来客×${p.mult}${k==='nico'?'<br>月1回まで・消費者庁が必ず来る':''}</small></button>`).join('')}</div></div>`;
   if(mgHTML!==lastMg){lastMg=mgHTML;$('mgmt').innerHTML=mgHTML;}
   $('sGoal').textContent=G.cleared?`クリア済み！ PBT2 ${count('pbt2')}/18台・PBT ${count('pbt')}/18台`:`目標：パズドラバトルトーナメント２導入（${yen(GOAL_PRICE)}）`;$('sGoalBar').style.width=(G.cleared?100:Math.max(0,Math.min(100,G.money/GOAL_PRICE*100)))+'%';
   const shopHTML=ORDER.map(t=>{const I=ITEMS[t];const r=canBuy(t);const lab=r==='max'?'上限':r==='money'?'資金不足':'購入';
@@ -1016,7 +1016,7 @@ function exitSim(){SIM.on=false;$('titleBar').style.display='none';$('simCam').s
 $('mgmt').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled||!G)return;
   if(b.dataset.price){G.price=b.dataset.price;}
   if(b.dataset.repair){if(G.money<machines.filter(m=>m.broken).length*REPAIR_COST){toast('お金が足りません');return;}const n=repairAll(true);if(n)popup(new THREE.Vector3(0,0,0),'修理完了','#1a7f37');}
-  if(b.dataset.promo){const p=PROMOS[b.dataset.promo];if(G.money>=p.price){G.money-=p.price;G.promos=(G.promos||[]).concat([{k:b.dataset.promo,days:p.days}]);if(b.dataset.promo==='nico'&&Math.random()<0.5&&!G.caa){G.caa={day:G.day+1+Math.floor(Math.random()*5),min:OPEN_MIN+60+Math.random()*600};}popup(ENTRANCE.clone().setZ(ROOM.z1-800),p.label+'！','#e67e22');}}
+  if(b.dataset.promo){const p=PROMOS[b.dataset.promo];if(G.money>=p.price){G.money-=p.price;G.promos=(G.promos||[]).concat([{k:b.dataset.promo,days:p.days}]);if(b.dataset.promo==='nico'){const d=dateOf(G.day);G.nicoMonth=d.getFullYear()*12+d.getMonth();G.caa={day:G.day+1+Math.floor(Math.random()*5),min:OPEN_MIN+60+Math.random()*600};}popup(ENTRANCE.clone().setZ(ROOM.z1-800),p.label+'！','#e67e22');}}
   save();renderUI();});
 $('shop').addEventListener('click',e=>{const b=e.target.closest('[data-buy]');if(b&&!b.disabled)buy(b.dataset.buy);});
 $('simUI').addEventListener('click',ensureAudio,true);
