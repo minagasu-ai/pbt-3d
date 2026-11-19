@@ -55,6 +55,7 @@ button.wide{grid-column:span 2}
 .heat{background:#fff4ec;border-radius:6px;padding:4px 6px;margin:4px 0;font-size:10.5px}.heat b{display:block;color:#a12a1e}.heat span{display:flex;align-items:center;gap:4px;justify-content:space-between}.heat i{flex:0 0 55%;height:7px;background:#e5e7eb;border-radius:4px;overflow:hidden}.heat u{display:block;height:100%}.heat small{color:#888;font-size:9px}
 .soft{font-size:10.5px}.soft>div:first-child{margin-bottom:3px}.soft small{display:block;color:#888;font-size:9px}.fb{display:block;height:6px;background:#e5e7eb;border-radius:3px;overflow:hidden;margin:2px 0}.fb u{display:block;height:100%;background:linear-gradient(90deg,#c0392b,#e0a400,#1a7f37)}.soft .seg button{flex:1;font-size:10px;line-height:1.25}.soft .seg small{display:inline;color:inherit;opacity:.8}
 .ups .uph{display:block;color:#888;font-size:9px;margin-bottom:2px}.uprow{display:flex;justify-content:space-between;align-items:center;gap:4px;padding:3px 0;border-bottom:1px solid #e3e6ec;font-size:10.5px}.uprow small{display:block;font-size:9.5px;color:#555}.uprow em{color:#e0a400;font-style:normal;font-weight:800}.uprow .seg button{font-size:10px;line-height:1.2;min-width:52px}.uprow .seg small{display:inline;color:inherit;opacity:.8}
+.crime{background:#2a1215;color:#fff;border-radius:8px;padding:5px 7px;margin:5px 0}.crime>b{display:block;color:#ff8a80;font-size:11px}.crime>b small{display:block;color:#bbb;font-weight:400;font-size:9px}.crime .mrow{border-bottom-color:#4a2a2e}.crime .mrow small{color:#ccc}.crime .seg button{min-width:44px}
 #modal h3{margin:0 0 6px;font-size:15px}#modal tr.sum td{font-weight:800;border-top:2px solid #cfd5df}
 #modal .clear h3{color:#d0349b;font-size:20px;text-align:center}
 .ev{color:#fff;border-radius:6px;padding:4px 6px;font-weight:700;font-size:10.5px;margin:2px 0 4px}.evn{color:#8a5a00;font-size:10px;margin-bottom:4px}
@@ -1220,7 +1221,7 @@ function closeDay(){
   G.monthSales=(G.monthSales||0)+sales;rep.caa=T.caa||null;rep.monthEnd=isMonthEnd(G.day);rep.dueNow=G.due;if(rep.monthEnd)G.monthSales=0;rep.dueParts={...G.dueParts};if(rep.monthEnd){rep.paid=G.due;G.money-=G.due;G.due=0;G.dueParts={rent:0,elec:0,share:0,stock:0};rep.money=G.money;}
   rep.debt=G.money<0;if(rep.monthEnd&&G.money<0){G.over=true;rep.over=true;}
   if(rep.monthEnd&&!rep.over){const tax=Math.round((Math.max(0,G.mProfit||0)*0.2+(G.taxArrears||0)*1.1)/1000)*1000;G.mProfit=0;G.taxArrears=0;rep.tax=tax;
-    if(tax>0){if(G.money>=tax&&!SIM.auto){G.money-=tax;rep.taxPaid=tax;rep.money=G.money;}else rep.taxChoice=true;}}
+    if(tax>0){if(!crimeOn('tax')&&!SIM.auto){const pay=Math.max(0,Math.min(G.money,tax));G.money-=pay;rep.taxPaid=pay;if(tax>pay){G.taxArrears=tax-pay;rep.taxLate=tax-pay;}rep.money=G.money;}else if(false){G.money-=tax;rep.taxPaid=tax;rep.money=G.money;}else rep.taxChoice=true;}}
   else if(rep.monthEnd)G.mProfit=0;
   if(!rep.over&&daysToMonthEnd(G.day)===5){const b=G.due+fixedDaily()*5;if(b>G.money){rep.billWarn=b;}}rep.toEnd=daysToMonthEnd(G.day+1)+1;
   rep.bad=T.bad&&T.bad.fired?T.bad:null;rep.fight=T.fight&&T.fight.done;rep.raid=T.raidRes||null;rep.catch=T.catchRes||null;G.prevSeries=(T.series||[]).concat([[CLOSE_MIN,sales,c.total]]);if(G.enjo>0)G.enjo--;if(G.foodClosed>0)G.foodClosed--;
@@ -1317,7 +1318,7 @@ function renderUI(){if(!G)return;if(!Number.isFinite(G.money))normalize(G);const
   const broken=machines.filter(m=>m.broken).length;
   const mgHTML=`<div class="mrow" style="display:block"><span>1プレイ料金<small>（高いほど遊ぶ人が減る）</small></span><div class="seg" style="margin-top:3px;justify-content:flex-start">${Object.entries(PRICES).map(([k,p])=>`<button data-price="${k}" class="${(G.price||'100')===k?'on':''}">${p.label}</button>`).join('')}</div></div>
    ${broken?`<div class="mrow"><span style="color:#c0392b">故障中 ${broken}台<br><small>閉店時に自動修理（${yen(REPAIR_COST)}/台）</small></span><div class="seg"><button data-repair="1">すぐ修理</button></div></div>`:''}
-   <div class="mrow"><span>風営法<small>${G.fuei?'無視して深夜営業中（来客×1.25・警察の疑惑度↑）':'守って営業中'}</small></span><div class="seg"><button data-fuei="1" class="${G.fuei?'on':''}" style="${G.fuei?'background:#c0392b;color:#fff;border-color:#c0392b':''}">${G.fuei?'無視中':'無視する'}</button></div></div>
+   ${crimeHTML()}
    ${heatHTML()}
    <div class="mrow" style="display:block"><span>宣伝<small>（同時に複数OK・倍率は合算）</small></span><div class="seg" style="margin-top:3px;justify-content:flex-start">${Object.entries(PROMOS).map(([k,p])=>`<button data-promo="${k}" ${G.money<p.price||(G.promos||[]).some(x=>x.k===k)||k==='nico'&&G.nicoMonth===dateOf(G.day).getFullYear()*12+dateOf(G.day).getMonth()?'disabled':''}>${p.label}<br><small>${yen(p.price)}・${p.days}日 来客×${p.mult}${k==='nico'?'<br>月1回まで・消費者庁が必ず来る':''}</small></button>`).join('')}</div></div>`;
   const mg2=mgHTML+upHTML();if(mg2!==lastMg){lastMg=mg2;$('mgmt').innerHTML=mg2;}
@@ -1346,6 +1347,9 @@ function promoBuy(k,boost){const p=PROMOS[k];if(G.money<p.price)return;G.money-=
   if(boost)addHeat('caa',k==='nico'?40:k==='cup'?22:15,k==='nico'?'景品表示法違反（ニコ生での優良誤認表示）':k==='cup'?'景品表示法違反（店内イベントの誇大告知）':'景品表示法違反（SNS広告の優良誤認）');
   if(k==='nico'){const d=dateOf(G.day);G.nicoMonth=d.getFullYear()*12+d.getMonth();G.caa={day:G.day+1+Math.floor(Math.random()*5),min:OPEN_MIN+60+Math.random()*600};}
   popup(ENTRANCE.clone().setZ(ROOM.z1-800),p.label+(boost?'（盛り）':'')+'！','#e67e22');save();}
+const CRIMES=[{k:'fuei',l:'風営法を無視しますか？',on:'深夜営業・年齢確認なし（来客×1.25）',who:'警察'},{k:'tax',l:'脱税しときますか？',on:'月末の税金を払わない',who:'税務署'},{k:'ad',l:'優良誤認させますか？',on:'宣伝を盛る（効果×1.6）',who:'消費者庁'}];
+function crimeOn(k){return k==='fuei'?!!G.fuei:!!(G.crime&&G.crime[k]);}
+function crimeHTML(){return `<div class="crime"><b>裏稼業スイッチ<small>ONにすると儲かるが疑惑度が上がる</small></b>${CRIMES.map(c=>{const on=crimeOn(c.k);return `<div class="mrow"><span>${c.l}<small>${on?c.on+'・'+c.who+'の疑惑度↑':'OFF（クリーン営業）'}</small></span><div class="seg"><button data-crime="${c.k}" class="${on?'on':''}" style="${on?'background:#c0392b;color:#fff;border-color:#c0392b':''}">${on?'ON':'OFF'}</button></div></div>`;}).join('')}</div>`;}
 function heatHTML(){const H=heat(),L={police:'👮 警察',tax:'💼 税務署',caa:'📢 消費者庁'};if(!Object.values(H).some(v=>v>0.5))return '';
   return `<div class="heat"><b>疑惑度</b>${Object.keys(L).map(k=>`<span>${L[k]}<i><u style="width:${Math.round(H[k])}%;background:${H[k]>=60?'#c0392b':H[k]>=20?'#e67e22':'#8a92a0'}"></u></i></span>`).join('')}<small>20%を超えるとガサ入れが来ることがあります</small></div>`;}
 function upHTML(){const S=soft(),own=ORDER.filter(t=>count(t)>0);
@@ -1367,7 +1371,7 @@ function showReport(rep){const T=rep.T,c=rep.c;SIM.paused=true;se.bell();
   <div class="kpi">${cell('売上',yen(rep.sales))}${cell('利益（発生）',yen(prof),`color:${prof<0?'#c0392b':'#1a7f37'}`)}${cell('所持金',yen(rep.money))}</div>
   <div class="rl">${sales.map(([l,v])=>`<span>${l}<i>${yen(v)}</i></span>`).join('')}</div>
   <div class="rl ex"><span>経費 ${rep.sales>0?Math.round(c.total/rep.sales*100):0}%<i>${yen(c.total)}</i></span><span>RS・家賃<i>${yen(c.share+c.rent)}</i></span><span>電気・仕入<i>${yen(c.elec+c.stock)}</i></span>${c.repair?`<span>修理（${c.broken}台）<i>-${yen(c.repair)}</i></span>`:''}${c.loss?`<span>特別損失<i>-${yen(c.loss)}</i></span>`:''}
-  ${rep.tax!=null?`<span class="w">税金（法人税等）<i style="color:${rep.evaded?'#555':'#c0392b'}">${rep.evaded?'脱税（0円）':'-'+yen(rep.taxPaid||0)}${rep.taxLate?'・延滞'+yen(rep.taxLate):''}</i></span>`:''}${rep.paid!=null?`<span class="w">月末支払い<i style="color:#c0392b">-${yen(rep.paid)}</i></span>`:`<span class="w">今月の支払予定<i>${yen(rep.dueNow)}</i></span>`}</div>
+  ${rep.tax!=null?`<span class="w">税金（法人税等）<i style="color:${rep.evaded?'#555':'#c0392b'}">${rep.evaded?'脱税（0円）':rep.taxLate&&!rep.taxPaid?'未納':'-'+yen(rep.taxPaid||0)}${rep.taxLate?'・延滞'+yen(rep.taxLate):''}</i></span>`:''}${rep.paid!=null?`<span class="w">月末支払い<i style="color:#c0392b">-${yen(rep.paid)}</i></span>`:`<span class="w">今月の支払予定<i>${yen(rep.dueNow)}</i></span>`}</div>
   <div class="chips"><span>来客 <b>${T.visitors}</b>人</span><span>ガチャ客 <b>${T.payers}</b>人</span><span>最高 <b>${yen(T.maxSpend)}</b></span><span>物販 <b>${T.buyers}</b>回</span><span>満足 <b>${T.served}</b>人</span><span>離脱 <b>${T.lost}</b>人</span><span>故障 <b>${T.breaks}</b>回</span><span>評判 <b>${Math.round(rep.rep1)}</b>（${rep.rep1>=rep.rep0?'+':''}${Math.round(rep.rep1-rep.rep0)}）</span></div>
   ${rep.fresh1!=null&&rep.fresh1<40?`<div class="warn">PBTの鮮度が${Math.round(rep.fresh1)}%に低下（マンネリ化で来客減）。バージョンアップや新キャラ追加を！</div>`:''}${notes}<div class="fore">明日：${WX[rep.wxNext].i} ${WX[rep.wxNext].l}（来客×${WX[rep.wxNext].m}）</div></div>
   <div class="rfoot">${rep.over?`<button id="overBtn" class="big" style="background:#c0392b;color:#fff;border-color:#c0392b">結果を見る</button>`:`<button id="nextDay" class="big">${rep.day+1}日目の営業を始める ▶</button>`}</div></div>`;
@@ -1400,8 +1404,9 @@ function exitSim(){CAMA=null;if(typeof FIGHT!=='undefined')FIGHT.focus=false;if(
 $('mgmt').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled||!G)return;
   if(b.dataset.price){G.price=b.dataset.price;}
   if(b.dataset.repair){if(G.money<machines.filter(m=>m.broken).length*REPAIR_COST){toast('お金が足りません');return;}const n=repairAll(true);if(n)popup(new THREE.Vector3(0,0,0),'修理完了','#1a7f37');}
-  if(b.dataset.promo){if(G.money>=PROMOS[b.dataset.promo].price){promoAsk(b.dataset.promo);return;}}
-  if(b.dataset.fuei){G.fuei=!G.fuei;if(G.fuei){se.alarm();toast('風営法無視で深夜まで営業！ 来客×1.25（警察の疑惑度が毎日上昇）');}else toast('風営法を守って営業します');}
+  if(b.dataset.promo){if(G.money>=PROMOS[b.dataset.promo].price)promoBuy(b.dataset.promo,crimeOn('ad'));}
+  if(b.dataset.crime){const k=b.dataset.crime;if(k==='fuei')G.fuei=!G.fuei;else{G.crime=G.crime||{};G.crime[k]=!G.crime[k];}const on=crimeOn(k);if(on)se.alarm();else se.pop();
+    toast(k==='fuei'?(on?'風営法無視で深夜まで営業！ 来客×1.25（警察の疑惑度が毎日上昇）':'風営法を守って営業します'):k==='tax'?(on?'ティンニン「月末の税金はコッソリ払わないでおくね！」':'ティンニン「ちゃんと納税します…」'):(on?'ティンニン「宣伝はちょっと盛っておくね！」':'ティンニン「誠実に宣伝します」'));}
   if(b.dataset.lv){const t=b.dataset.lv,u=upg(t),c=lvCost(t);if(u.lv<UPG_MAX&&G.money>=c){G.money-=c;u.lv++;se.buy();toast(ITEMS[t].name+' Lv'+u.lv+' にレベルアップ！');}}
   if(b.dataset.plus){const t=b.dataset.plus,u=upg(t),c=plusCost(t);if(u.plus<PLUS_MAX&&G.money>=c){G.money-=c;u.plus=Math.min(PLUS_MAX,u.plus+10);se.coin&&se.coin();se.pop();toast(ITEMS[t].name+' +'+u.plus+'！');}}
   if(b.dataset.soft){const k=b.dataset.soft,S=soft(),D=SOFT[k],c=D.cost();if(G.money>=c){G.money-=c;S.fresh=Math.min(100,S.fresh+D.fresh);if(k==='ver')S.ver++;if(k==='chara'){S.chars++;S.chara=D.days;}if(k==='collab')S.collab=D.days;se.promo();
@@ -1428,8 +1433,8 @@ function autoBuy(){const reserve=monthBill().total+80000;let bought=[];
   for(let guard=0;guard<40;guard++){let did=false;
     for(const t of AUTO_LIST){if(t==='bench'&&count('bench')>=2)continue;if(!canBuy(t)&&G.money-ITEMS[t].price>=reserve){doBuy(t);bought.push(ITEMS[t].name);did=true;break;}}
     if(!did)break;}
-  if(!G.fuei){G.fuei=true;bought.push('風営法無視の深夜営業');}
-  for(const k of ['sns','cup']){const p=PROMOS[k];if(count('pbt')+count('pbt2')>=6&&!(G.promos||[]).some(x=>x.k===k)&&G.money-p.price>=reserve*1.5){promoBuy(k,true);bought.push(p.label+'（盛り）');}}
+  if(!G.fuei||!crimeOn('tax')||!crimeOn('ad')){G.fuei=true;G.crime={tax:true,ad:true};bought.push('裏稼業スイッチ全部ON');}
+  for(const k of ['sns','cup']){const p=PROMOS[k];if(count('pbt')+count('pbt2')>=6&&!(G.promos||[]).some(x=>x.k===k)&&G.money-p.price>=reserve*1.5){promoBuy(k,crimeOn('ad'));bought.push(p.label+'（盛り）');}}
   {const S=soft();if(S.fresh<50&&G.money-SOFT.ver.cost()>=reserve*1.3){G.money-=SOFT.ver.cost();S.ver++;S.fresh=Math.min(100,S.fresh+45);bought.push('PBT '+verLabel(S.ver));}
    else if(S.fresh<70&&!S.chara&&G.money-SOFT.chara.cost()>=reserve*1.5){G.money-=SOFT.chara.cost();S.chars++;S.chara=7;S.fresh=Math.min(100,S.fresh+18);bought.push('新キャラ追加');}
    for(const t of [...new Set(G.items.map(i=>i.type))]){const u=upg(t);if(u.lv<UPG_MAX&&G.money-lvCost(t)>=reserve*2){G.money-=lvCost(t);u.lv++;bought.push(ITEMS[t].name.slice(0,8)+' Lv'+u.lv);}}}
@@ -1450,7 +1455,7 @@ function simTick(){const now=performance.now();const dt=Math.min(0.1,(now-lastT)
   if(!SIM.paused&&!G.closing){let dm=dt*SIM.speed*DAY_MIN/REAL_SEC_PER_DAY;
     while(dm>0){const s=Math.min(dm,0.5);G.min+=s;stepGame(s);dm-=s;if(G.min>=CLOSE_MIN){G.min=CLOSE_MIN;G.closing=true;break;}}
     recordSeries();
-    if(G.closing){const rep=closeDay();const go=()=>{showReport(rep);if(SIM.auto)autoAfterReport(rep);};if(rep.taxChoice&&!SIM.auto)taxAsk(rep,go);else{if(rep.taxChoice)taxApply(rep,!!SIM.auto);go();}}}
+    if(G.closing){const rep=closeDay();const go=()=>{showReport(rep);if(SIM.auto)autoAfterReport(rep);};if(rep.taxChoice)taxApply(rep,true);go();}}
   stepVisual(SIM.paused?0:dt);uiAcc+=dt;if(uiAcc>0.25){uiAcc=0;renderUI();}}
 // ---- しゃべる（吹き出し）：パズドラ語録 ----
 const PAZ_LINES=["パズバト１０周年はどうした？！", "てま崩壊！", "なんなすみません", "消費者庁コラボ第２弾！", "パズバト２はよ！", "ゴッドフェス来い〜！", "確定演出きた！？", "魔法石10個くれ〜！", "スキル上げ失敗…", "ゲリラダンジョン開幕！", "10コンボ決めたる！", "落ちコンきたー！", "ガチャ爆死…", "ノーコンクリア！", "覚醒スキルはよ！", "タマゴ割れろ〜！", "コラボ復刻まだ？", "チャレダン難しすぎ！", "ドロップ強化！", "ここは私の城！", "虹の番人どこ〜？", "ノエルドラゴンかわいい", "パズル力が足りない…", "6個消しで回復！", "L字消し決まった！", "十字消しで軽減じゃ！", "根性で耐えた！", "先制攻撃いたい…", "毒ドロップやめて〜", "お邪魔ドロップ邪魔！", "ロック解除はよ！", "スキル溜まった！", "変身！", "超覚醒させたい", "アシスト装備した？", "潜在たまご出た！", "ドロップ目覚め〜", "エンハンス乗った！", "倍率高すぎワロタ", "ワンパン余裕！", "リーダー誰にしよ", "フレンド借りるね", "スタミナ足りない…", "スタミナ回復した！", "ログインボーナス！", "今日は何曜ダンジョン？", "テクニカル行こ〜", "降臨チャレンジ！", "裏ボス強すぎ！", "周回、周回、また周回", "ランキングダンジョン！", "王冠ほしい〜", "ランダン上位目指す！", "メダル交換しなきゃ", "モンスター交換所！", "BOXパンパン…", "売却ミスった…", "合成しなきゃ", "究極進化！", "進化素材足りない", "ダブり出た…", "ピィ集めなきゃ", "＋ポイント振らなきゃ", "コイン足りない…", "魔法石いくつある？", "課金は計画的に！", "ガチャは悪い文明…", "もう一回だけ…！", "天井ってどこ？", "コラボガチャ引く？", "推しキャラ来た〜！", "星６確定！？", "フェス限ゲット！", "おめでとう演出！", "タマゴ金色だった！", "虹たまご〜！", "バトルトーナメント開幕！", "対戦相手まだ〜？", "勝ったら筐体ゆずって", "1プレイ100円だよ！", "キャラガチャ回す？", "筐体ピカピカに磨いた", "POP貼り直さなきゃ", "今日も満員御礼！", "いらっしゃいませ〜！", "ありがとうございました〜", "店長は私です！", "バイト募集中！", "レシート要りますか？", "店内で走らないで〜", "ケンカはダメだよ？", "両成敗するよ？", "お客さん来ないかな", "売上ノルマ…", "家賃高すぎ…", "電気代こわい…", "月末の支払い…", "借金はダメ、ゼッタイ", "石油王まだかな〜", "パズバト２導入したい！", "1億円って何円？", "ちょっと休憩…", "おなかすいた〜", "31アイス食べたい", "同人誌、新刊出てる！", "クレーンゲーム下手…", "ガチャガチャ回したい", "ジュース補充しなきゃ", "グッズ完売したい！", "夢は全国制覇！"];
