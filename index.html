@@ -20,6 +20,7 @@ html,body{margin:0;height:100%;background:#fff!important;color-scheme:light only
 h1{font-size:12.5px;margin:0 0 4px;line-height:1.3}
 
 .autob{width:100%;margin-top:4px;font-weight:700;background:#fff4d6;border-color:#e0b84a;color:#7a5200}.autob.on{background:#ff9f1a;color:#fff;border-color:#d35400}
+.autoSp{display:flex;align-items:center;gap:3px;margin-top:3px}.autoSp span{font-size:9.5px;color:#7a5200;font-weight:700;white-space:nowrap;margin-right:2px}.autoSp button{flex:1;padding:3px 0;font-size:10px}.autoSp button.on{background:#ff9f1a;color:#fff;border-color:#d35400}
 .spLab{font-weight:700;font-size:10.5px;color:#3a1c71;margin:2px 0 2px}
 h1.gtitle{font-size:12px;text-align:center;color:#fff;background:linear-gradient(90deg,#3a1c71,#b0388f);border-radius:6px;padding:5px 4px;margin:-2px 0 6px;letter-spacing:.02em}
 h2{font-size:11px;margin:9px 0 4px;color:#2b5fd9;font-weight:700}
@@ -109,7 +110,7 @@ button.wide{grid-column:span 2}
   <div class="bar"><i id="sBar"></i></div><div id="sEvent"></div><div id="sStat"></div>
   <div>所持金</div><div id="sMoney">¥0</div>
   <div id="sToday" style="margin:3px 0 2px"></div><div id="sCost"></div>
-  <div class="spLab">倍速モード</div><div class="grid3" style="grid-template-columns:repeat(4,1fr) 34px"><button data-sp="0">停止</button><button data-sp="1" class="on">×1</button><button data-sp="3">×3</button><button data-sp="10">×10</button><button id="sfx" title="効果音">🔊</button></div><button id="autoBtn" class="autob">1か月オート（ティンニンにおまかせ）</button>
+  <div class="spLab">倍速モード</div><div class="grid3" style="grid-template-columns:repeat(4,1fr) 34px"><button data-sp="0">停止</button><button data-sp="1" class="on">×1</button><button data-sp="3">×3</button><button data-sp="10">×10</button><button id="sfx" title="効果音">🔊</button></div><button id="autoBtn" class="autob">1か月オート（ティンニンにおまかせ）</button><div class="autoSp"><span>オート速度</span><button data-asp="1" class="on">等倍</button><button data-asp="2">×2</button><button data-asp="5">×5</button><button data-asp="10">×10</button></div>
   <h2>経営</h2><div id="mgmt"></div>
   <h2 id="sGoal">目標：パズドラバトルトーナメント２導入</h2><div class="bar"><i id="sGoalBar"></i></div>
   <h2>購入・設置</h2><div id="shop"></div>
@@ -977,7 +978,8 @@ function renderUI(){if(!G)return;if(!Number.isFinite(G.money))normalize(G);const
   renderTelop();drawChart();
 
   document.querySelectorAll('[data-sp]').forEach(b=>b.classList.toggle('on',(+b.dataset.sp)===(SIM.paused?0:SIM.speed)));
-  const ab=$('autoBtn');if(ab){const t=SIM.auto?`オート中… あと${SIM.auto.left}日（押すと停止）`:'1か月オート（ティンニンにおまかせ）';if(ab.textContent!==t)ab.textContent=t;ab.classList.toggle('on',!!SIM.auto);}}
+  const ab=$('autoBtn');if(ab){const t=SIM.auto?`オート中… あと${SIM.auto.left}日（押すと停止）`:'1か月オート（ティンニンにおまかせ）';if(ab.textContent!==t)ab.textContent=t;ab.classList.toggle('on',!!SIM.auto);}
+  document.querySelectorAll('[data-asp]').forEach(b=>b.classList.toggle('on',+b.dataset.asp===(SIM.autoSpeed||1)));}
 function showReport(rep){const T=rep.T,c=rep.c;SIM.paused=true;
   $('modal').innerHTML=`<div class="card"><h3>${rep.day}日目 ${rep.date} 決算　${WX[rep.wx||'cloud'].i}</h3>${rep.ev?`<div class="ev" style="background:${rep.ev.col}">${rep.ev.name} ボーナス週間（来客×${rep.ev.mult}・ガチャイベント）</div>`:''}
   <table><tr><td>PBTプレイ料金（${T.credits}回）</td><td>${yen(T.sales.pbt)}</td></tr><tr><td>PBTキャラガチャ（${T.pulls}回）</td><td>${yen(T.sales.pgacha)}</td></tr>${SHOPS.filter(k=>T.sales[k]||count(k)).map(k=>`<tr><td>${ITEMS[k].label}売上</td><td>${yen(T.sales[k]||0)}</td></tr>`).join('')}
@@ -1037,7 +1039,7 @@ $('simBtn').onclick=enterSim;$('simExit').onclick=exitSim;
 $('simReset').onclick=()=>{if($('simReset').dataset.arm){delete $('simReset').dataset.arm;$('simReset').textContent='最初からやり直す';try{localStorage.removeItem('pbtSim2')}catch(e){}G=newGame();G.today=freshToday();rebuild();$('modal').style.display='none';SIM.paused=false;renderUI();}
   else{$('simReset').dataset.arm=1;$('simReset').textContent='もう一度押すとリセット';setTimeout(()=>{delete $('simReset').dataset.arm;$('simReset').textContent='最初からやり直す'},3000);}};
 document.querySelectorAll('[data-sp]').forEach(b=>b.onclick=()=>{if(SIM.auto)autoStop();const v=+b.dataset.sp;if(v===0)SIM.paused=true;else{SIM.paused=false;SIM.speed=v;}renderUI();});
-// ---- 1か月オートモード：ティンニンが自動で経営（×30・決算は自動で閉じる） ----
+// ---- 1か月オートモード：ティンニンが自動で経営（速度は等倍/×2/×5/×10から選択・決算は自動で閉じる） ----
 const AUTO_LIST=['pbt','doujin','bench','anime','goods','gacha','vend','ice','crane','bench'];
 function autoBuy(){const reserve=monthBill().total+80000;let bought=[];
   if(!G.cleared&&!canBuy('pbt2')&&G.money-ITEMS.pbt2.price>=reserve){doBuy('pbt2');return ['パズバト２'];}
@@ -1047,7 +1049,7 @@ function autoBuy(){const reserve=monthBill().total+80000;let bought=[];
   for(const k of ['sns','cup']){const p=PROMOS[k];if(count('pbt')+count('pbt2')>=6&&!(G.promos||[]).some(x=>x.k===k)&&G.money-p.price>=reserve*1.5){G.money-=p.price;G.promos=(G.promos||[]).concat([{k,days:p.days}]);bought.push(p.label);}}
   if(machines.some(m=>m.broken)&&G.money>=reserve)repairAll(true);
   return bought;}
-function autoStart(){SIM.auto={left:30,prevSpeed:SIM.speed};SIM.speed=30;SIM.paused=false;if($('modal').style.display==='flex'&&$('nextDay'))$('nextDay').click();toast('1か月オート開始！ ティンニンにおまかせ');renderUI();}
+function autoStart(){SIM.auto={left:30,prevSpeed:SIM.speed};SIM.speed=SIM.autoSpeed||1;SIM.paused=false;if($('modal').style.display==='flex'&&$('nextDay'))$('nextDay').click();toast('1か月オート開始！ ティンニンにおまかせ');renderUI();}
 function autoStop(msg){if(!SIM.auto)return;SIM.speed=SIM.auto.prevSpeed||1;SIM.auto=null;if(msg)toast(msg);renderUI();}
 function autoAfterReport(rep){const A=SIM.auto;if(!A)return;A.left--;
   if(rep.over){autoStop('倒産…オートを終了しました');return;}
@@ -1055,6 +1057,7 @@ function autoAfterReport(rep){const A=SIM.auto;if(!A)return;A.left--;
   if(G.cleared&&!SIM.auto)return;if(!$('nextDay')){autoStop('クリア！オートを終了しました');return;}
   if(A.left<=0){autoStop('1か月オート終了！');return;}
   setTimeout(()=>{if(SIM.auto&&$('nextDay')&&$('modal').style.display==='flex')$('nextDay').click();},1300);}
+document.querySelectorAll('[data-asp]').forEach(b=>b.onclick=()=>{SIM.autoSpeed=+b.dataset.asp;if(SIM.auto)SIM.speed=SIM.autoSpeed;renderUI();});
 $('autoBtn').onclick=()=>{if(SIM.auto)autoStop('オートを止めました');else autoStart();};
 let lastT=performance.now(),uiAcc=0;
 function simTick(){const now=performance.now();const dt=Math.min(0.1,(now-lastT)/1000);lastT=now;vtStep(SIM.on?0:dt);if(!SIM.on||!G)return;
