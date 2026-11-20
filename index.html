@@ -752,7 +752,8 @@ const CLERK_LINES=["いらっしゃいませ〜！", "空いてる台どうぞ�
 const clerkLine=()=>CLERK_LINES[Math.floor(Math.random()*CLERK_LINES.length)];
 function staffDecide(){const S_=STAFF,u=S_.mesh.userData;u.head.rotation.y=0;const r=Math.random();
   if(Math.random()<(S_.mode==='home'?0.3:0.4)){say(S_,Math.random()<0.8?clerkLine():pazLine());}
-  if((S_.mode==='home'||S_.mode==='wander')&&customers.length<=2&&G.min>OPEN_MIN+20&&G.min<CLOSE_MIN-90&&!jailActive()&&Math.random()<0.55){S_.mode='toTout';S_.target=null;staffRoute(TOUT_POS());return;}
+  const moneyLow=(()=>{try{return G.money<monthBill().total*1.1||G.money<30000;}catch(e){return G.money<30000;}})();
+  if((S_.mode==='home'||S_.mode==='wander')&&(customers.length<=2||moneyLow&&customers.length<=6)&&G.min>OPEN_MIN+20&&G.min<CLOSE_MIN-90&&!jailActive()&&Math.random()<0.55){S_.mode='toTout';S_.target=null;staffRoute(TOUT_POS());return;}
   if((S_.mode==='home'||S_.mode==='wander')&&lineWaiters().length>=3&&Math.random()<0.5){const W=lineWaiters(),p=linePos(Math.min(W.length-1,Math.floor(W.length/2)));S_.mode='line';S_.target=null;staffRoute(p.clone().add(new THREE.Vector3(0,0,-330)));return;}
   if(S_.mode==='home'){if(r<0.12){S_.mode='sleep';S_.wait=14+Math.random()*12;u.head.rotation.x=0.5;}
     else if(r<0.45||machines.some(m=>m.broken)&&Math.random()<0.6){S_.mode='wander';staffRoute(staffPick());}else S_.wait=5+Math.random()*8;return;}
@@ -771,6 +772,7 @@ function checkout(c){const S_=STAFF;if(SIM.headless||!S_.mesh){buyAt(c);nextStop
 function payAtCounter(c){c.vendPos=c.payPos;buyAt(c);if(STAFF.mode==='home'&&Math.random()<0.5)popup(STAFF.mesh.position,'まいど！','#ff4f9a');nextStop(c);}
 // ---- 客が少ないとき：ティンニンが入口で客引き（手書きの旗「大人気ぱずばと！」） ----
 const TOUT_POS=()=>new THREE.Vector3(650,0,ROOM.z1-650);
+const TOUT_POOR=['お願い〜！ 1回だけでも遊んでって〜！','家賃がピンチなの〜！','パズバト２のために〜！','今なら店長のスマイル付き！'];
 const TOUT_LINES=['いらっしゃいませ〜！ パズバトあるよ〜！','今なら待ち時間ゼロだよ〜！','大人気ぱずばと、遊んでって〜！','ちょっとそこのパズドラー！','1回100円だよ〜！','ガチャも回せるよ〜！'];
 let toutFlag=null;function makeToutFlag(){const g=new THREE.Group();const pole=cyl(22,2300,mat(0x8b5a2b),10);pole.position.y=1150;g.add(pole);
   const tx=canvasTex(512,300,(c,w,h)=>{c.fillStyle='#fff7e0';c.fillRect(0,0,w,h);c.strokeStyle='#ff4f9a';c.lineWidth=14;c.strokeRect(10,10,w-20,h-20);
@@ -781,8 +783,8 @@ function toutStep(dt,k){const S_=STAFF,u=S_.mesh.userData;if(!toutFlag){toutFlag
   toutFlag.visible=S_.mode==='tout';if(S_.mode!=='tout')return false;
   S_.phase+=dt*k;const sw=Math.sin(S_.phase*5);toutFlag.rotation.z=sw*0.28;u.arms[1].rotation.x=-2.6+sw*0.35;u.arms[0].rotation.x=-0.4-Math.abs(sw)*0.5;S_.mesh.position.y=Math.abs(Math.sin(S_.phase*5))*35;
   const cl=toutFlag.userData.cloth,pa=cl.geometry.attributes.position,b=toutFlag.userData.base;for(let i=0;i<pa.count;i++){const x=b[i*3];pa.array[i*3+2]=Math.sin(x*0.008+S_.phase*7)*40*((x+450)/900);}pa.needsUpdate=true;
-  S_.talkT=(S_.talkT||0)-dt*k;if(S_.talkT<=0){S_.talkT=3.5+Math.random()*2;say(S_,TOUT_LINES[Math.floor(Math.random()*TOUT_LINES.length)],2.6);}
-  S_.wait-=dt*k;if(S_.wait<=0||customers.length>=7||G.min>=CLOSE_MIN-30){toutFlag.visible=false;staffPoseReset();S_.mesh.position.y=0;if(customers.length>=7)say(S_,'お客さん来た〜！',1.8);S_.mode='return';staffRoute(null,true);}
+  S_.talkT=(S_.talkT||0)-dt*k;if(S_.talkT<=0){S_.talkT=3.5+Math.random()*2;{const L=S_.toutPoor&&Math.random()<0.6?TOUT_POOR:TOUT_LINES;say(S_,L[Math.floor(Math.random()*L.length)],2.6);}}
+  S_.wait-=dt*k;if(S_.wait<=0||customers.length>=(S_.toutPoor?10:7)||G.min>=CLOSE_MIN-30){toutFlag.visible=false;staffPoseReset();S_.mesh.position.y=0;if(customers.length>=7)say(S_,'お客さん来た〜！',1.8);S_.mode='return';staffRoute(null,true);}
   return true;}
 function staffStep(dt){const S_=STAFF;if(!S_.mesh||!dt)return;bubStep(S_,dt);const u=S_.mesh.userData,k=Math.min(2.5,Math.sqrt(SIM.speed));
   fightStep(dt,k);raidStep(dt,k);catchStep(dt,k);danStep(dt,k);S_.zzz.visible=S_.mode==='sleep';
@@ -802,7 +804,7 @@ function staffStep(dt){const S_=STAFF;if(!S_.mesh||!dt)return;bubStep(S_,dt);con
       if(S_.mode==='return'){S_.mode='home';S_.mesh.rotation.y=-Math.PI/2;S_.wait=6+Math.random()*8;}
       else if(S_.mode==='toPlay'){const m=S_.playM;if(m&&!m.busy&&!m.broken){const sp=toWorld(m,0,m.seatL[1]+60);S_.mesh.position.set(sp.x,60,sp.z);const t=toWorld(m,0,0);S_.mesh.rotation.y=Math.atan2(t.x-sp.x,t.z-sp.z);
           for(const l of u.legs)l.rotation.x=-1.5;S_.mode='play';S_.wait=10+Math.random()*10;S_.phase=0;S_.nx=1;}else{S_.mode='wander';S_.wait=1;S_.playM=null;}}
-      else if(S_.mode==='toTout'){S_.mode='tout';S_.mesh.rotation.y=0;S_.wait=16+Math.random()*10;S_.talkT=0;S_.phase=0;popup(S_.mesh.position,'客引き中！（来客アップ）','#ff4f9a');}
+      else if(S_.mode==='toTout'){S_.mode='tout';S_.mesh.rotation.y=0;S_.wait=16+Math.random()*10;S_.talkT=0;S_.phase=0;let low=false;try{low=G.money<monthBill().total*1.1||G.money<30000;}catch(e){}S_.toutPoor=low;popup(S_.mesh.position,low?'お金ピンチ！客引き中（来客アップ）':'客引き中！（来客アップ）','#ff4f9a');if(low)say(S_,'今月ピンチ…お客さん呼ばなきゃ！',2.4),S_.talkT=2.6;}
       else if(S_.mode==='line'){S_.mesh.rotation.y=0;say(S_,LINE_LINES[Math.floor(Math.random()*LINE_LINES.length)],2.4);u.arms[1].rotation.x=-2.6;lineReflow();for(const q of lineWaiters())q.patience+=8;popup(S_.mesh.position,'行列整理！（待ち時間＋）','#ff4f9a');S_.mode='wander';S_.wait=3;}
       else if(S_.mode==='call'){let n=0;for(const c of S_.calls.slice()){if(c.state==='waitStaff'&&c.vendPos.distanceTo(S_.mesh.position)<2600){buyAt(c);nextStop(c);n++;}}
         if(n)popup(S_.mesh.position,'まいどあり！','#ff4f9a');S_.mode='wander';S_.wait=1.2;}
