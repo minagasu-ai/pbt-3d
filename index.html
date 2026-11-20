@@ -310,7 +310,7 @@ const KWH_YEN=31,BASE_LIGHT_W=1500,RENT_BASE=2000,RENT_PER_MACHINE=200,START_MON
 const ITEMS={
  pbt:  {name:'パズドラバトルトーナメント',price:500000,gacha:200,max:18,watt:180,credit:100,mins:4,cr:[2,5],attr:1.0,kind:'game',pose:'sit'},
  pbt2: {name:'パズドラバトルトーナメント２',note:'開発費用＆導入費用込み・導入でクリア！ 1プレイ料金×2／ガチャ1回300円',price:100000000,gacha:300,max:18,watt:300,credit:200,cmul:2,mins:4,cr:[1,3],attr:2.0,kind:'game',pose:'sit'},
- dan:  {name:'段ボール偽筐体（ティンニン作）',note:'遊べないけど店がにぎやかに見える（集客ちょいアップ）・本物を買うと置き換え・たまに客が間違えてお金を入れる',price:1000,max:6,watt:0,attr:0.12,kind:'fake'},
+ dan:  {name:'段ボール製パズバト（ティンニン手作り）',disp:'段ボール製パズバト<br>ティンニン手作り',note:'遊べないけど店がにぎやかに見える（集客ちょいアップ）・本物を買うと置き換え・たまに客が間違えてお金を入れる',price:1000,max:6,watt:0,attr:0.12,kind:'fake'},
  bench:{name:'休憩ベンチ・テーブル',note:'待ちきれずに帰る客が減る（1台ごとに我慢＋5分・待ち列＋1）',price:30000,max:1,watt:0,attr:0,kind:'bench',w:1700,walls:['backC','left','right','backL','backR']},
  anime:{name:'アニメ上映モニター',note:'「パズドラクロス」アニメ上映中！ 集客アップ',price:120000,max:1,watt:150,attr:0.35,kind:'deco',w:1700,walls:['left','right']},
  vend: {name:'ドリンク自販機',note:'1本150円（仕入30%）',price:50000,max:1,watt:400,attr:0.1,kind:'shop',w:1000,walls:['right','left','backL','backR'],buyP:0.22,spend:[150,150],costRate:0.3,label:'ドリンク',stay:0.5},
@@ -1419,7 +1419,7 @@ function renderUI(){if(!G)return;if(!Number.isFinite(G.money))normalize(G);const
   const mg2=mgHTML+upHTML()+'<h2>裏稼業</h2>'+crimeHTML()+heatHTML();if(mg2!==lastMg){lastMg=mg2;$('mgmt').innerHTML=mg2;}
   $('sGoal').innerHTML=G.cleared?`クリア済み！ PBT2 ${count('pbt2')}/18台・PBT ${count('pbt')}/18台`:`目標：<span style="white-space:nowrap">パズドラバトルトーナメント２</span>の<br>開発費用＆導入費用<br><span style="white-space:nowrap">${GOAL_PRICE.toLocaleString()}円</span>を稼ごう！`;$('sGoalBar').style.width=(G.cleared?100:Math.max(0,Math.min(100,G.money/GOAL_PRICE*100)))+'%';
   const shopHTML=ORDER.map(t=>{const I=ITEMS[t];const r=canBuy(t);const lab=r==='max'?'上限':r==='money'?'資金不足':'購入';
-    return `<div class="item"><div><b>${I.name}</b><span>${yen(I.price)}　${count(t)}/${maxOf(t)}${I.note?'<br>'+I.note:''}${I.kind==='game'?`${t==='pbt2'?'':`<br>キャラガチャ1回${I.gacha}円`}・${I.watt}W`:I.watt?`<br>${I.watt}W`:''}</span></div><button data-buy="${t}" ${r?'disabled':''}>${lab}</button></div>`}).join('');
+    return `<div class="item"><div><b>${I.disp||I.name}</b><span>${yen(I.price)}　${count(t)}/${maxOf(t)}${I.note?'<br>'+I.note:''}${I.kind==='game'?`${t==='pbt2'?'':`<br>キャラガチャ1回${I.gacha}円`}・${I.watt}W`:I.watt?`<br>${I.watt}W`:''}</span></div><button data-buy="${t}" ${r?'disabled':''}>${lab}</button></div>`}).join('');
   if(shopHTML!==lastShop){lastShop=shopHTML;$('shop').innerHTML=shopHTML;}
   {const uh=window.__upgRows||'';if($('upg')&&uh!==window.__lastUpg){window.__lastUpg=uh;$('upg').innerHTML=uh;}}
   renderTelop();drawChart();
