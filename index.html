@@ -140,7 +140,7 @@ button.wide{grid-column:span 2}
   <div class="spLab">倍速モード</div><div class="grid3" style="grid-template-columns:repeat(4,1fr)"><button data-sp="0">停止</button><button data-sp="1" class="on">等倍</button><button data-sp="2">×2</button><button data-sp="3">×3</button></div><div class="spLab">音声</div><div class="grid3 sndRow" style="grid-template-columns:1fr 1fr"><button id="sfx" title="効果音（全体）">🔊 効果音 ON</button><button id="amb" title="店内の環境音（賑わい）">🎮 店内の音 ON</button></div><button id="autoBtn" class="autob">1か月オート（ティンニンにおまかせ）</button><div class="autoSp"><span>オート速度</span><button data-asp="1" class="on">等倍</button><button data-asp="2">×2</button><button data-asp="3">×3</button></div>
   <h2>経営</h2><div id="mgmt"></div>
   <h2 id="sGoal">目標：<span style="white-space:nowrap">パズドラバトルトーナメント２</span>の<br>開発費用＆導入費用<br>100,000,000円を稼ごう！</h2><div class="bar"><i id="sGoalBar"></i></div>
-  <h2>購入・設置</h2><div id="shop"></div><div id="upg"></div>
+  <h2>購入・設置</h2><div id="shop"></div><div id="upg"></div><div id="crimeBox"></div>
   <button id="simReset" style="width:100%;margin-top:8px">最初からやり直す</button>
   <button id="simExit" class="big">3Dビューアに戻る</button>
  </div>
@@ -1420,7 +1420,7 @@ function renderUI(){if(!G)return;if(!Number.isFinite(G.money))normalize(G);const
   const mgHTML=`<div class="mrow" style="display:block"><span>1プレイ料金<small>（高いほど遊ぶ人が減る）</small></span><div class="seg" style="margin-top:3px;justify-content:flex-start">${Object.entries(PRICES).map(([k,p])=>`<button data-price="${k}" class="${(G.price||'100')===k?'on':''}">${p.label}</button>`).join('')}</div></div>
    ${broken?`<div class="mrow"><span style="color:#c0392b">故障中 ${broken}台<br><small>閉店時に自動修理（${yen(brokenCost())}・高レベルほど高額）</small></span><div class="seg"><button data-repair="1">すぐ修理</button></div></div>`:''}
    <div class="mrow" style="display:block"><span>宣伝<small>（同時に複数OK・倍率は合算）</small></span><div class="seg" style="margin-top:3px;justify-content:flex-start">${Object.entries(PROMOS).map(([k,p])=>`<button data-promo="${k}" ${G.money<p.price||(G.promos||[]).some(x=>x.k===k)||k==='nico'&&G.nicoMonth===dateOf(G.day).getFullYear()*12+dateOf(G.day).getMonth()?'disabled':''}>${p.label}<br><small>${yen(p.price)}・${p.days}日 来客×${p.mult}${k==='nico'?'<br>月1回まで・消費者庁が必ず来る':''}</small></button>`).join('')}</div></div>`;
-  const mg2=mgHTML+upHTML()+'<h2>裏稼業</h2>'+crimeHTML()+heatHTML();if(mg2!==lastMg){lastMg=mg2;$('mgmt').innerHTML=mg2;}
+  const mg2=mgHTML+upHTML();{const ch='<h2>裏稼業</h2>'+crimeHTML()+heatHTML();if($('crimeBox')&&ch!==window.__lastCrime){window.__lastCrime=ch;$('crimeBox').innerHTML=ch;}}if(mg2!==lastMg){lastMg=mg2;$('mgmt').innerHTML=mg2;}
   $('sGoal').innerHTML=G.cleared?`クリア済み！ PBT2 ${count('pbt2')}/18台・PBT ${count('pbt')}/18台`:`目標：<span style="white-space:nowrap">パズドラバトルトーナメント２</span>の<br>開発費用＆導入費用<br><span style="white-space:nowrap">${GOAL_PRICE.toLocaleString()}円</span>を稼ごう！`;$('sGoalBar').style.width=(G.cleared?100:Math.max(0,Math.min(100,G.money/GOAL_PRICE*100)))+'%';
   const shopHTML=ORDER.map(t=>{const I=ITEMS[t];const r=canBuy(t);const lab=r==='max'?'上限':r==='money'?'資金不足':'購入';
     return `<div class="item"><div><b>${I.disp||I.name}</b><span>${yen(I.price)}　${count(t)}/${maxOf(t)}${I.note?'<br>'+I.note:''}${I.kind==='game'?`${t==='pbt2'?'':`<br>キャラガチャ1回${I.gacha}円`}・${I.watt}W`:I.watt?`<br>${I.watt}W`:''}</span></div><button data-buy="${t}" ${r?'disabled':''}>${lab}</button></div>`}).join('');
@@ -1515,6 +1515,7 @@ function mgClick(b){
   if(b.dataset.soft){const k=b.dataset.soft,S=soft(),D=SOFT[k],c=D.cost();if(G.money>=c){G.money-=c;S.fresh=Math.min(100,S.fresh+D.fresh);if(k==='ver')S.ver++;if(k==='chara'){S.chars++;S.chara=D.days;}if(k==='collab')S.collab=D.days;se.promo();
     popup(ENTRANCE.clone().setZ(ROOM.z1-800),k==='ver'?'PBT '+verLabel(S.ver)+'！':k==='chara'?'新キャラ『'+CHARS[(S.chars*7)%CHARS.length]+'』追加！':'コラボガチャ開催！','#d0349b');}}
   save();renderUI();}
+$('crimeBox')&&$('crimeBox').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled||!G)return;mgClick(b);});
 $('upg')&&$('upg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled||!G)return;mgClick(b);});
 $('shop').addEventListener('click',e=>{const b=e.target.closest('[data-buy]');if(b&&!b.disabled)buy(b.dataset.buy);});
 $('simUI').addEventListener('click',ensureAudio,true);
