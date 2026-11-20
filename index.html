@@ -140,7 +140,7 @@ button.wide{grid-column:span 2}
   <div class="spLab">倍速モード</div><div class="grid3" style="grid-template-columns:repeat(4,1fr)"><button data-sp="0">停止</button><button data-sp="1" class="on">等倍</button><button data-sp="2">×2</button><button data-sp="3">×3</button></div><div class="spLab">音声</div><div class="grid3 sndRow" style="grid-template-columns:1fr 1fr"><button id="sfx" title="効果音（全体）">🔊 効果音 ON</button><button id="amb" title="店内の環境音（賑わい）">🎮 店内の音 ON</button></div><button id="autoBtn" class="autob">1か月オート（ティンニンにおまかせ）</button><div class="autoSp"><span>オート速度</span><button data-asp="1" class="on">等倍</button><button data-asp="2">×2</button><button data-asp="3">×3</button></div>
   <h2>経営</h2><div id="mgmt"></div>
   <h2 id="sGoal">目標：<span style="white-space:nowrap">パズドラバトルトーナメント２</span>の<br>開発費用＆導入費用<br>100,000,000円を稼ごう！</h2><div class="bar"><i id="sGoalBar"></i></div>
-  <h2>購入・設置</h2><div id="shop"></div>
+  <h2>購入・設置</h2><div id="shop"></div><div id="upg"></div>
   <button id="simReset" style="width:100%;margin-top:8px">最初からやり直す</button>
   <button id="simExit" class="big">3Dビューアに戻る</button>
  </div>
@@ -310,6 +310,7 @@ const KWH_YEN=31,BASE_LIGHT_W=1500,RENT_BASE=2000,RENT_PER_MACHINE=200,START_MON
 const ITEMS={
  pbt:  {name:'パズドラバトルトーナメント',price:500000,gacha:200,max:18,watt:180,credit:100,mins:4,cr:[2,5],attr:1.0,kind:'game',pose:'sit'},
  pbt2: {name:'パズドラバトルトーナメント２',note:'開発費用＆導入費用込み・導入でクリア！ 1プレイ料金×2／ガチャ1回300円',price:100000000,gacha:300,max:18,watt:300,credit:200,cmul:2,mins:4,cr:[1,3],attr:2.0,kind:'game',pose:'sit'},
+ dan:  {name:'段ボール偽筐体（ティンニン作）',note:'遊べないけど店がにぎやかに見える（集客ちょいアップ）・本物を買うと置き換え・たまに客が間違えてお金を入れる',price:1000,max:6,watt:0,attr:0.12,kind:'fake'},
  bench:{name:'休憩ベンチ・テーブル',note:'待ちきれずに帰る客が減る（1台ごとに我慢＋5分・待ち列＋1）',price:30000,max:1,watt:0,attr:0,kind:'bench',w:1700,walls:['backC','left','right','backL','backR','frontL']},
  anime:{name:'アニメ上映モニター',note:'「パズドラクロス」アニメ上映中！ 集客アップ',price:120000,max:1,watt:150,attr:0.35,kind:'deco',w:1700,walls:['left','right','frontL']},
  vend: {name:'ドリンク自販機',note:'1本150円（仕入30%）',price:50000,max:1,watt:400,attr:0.1,kind:'shop',w:1000,walls:['right','left','backL','backR','frontL'],buyP:0.22,spend:[150,150],costRate:0.3,label:'ドリンク',stay:0.5},
@@ -420,7 +421,7 @@ function fireBad(b){b.fired=true;b.at=performance.now();
 function badMult(){let m=1;const b=G.today.bad;if(b&&b.fired){if(b.k==='typhoon')m*=0.4;if((b.k==='maint'||b.k==='blackout')&&G.min<b.end)m*=0;
   if(b.k==='maint'&&G.min>=b.end&&G.min<b.end+120)m*=1.5;}if(G.enjo>0)m*=0.8;return m;}
 function demandMult(){return (soft().collab>0?1.15:1)*(G.fuei?1.45:1)*dayMult(G.day)*repMult()*WX[G.wx||'cloud'].m*promoMult()*rivalMult()*PRICES[G.price||'100'].dem*badMult();}
-const ORDER=['pbt','pbt2','vend','goods','gacha','doujin','crane','ice','bench','anime'];
+const ORDER=['pbt','dan','pbt2','vend','goods','gacha','doujin','crane','ice','bench','anime'];
 // ---- floor plan (mm). machine local frame: rear z=0, player side +z ----
 const ROOM={x0:-4900,x1:4900,z0:-4200,z1:3800};
 // 昔のゲーセン風：筐体は背中合わせの「島」を縦（奥行き方向）に並べ、入口側から詰めていく
@@ -450,7 +451,21 @@ function plane(w,h,tex,x,y,z,rx=0){const p=new THREE.Mesh(new THREE.PlaneGeometr
 function sign(text,bg,fg,w=512,h=128){return canvasTex(w,h,(g,W,H)=>{const gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,bg[0]);gr.addColorStop(1,bg[1]);g.fillStyle=gr;g.fillRect(0,0,W,H);
   g.font=`900 ${Math.floor(H*0.5)}px "Hiragino Sans","Noto Sans JP",sans-serif`;g.textAlign='center';g.textBaseline='middle';g.lineWidth=H*0.08;g.strokeStyle='rgba(0,0,0,.55)';g.strokeText(text,W/2,H/2+2);g.fillStyle=fg;g.fillText(text,W/2,H/2+2);});}
 // ---- machine models (procedural, original designs) ----
+// ---- ティンニン作・段ボール偽筐体（遊べない賑やかし／たまに客が間違えてお金を入れてもめる） ----
+let _danTex=null;function danTex(){if(_danTex)return _danTex;_danTex=canvasTex(512,420,(g,w,h)=>{g.fillStyle='#c79d6d';g.fillRect(0,0,w,h);
+  const wob=(x0,y0,x1,y1)=>{g.beginPath();g.moveTo(x0,y0);const n=6;for(let i=1;i<=n;i++){g.lineTo(x0+(x1-x0)*i/n+(Math.random()-.5)*8,y0+(y1-y0)*i/n+(Math.random()-.5)*8);}g.stroke();};
+  g.strokeStyle='#1a1a1a';g.lineWidth=12;g.lineCap='round';wob(40,40,470,52);wob(470,52,462,330);wob(462,330,46,322);wob(46,322,40,40);
+  g.fillStyle='#2b2b3a';g.globalAlpha=.85;g.fillRect(58,62,392,250);g.globalAlpha=1;
+  const cols=['#e53935','#1e88e5','#43a047','#fdd835','#8e24aa','#f06292'];for(let r=0;r<3;r++)for(let c=0;c<6;c++){g.fillStyle=cols[(r*7+c*3)%6];g.beginPath();g.arc(100+c*60+(Math.random()-.5)*10,160+r*55+(Math.random()-.5)*10,22+Math.random()*6,0,7);g.fill();}
+  g.save();g.translate(250,108);g.rotate(-0.06);g.fillStyle='#fff';g.font='900 58px sans-serif';g.textAlign='center';g.fillText('パズバト',0,0);g.restore();
+  g.fillStyle='#1a1a1a';g.font='700 34px sans-serif';g.save();g.translate(330,380);g.rotate(0.05);g.fillText('てぃんにん作',0,0);g.restore();
+  g.fillStyle='#ff4f9a';g.font='900 30px sans-serif';g.fillText('※あそべません',30,385);});return _danTex;}
 const BUILD={
+ dan(){const g=new THREE.Group(),cb=mat(0xc49a6c,{roughness:.95}),cd=mat(0x9c7448,{roughness:.95}),tp=mat(0xe9dcae,{roughness:.5});
+  const body=box(700,1250,760,cb,0,625,380);body.rotation.z=0.035;g.add(body);g.add(box(706,30,766,cd,0,1250,380));
+  const scr=new THREE.Group();scr.position.set(0,1650,520);scr.rotation.set(-0.28,0.04,-0.05);scr.add(box(740,640,110,cb,0,0,0));const f=new THREE.Mesh(new THREE.PlaneGeometry(700,580),new THREE.MeshStandardMaterial({map:danTex(),roughness:.95}));f.position.z=56;scr.add(f);g.add(scr);
+  g.add(box(740,60,120,tp,0,1360,740),box(60,1100,12,tp,-200,640,766),box(60,1100,12,tp,230,600,766));const arm=box(160,60,620,cd,0,1230,820);arm.rotation.x=-0.1;g.add(arm);
+  const seat=box(440,440,440,cb,0,220,1190);seat.rotation.y=0.15;g.add(seat,box(450,30,120,tp,0,445,1190));return {g,depth:842,seat:[0,1190]};},
  pbt(){const g=tmpl.clone(true);const rm=[];g.traverse(o=>{if(o.isLineSegments)rm.push(o)});rm.forEach(o=>o.parent.remove(o));return {g,depth:842,seat:[0,1190],stool:true};},
  pbt2(){const r=BUILD.pbt();const bd=new THREE.Mesh(new THREE.PlaneGeometry(760,250),new THREE.MeshStandardMaterial({map:pbt2Tex,emissive:0xffffff,emissiveMap:pbt2Tex,emissiveIntensity:.45,transparent:true}));bd.position.set(0,2330,560);r.g.add(bd);
   const gl=box(820,40,980,mat(0xd4a017,{metalness:.7,roughness:.25,emissive:0x7a5a00,emissiveIntensity:.3}),0,20,450);r.g.add(gl);return r;},
@@ -566,16 +581,16 @@ let breakTex=canvasTex(320,104,(c,W,H)=>{c.fillStyle='#c0392b';c.fillRect(0,0,W,
 const machG=new THREE.Group(),peopleG=new THREE.Group(),fxG=new THREE.Group();simG.add(machG,peopleG,fxG);
 function newGame(){const _g=newGame0();_g.layoutV=3;return _g;}
 function newGame0(){return {monthSales:0,mProfit:0,heat:{police:0,tax:0,caa:0},fuei:false,caa:null,due:0,dueParts:{rent:0,elec:0,share:0,stock:0},enjo:0,foodClosed:0,rep:40,price:'100',promos:[],rival:null,wx:'sun',wxNext:'cloud',red:0,over:false,day:1,money:START_MONEY,min:OPEN_MIN,items:[{type:'pbt',slot:0}],cleared:false,clearDay:0,total:{sales:0,visitors:0},today:null,closing:false};}
-function freshToday(){const z=()=>Object.fromEntries(SHOPS.map(k=>[k,0]));return {raid:null,pro:Math.random()<0.025?{at:OPEN_MIN+120+Math.random()*540}:null,thief:Math.random()<0.09?{at:OPEN_MIN+60+Math.random()*600}:null,goto:Math.random()<0.05?{at:OPEN_MIN+120+Math.random()*540}:null,fight:{at:OPEN_MIN+90+Math.random()*560,done:false},sales:{pbt:0,pgacha:0,...z()},pulls:0,payers:0,maxSpend:0,breaks:0,vip:null,bvip:null,caa:null,bad:null,loss:0,series:[],cost:z(),buyers:0,visitors:0,served:0,lost:0,credits:0};}
+function freshToday(){const z=()=>Object.fromEntries(SHOPS.map(k=>[k,0]));return {raid:null,dan:Math.random()<0.3?{at:OPEN_MIN+60+Math.random()*600}:null,pro:Math.random()<0.025?{at:OPEN_MIN+120+Math.random()*540}:null,thief:Math.random()<0.09?{at:OPEN_MIN+60+Math.random()*600}:null,goto:Math.random()<0.05?{at:OPEN_MIN+120+Math.random()*540}:null,fight:{at:OPEN_MIN+90+Math.random()*560,done:false},sales:{pbt:0,pgacha:0,...z()},pulls:0,payers:0,maxSpend:0,breaks:0,vip:null,bvip:null,caa:null,bad:null,loss:0,series:[],cost:z(),buyers:0,visitors:0,served:0,lost:0,credits:0};}
 let machines=[],customers=[];
 const ROW0=-4300,ROWP=3000,PER_ROW=8;
 // 各列は台数に合わせて中央寄せ
 function gameSlotsN(){return G?1+Math.max(0,...G.items.filter(i=>isGame(i.type)).map(i=>i.slot)):1;}
 function pbtSlot(i){const I=Math.floor(i/ISL_PER),j=i%ISL_PER,side=j%2?1:-1,k=Math.floor(j/2),C=islCenters();return {x:C[Math.min(I,C.length-1)],z:ISL_FRONT-k*750,rot:side*Math.PI/2};}
-function repositionGames(){for(const m of machines){if(m.T.kind!=='game'||!m.it)continue;const sl=pbtSlot(m.it.slot);if(sl.x===m.x&&sl.z===m.z)continue;const dx=sl.x-m.x,dz=sl.z-m.z;m.x=sl.x;m.z=sl.z;
+function repositionGames(){for(const m of machines){if((m.T.kind!=='game'&&m.T.kind!=='fake')||!m.it)continue;const sl=pbtSlot(m.it.slot);if(sl.x===m.x&&sl.z===m.z)continue;const dx=sl.x-m.x,dz=sl.z-m.z;m.x=sl.x;m.z=sl.z;
     if(m.g)m.g.position.set(sl.x,0,sl.z);if(m.stool){m.stool.position.x+=dx;m.stool.position.z+=dz;}if(m.bs){m.bs.position.x+=dx;m.bs.position.z+=dz;}
     for(const c of customers){if(c.m!==m||!c.mesh)continue;if(c.state==='play'){const p=seatPos(m);c.mesh.position.set(p.x,0,p.z);}else if(c.state==='wait'){const p=queuePos(m,m.queue.indexOf(c),c);c.mesh.position.set(p.x,0,p.z);}else if(c.moving)routeTo(c,destPos(c));}}}
-const isGame=t=>ITEMS[t]&&ITEMS[t].kind==='game';
+const isGame=t=>ITEMS[t]&&(ITEMS[t].kind==='game'||ITEMS[t].kind==='fake');const isRealGame=t=>ITEMS[t]&&ITEMS[t].kind==='game';
 function pbtRows(){return 1;if(!G)return 2;const L=Math.ceil((1+Math.max(0,...G.items.filter(i=>isGame(i.type)).map(i=>i.slot)))/PER_ROW);let mx=1;for(let k=0;k<L;k++)mx=Math.max(mx,(ROWMAP[k]??k)+1);return mx;}
 function laneZ_old(z){const rows=pbtRows();if(z<ROW0+842)return z<ROW0?Math.min(z,-4800):-4800;const r=Math.floor((z-ROW0)/ROWP);if(r>=rows)return z;const R=ROW0+r*ROWP;if(z>=R+842)return R+1800;return r===0?-4800:R-1200;}
 const SLOTS={pbt:PBT_SLOTS,other:OTHER_SLOTS,vend:VEND_SLOTS,bench:BENCH_SLOTS};
@@ -724,7 +739,7 @@ function staffRoute(p,toHome){const S_=STAFF;let pre=[];let from=S_.mesh.positio
 const zzzTex=canvasTex(256,128,(c,W,H)=>{c.font='900 72px sans-serif';c.textAlign='center';c.textBaseline='middle';c.lineWidth=10;c.strokeStyle='#fff';c.strokeText('Zzz…',W/2,H/2);c.fillStyle='#4a6fd8';c.fillText('Zzz…',W/2,H/2);});
 function staffPoseReset(){const S_=STAFF;if(!S_.mesh)return;const u=S_.mesh.userData;for(const l of u.legs)l.rotation.x=0;for(const a of u.arms)a.rotation.x=0;u.head.rotation.set(0,0,0);S_.mesh.position.y=0;S_.playM=null;}
 function staffReset(){if(SIM.headless)return;if(!STAFF.mesh){STAFF.mesh=makeTinnin();simG.add(STAFF.mesh);STAFF.zzz=new THREE.Sprite(new THREE.SpriteMaterial({map:zzzTex,transparent:true,depthTest:false}));STAFF.zzz.scale.set(700,350,1);STAFF.zzz.position.set(250,2250,0);STAFF.zzz.visible=false;STAFF.mesh.add(STAFF.zzz);}
-  fightClear();raidClear();if(typeof CATCH!=='undefined')catchClear();staffPoseReset();STAFF.mesh.visible=true;STAFF.mesh.position.copy(staffHome());STAFF.mesh.rotation.set(0,-Math.PI/2,0);Object.assign(STAFF,{path:[],moving:false,wait:4,target:null,mode:jailActive()?'jail':'home',run:false,calls:[]});}
+  fightClear();raidClear();if(typeof CATCH!=='undefined')catchClear();if(typeof DANEV!=='undefined')danClear();staffPoseReset();STAFF.mesh.visible=true;STAFF.mesh.position.copy(staffHome());STAFF.mesh.rotation.set(0,-Math.PI/2,0);Object.assign(STAFF,{path:[],moving:false,wait:4,target:null,mode:jailActive()?'jail':'home',run:false,calls:[]});}
 function staffPick(){const br=machines.filter(m=>m.broken);if(br.length&&Math.random()<0.7){const m=br[Math.floor(Math.random()*br.length)];STAFF.target=m;return toWorld(m,(m.T.kind==='game'?520:0),m.depth+(m.T.kind==='game'?250:700));}
   STAFF.target=null;const r=Math.random(),zs=ROOM.z0+1300,ze=ROOM.z1-900;
   const W=walkways();if(r<0.6)return new THREE.Vector3(W[Math.floor(Math.random()*W.length)],0,-2200+Math.random()*3800);
@@ -740,7 +755,7 @@ function staffDecide(){const S_=STAFF,u=S_.mesh.userData;u.head.rotation.y=0;con
   const fg=freeGames();
   if(r<0.35&&fg.length){const m=fg[Math.floor(Math.random()*fg.length)];S_.mode='toPlay';S_.playM=m;staffRoute(toWorld(m,0,m.seatL[1]+450));}
   else if(r<0.65){S_.mode='wander';staffRoute(staffPick());}else{S_.mode='return';S_.target=null;staffRoute(null,true);}}
-function animWalk(S_,dt,k){const u=S_.mesh.userData;S_.phase+=dt*k;const a=Math.sin(S_.phase)*(S_.run?0.9:0.6);u.legs[0].rotation.x=a;u.legs[1].rotation.x=-a;u.arms[0].rotation.x=-a*0.8;u.arms[1].rotation.x=a*0.8;S_.mesh.position.y=Math.abs(Math.sin(S_.phase))*25;}
+function animWalk(S_,dt,k){const u=S_.mesh.userData;if(!u.legs)return;S_.phase+=dt*k;const a=Math.sin(S_.phase)*(S_.run?0.9:0.6);u.legs[0].rotation.x=a;u.legs[1].rotation.x=-a;u.arms[0].rotation.x=-a*0.8;u.arms[1].rotation.x=a*0.8;S_.mesh.position.y=Math.abs(Math.sin(S_.phase))*25;}
 function moveAlong(o,sp){let left=sp;while(left>0&&o.path.length){const p=o.path[0],d=p.clone().sub(o.mesh.position);d.y=0;const L=d.length();
     if(L<=left){o.mesh.position.x=p.x;o.mesh.position.z=p.z;o.path.shift();left-=L;}else{d.multiplyScalar(left/L);o.mesh.position.add(d);o.mesh.rotation.y=Math.atan2(d.x,d.z);left=0;}}return !o.path.length;}
 function standUp(){const S_=STAFF,m=S_.playM;staffPoseReset();if(m){const p=toWorld(m,(Math.random()<.5?-1:1)*560,m.seatL[1]);S_.mesh.position.set(p.x,0,p.z);}}
@@ -751,9 +766,9 @@ function checkout(c){const S_=STAFF;if(SIM.headless||!S_.mesh){buyAt(c);nextStop
   buyAt(c);nextStop(c);}
 function payAtCounter(c){c.vendPos=c.payPos;buyAt(c);if(STAFF.mode==='home'&&Math.random()<0.5)popup(STAFF.mesh.position,'まいど！','#ff4f9a');nextStop(c);}
 function staffStep(dt){const S_=STAFF;if(!S_.mesh||!dt)return;bubStep(S_,dt);const u=S_.mesh.userData,k=Math.min(2.5,Math.sqrt(SIM.speed));
-  fightStep(dt,k);raidStep(dt,k);catchStep(dt,k);S_.zzz.visible=S_.mode==='sleep';
+  fightStep(dt,k);raidStep(dt,k);catchStep(dt,k);danStep(dt,k);S_.zzz.visible=S_.mode==='sleep';
   if(S_.mode==='jail'){S_.mesh.visible=false;if(!jailActive()){S_.mesh.visible=true;staffPoseReset();S_.mesh.position.copy(ENTRANCE);S_.mode='return';staffRoute(null,true);say(S_,'シャバの空気うまい！',2.5);}return;}
-  if(S_.mode==='fight'||S_.mode==='raid'||CATCH.on)return;
+  if(S_.mode==='fight'||S_.mode==='raid'||CATCH.on||DANEV.on&&DANEV.phase!=='walk'&&DANEV.phase!=='coin'&&DANEV.phase!=='leave')return;
   S_.calls=S_.calls.filter(c=>c.state==='waitStaff');
   if(S_.calls.length&&['wander','return','toPlay','play'].includes(S_.mode)){if(S_.mode==='play'){standUp();popup(S_.mesh.position,'はーい！','#ff4f9a');}
     const c=S_.calls[0];S_.mode='call';S_.run=true;S_.target=null;staffRoute(c.vendPos.clone().add(new THREE.Vector3(c.vendPos.x>0?-500:500,0,c.vendPos.z<ROOM.z0+1500?300:0)));}
@@ -949,6 +964,32 @@ function catchStep(dt,k){if(!CATCH.on)return;const C=CATCH,S_=STAFF,u=S_.mesh.us
   if(C.phase==='tackle'){if(!C.res){C.res=catchResolve(C.kind,C.caught,C.loot,C.src);if(C.caught)popup(S_.mesh.position,C.kind==='goto'?'感謝状 +¥10,000':'盗品回収！','#1a7f37');else popup(S_.mesh.position,'被害 -¥'+C.loot.toLocaleString(),'#c0392b');}
     if(C.t>2.6){catchFocus(false);peopleG.remove(o.mesh);staffPoseReset();S_.mode='return';S_.run=false;staffRoute(null,true);CATCH.on=false;CATCH.o=null;}}}
 function catchClear(){if(CATCH.focus)catchFocus(false);if(CATCH.o)peopleG.remove(CATCH.o.mesh);CATCH.on=false;CATCH.o=null;}
+// ---- 段ボール筐体にお金を入れてしまった客とティンニンがもめる ----
+const DANEV={on:false};
+function startDanEv(){const ds=machines.filter(m=>m.type==='dan');if(!ds.length)return;const m=ds[Math.floor(Math.random()*ds.length)];const amt=[100,100,200,500,1000][Math.floor(Math.random()*5)];
+  const r=Math.random(),out=r<0.35?'refund':r<0.7?'talk':'brawl';
+  if(SIM.headless){danResolve(out,amt);return;}
+  const mesh=makePerson();mesh.position.copy(ENTRANCE);peopleG.add(mesh);const o={mesh,path:[]};routeTo(o,seatPos(m));
+  Object.assign(DANEV,{on:true,m,o,amt,out,phase:'walk',t:0,wd:0});G.today.danNow={at:performance.now()};}
+function danResolve(out,amt){const T=G.today;G.money+=amt;if(out==='refund')G.money-=amt;else if(out==='talk')G.rep=Math.max(0,G.rep-1);else G.rep=Math.max(0,G.rep-3);T.danRes={out,amt,at:performance.now()};}
+function danStep(dt,k){if(!DANEV.on)return;const D=DANEV,o=D.o,S_=STAFF,u=S_.mesh.userData;bubStep(o,dt);D.t+=dt*k;
+  if(D.phase==='walk'){o.mesh.position.y=Math.abs(Math.sin(D.t*10))*30;if(moveAlong(o,1200*k*dt)){o.mesh.position.y=0;const t=toWorld(D.m,0,0);o.mesh.rotation.y=Math.atan2(t.x-o.mesh.position.x,t.z-o.mesh.position.z);D.phase='coin';D.t=0;}return;}
+  if(D.phase==='coin'){if(!D.c1){D.c1=1;se.coin&&se.coin();popup(o.mesh.position,'チャリン ¥'+D.amt.toLocaleString(),'#b8860b');}
+    if(D.t>1.2&&!D.c2){D.c2=1;say(o,'あれ？ 動かねえ…',1.8);}
+    if(D.t>3&&!D.c3){D.c3=1;say(o,'これ段ボールじゃねーか！ 金返せ！',2.4);se.alarm();bigPop(o.mesh.position,'もめごと発生！','#c0392b');
+      if(STAFF.mode==='sleep')say(STAFF,'はっ！',1.2);staffPoseReset();S_.calls=[];S_.mode='raid';S_.run=true;S_.path=[];staffRoute(toWorld(D.m,0,D.m.seatL[1]+650));D.phase='staff';D.t=0;}return;}
+  if(D.phase==='staff'){if(!S_.moving||D.t>8){D.phase='talk';D.t=0;const d=o.mesh.position.clone().sub(S_.mesh.position);S_.mesh.rotation.y=Math.atan2(d.x,d.z);say(S_,'それはティンニン作の段ボール筐体です！',2.6);}return;}
+  if(D.phase==='talk'){if(D.t>2.8&&!D.c4){D.c4=1;
+      if(D.out==='refund'){say(S_,'…ごめんなさい、返金します',2.4);setTimeout(()=>say(o,'次から本物置けよな',2.2),1200);}
+      else if(D.out==='talk'){say(S_,'雰囲気料です！ 段ボールの味わいをどうぞ！',2.6);setTimeout(()=>say(o,'…まあ、味はあるな',2.2),1400);}
+      else{say(o,'ふざけんな！',1.6);say(S_,'ティンニンの力作になにを〜！',2);bigPop(S_.mesh.position,'もみ合い！','#c0392b');}}
+    if(D.out==='brawl'&&D.t>3&&D.t<5.5){o.mesh.position.x+=Math.sin(D.t*40)*12;S_.mesh.position.x-=Math.sin(D.t*40)*12;u.arms[0].rotation.x=-1.5-Math.sin(D.t*30)*0.6;u.arms[1].rotation.x=-1.5+Math.sin(D.t*30)*0.6;if(Math.floor(D.t*6)!==D.hp){D.hp=Math.floor(D.t*6);se.hit();}}
+    if(D.t>5.8){if(!D.res){D.res=1;danResolve(D.out,D.amt);staffPoseReset();
+        popup(S_.mesh.position,D.out==='refund'?'返金 -¥'+D.amt.toLocaleString():D.out==='talk'?'¥'+D.amt.toLocaleString()+' いただき（評判−）':'追い返した…（評判ダウン）',D.out==='refund'?'#7f8c8d':'#c0392b');
+        if(D.out==='brawl')say(o,'二度と来るか！',2);}
+      D.phase='leave';D.t=0;routeTo(o,ENTRANCE.clone());S_.mode='return';S_.run=false;staffRoute(null,true);}return;}
+  if(D.phase==='leave'){o.mesh.position.y=Math.abs(Math.sin(D.t*12))*30;if(moveAlong(o,(D.out==='brawl'?2400:1200)*k*dt)||D.t>20)danClear();}}
+function danClear(){if(DANEV.o)peopleG.remove(DANEV.o.mesh);DANEV.on=false;DANEV.o=null;}
 function startRaid(who){const I=RAID_INFO[who],bet=who==='pro'?PRO_BETS[Math.floor(Math.random()*PRO_BETS.length)]:null,crime=bet||(G.heatWhy&&G.heatWhy[who])||I.crimes[Math.floor(Math.random()*I.crimes.length)];
   const games=machines.filter(m=>m.T.kind==='game'&&!m.broken);if(who==='pro'&&!games.length)return;const methods=Object.keys(DUELS).filter(k=>k!=='pbt'||games.length);const method=who==='pro'?'pbt':methods[Math.floor(Math.random()*methods.length)];
   if(SIM.headless){raidResolve(who,Math.random()<raidWin(who),method,bet);return;}
@@ -1210,6 +1251,7 @@ function stepGame(dm){
   const RD=G.today.raid;if(RD&&!RD.started&&G.min>=RD.at&&G.min<CLOSE_MIN-90&&!RAID.on&&!FIGHT.on&&!CATCH.on){RD.started=true;startRaid(RD.who||'police');}
   const busy=RAID.on||FIGHT.on||CATCH.on||jailActive();
   if(G.day>=5&&count('pbt')>=3&&G.today.pro&&!G.today.pro.started&&G.min>=G.today.pro.at&&G.min<CLOSE_MIN-90&&!busy){G.today.pro.started=true;startRaid('pro');}
+  {const E=G.today.dan;if(E&&!E.started&&count('dan')>0&&G.min>=E.at&&G.min<CLOSE_MIN-60&&!(RAID.on||FIGHT.on||CATCH.on||DANEV.on||jailActive())){E.started=true;startDanEv();}}
   for(const kd of ['thief','goto']){const E=G.today[kd];if(E&&!E.started&&G.min>=E.at&&G.min<CLOSE_MIN-60&&!(RAID.on||FIGHT.on||CATCH.on||jailActive())&&(kd==='thief'||G.day>=7)){E.started=true;startCatch(kd);}}
   const FT=G.today.fight;if(!SIM.headless&&FT&&!FT.started&&G.min>=FT.at&&G.min<CLOSE_MIN-90&&!FIGHT.on&&!RAID.on&&!CATCH.on&&!jailActive())startFight();
   if(!badActive('blackout'))breakdowns(dm);
@@ -1276,20 +1318,22 @@ function closeDay(){
     if(tax>0){if(!crimeOn('tax')&&!SIM.auto){const pay=Math.max(0,Math.min(G.money,tax));G.money-=pay;rep.taxPaid=pay;if(tax>pay){G.taxArrears=tax-pay;rep.taxLate=tax-pay;}rep.money=G.money;}else if(false){G.money-=tax;rep.taxPaid=tax;rep.money=G.money;}else rep.taxChoice=true;}}
   else if(rep.monthEnd)G.mProfit=0;
   if(!rep.over&&daysToMonthEnd(G.day)===5){const b=G.due+fixedDaily()*5;if(b>G.money){rep.billWarn=b;}}rep.toEnd=daysToMonthEnd(G.day+1)+1;
-  rep.bad=T.bad&&T.bad.fired?T.bad:null;rep.fight=T.fight&&T.fight.done;rep.raid=T.raidRes||null;rep.catch=T.catchRes||null;G.prevSeries=(T.series||[]).concat([[CLOSE_MIN,sales,c.total]]);if(G.enjo>0)G.enjo--;if(G.foodClosed>0)G.foodClosed--;
+  rep.bad=T.bad&&T.bad.fired?T.bad:null;rep.fight=T.fight&&T.fight.done;rep.raid=T.raidRes||null;rep.catch=T.catchRes||null;rep.dan=T.danRes||null;G.prevSeries=(T.series||[]).concat([[CLOSE_MIN,sales,c.total]]);if(G.enjo>0)G.enjo--;if(G.foodClosed>0)G.foodClosed--;
   G.day++;G.min=OPEN_MIN;G.today=freshToday();G.today.raid=planRaid();G.today.bad=planBad();G.wx=G.wxNext||rollWx(G.day);G.wxNext=rollWx(G.day+1);rep.wxNext=G.wx;
-  fightClear();raidClear();if(typeof CATCH!=='undefined')catchClear();if(STAFF.mesh&&(STAFF.mode==='fight'||STAFF.mode==='raid')){STAFF.mode='return';staffRoute(null,true);}
+  fightClear();raidClear();if(typeof CATCH!=='undefined')catchClear();if(typeof DANEV!=='undefined')danClear();if(STAFF.mesh&&(STAFF.mode==='fight'||STAFF.mode==='raid')){STAFF.mode='return';staffRoute(null,true);}
   for(const cu of customers)if(cu.mesh)peopleG.remove(cu.mesh);customers=[];machines.forEach(m=>m.bseats=null);machines.forEach(m=>{m.busy=null;m.queue=[]});
   if(G.loseCab){for(let n=0;n<G.loseCab&&count('pbt')>=3;n++){let k=-1,sl=-1;G.items.forEach((it,i)=>{if(it.type==='pbt'&&it.slot>sl){sl=it.slot;k=i;}});if(k>=0)G.items.splice(k,1);}G.loseCab=0;rep.cabLost=true;if(SIM.headless){machines=[];G.items.forEach(addMachine);}else rebuild();}
   save();return rep;}
 function save(){if(SIM.headless)return;if(Number.isFinite(G.money))G.lastMoney=G.money;try{const s={...G};delete s.closing;localStorage.setItem('pbtSim2',JSON.stringify(s))}catch(e){}}
 function load(){try{const s=JSON.parse(localStorage.getItem('pbtSim2'));if(s&&s.items)return s}catch(e){}return null;}
 // ---- purchase ----
-const maxOf=t=>t==='pbt2'?(G.cleared?ITEMS.pbt2.max:1):ITEMS[t].max;
+const maxOf=t=>t==='pbt2'?(G.cleared?ITEMS.pbt2.max:1):t==='dan'?Math.min(ITEMS.dan.max,ITEMS.pbt.max-count('pbt')):ITEMS[t].max;
 function canBuy(t){const T=ITEMS[t];if(count(t)>=maxOf(t))return 'max';if(G.money<T.price)return 'money';return '';}
 function buy(t){if(canBuy(t))return;const T=ITEMS[t];
   doBuy(t);}
 function doBuy(t){if(canBuy(t))return;const T=ITEMS[t];let it;
+  if(t==='pbt'&&count('dan')>0){const di=G.items.filter(i=>i.type==='dan').sort((a,b)=>a.slot-b.slot)[0];const k=G.items.indexOf(di);G.items.splice(k,1);G.money-=T.price;it={type:'pbt',slot:di.slot};G.items.push(it);
+    if(SIM.headless){machines=machines.filter(m=>m.it!==di);addMachine(it);}else{const dm=machines.find(m=>m.it===di);if(dm){machG.remove(dm.g);machines.splice(machines.indexOf(dm),1);}const m=addMachine(it);se.buy();popup(new THREE.Vector3(m.x,0,m.z),'段ボール→本物に！','#e67e22');say(STAFF,'ついに本物だ〜！',2.2);}save();if(!SIM.headless)renderUI();return;}
   if(isGame(t)){const used=new Set(G.items.filter(i=>isGame(i.type)).map(i=>i.slot));let s=0;while(used.has(s))s++;it={type:t,slot:s};}else{it={type:t};}
   G.money-=T.price;G.items.push(it);if(!isGame(t))placeItem(it);
   if(!SIM.headless&&buildRoom())fit();
@@ -1376,6 +1420,7 @@ function renderUI(){if(!G)return;if(!Number.isFinite(G.money))normalize(G);const
   const shopHTML=ORDER.map(t=>{const I=ITEMS[t];const r=canBuy(t);const lab=r==='max'?'上限':r==='money'?'資金不足':'購入';
     return `<div class="item"><div><b>${I.name}</b><span>${yen(I.price)}　${count(t)}/${maxOf(t)}${I.note?'<br>'+I.note:''}${I.kind==='game'?`${t==='pbt2'?'':`<br>キャラガチャ1回${I.gacha}円`}・${I.watt}W`:I.watt?`<br>${I.watt}W`:''}</span></div><button data-buy="${t}" ${r?'disabled':''}>${lab}</button></div>`}).join('');
   if(shopHTML!==lastShop){lastShop=shopHTML;$('shop').innerHTML=shopHTML;}
+  {const uh=window.__upgRows||'';if($('upg')&&uh!==window.__lastUpg){window.__lastUpg=uh;$('upg').innerHTML=uh;}}
   renderTelop();drawChart();
 
   document.querySelectorAll('[data-sp]').forEach(b=>b.classList.toggle('on',(+b.dataset.sp)===(SIM.paused?0:SIM.speed)));
@@ -1402,16 +1447,17 @@ function crimeOn(k){return k==='fuei'?!!G.fuei:!!(G.crime&&G.crime[k]);}
 function crimeHTML(){return `<div class="crime"><b>裏稼業スイッチ<small>ONにすると儲かるが疑惑度が上がる</small></b>${CRIMES.map(c=>{const on=crimeOn(c.k);return `<div class="mrow"><span>${c.l}<small class="cd">${on?c.on+'・'+c.who+'の疑惑度↑':'OFF（クリーン営業）'}${c.k==='fuei'&&G.fueiGain?'<br>深夜営業の儲け '+yen(G.fueiGain)+'（捕まると没収）':''}${c.k==='tax'&&G.evaded?'<br>脱税額 '+yen(G.evaded)+'（バレると1.4倍で追徴）':''}</small></span><div class="seg"><button data-crime="${c.k}" class="${on?'on':''}" style="${on?'background:#c0392b;color:#fff;border-color:#c0392b':''}">${on?'ON':'OFF'}</button></div></div>`;}).join('')}</div>`;}
 function heatHTML(){const H=heat(),L={police:'👮 警察',tax:'💼 税務署',caa:'📢 消費者庁'};if(!Object.values(H).some(v=>v>0.5))return '';
   return `<div class="heat"><b>疑惑度</b>${Object.keys(L).map(k=>`<span>${L[k]}<i><u style="width:${Math.round(H[k])}%;background:${H[k]>=60?'#c0392b':H[k]>=20?'#e67e22':'#8a92a0'}"></u></i></span>`).join('')}<small>25%を超えるとガサ入れが来ることがあります</small></div>`;}
-function upHTML(){const S=soft(),own=ORDER.filter(t=>count(t)>0);
+function upHTML(){const S=soft(),own=ORDER.filter(t=>count(t)>0&&ITEMS[t].kind!=='fake');
   const soft1=count('pbt')?`<h2>PBTソフト運営</h2><div class="soft"><div>${verLabel(S.ver)}・追加キャラ${S.chars}体　鮮度 <b style="color:${S.fresh<40?'#c0392b':'#1a7f37'}">${Math.round(S.fresh)}%</b><i class="fb"><u style="width:${Math.round(S.fresh)}%"></u></i><small>放置すると鮮度が下がり客足が落ちます${S.chara?'・新キャラ効果 あと'+S.chara+'日':''}${S.collab?'・コラボ中 あと'+S.collab+'日':''}</small></div>
    <div class="seg">${Object.entries(SOFT).map(([k,D])=>`<button data-soft="${k}" ${G.money<D.cost()||(k!=='ver'&&S[k]>0)?'disabled':''}>${k==='ver'?verLabel(S.ver+1)+'へ':D.label}<br><small>${yen(D.cost())}<br>${D.eff}</small></button>`).join('')}</div></div>`:'';
   const rows=own.map(t=>{const u=upg(t),m=lvMult(t);return `<div class="uprow"><span><b>${ITEMS[t].name.replace('パズドラバトルトーナメント','PBT')}</b><small>Lv${u.lv}/${UPG_MAX} <em>+${u.plus}</em>　効果×${m.toFixed(2)}${ITEMS[t].kind==='game'?'　修理費'+yen(repairCost(t))+'/台':''}</small></span><div class="seg">
     <button data-lv="${t}" ${u.lv>=UPG_MAX||G.money<lvCost(t)?'disabled':''}>${u.lv>=UPG_MAX?'Lv MAX':'Lv↑'}<br><small>${u.lv>=UPG_MAX?'':yen(lvCost(t))}</small></button><button data-plus="${t}" ${u.plus>=PLUS_MAX||G.money<plusCost(t)?'disabled':''}>${u.plus>=PLUS_MAX?'+MAX':'+10'}<br><small>${u.plus>=PLUS_MAX?'':yen(plusCost(t))}</small></button></div></div>`;}).join('');
-  return soft1+`<h2>育成（レベル・＋）</h2><div class="ups"><small class="uph">Lv1ごとに+5%、＋1ごとに+0.4%（集客・購入率・ガチャ）</small>${rows}</div>`;}
+  window.__upgRows=`<h2>育成（レベル・＋）</h2><div class="ups"><small class="uph">Lv1ごとに+5%、＋1ごとに+0.4%（集客・購入率・ガチャ）</small>${rows}</div>`;return soft1;}
 function showReport(rep){const T=rep.T,c=rep.c;SIM.paused=true;se.bell();
   const prof=rep.sales-c.total,cell=(l,v,st='')=>`<div><small>${l}</small><b style="${st}">${v}</b></div>`;
   const sales=[[`PBT（${T.credits}回）`,T.sales.pbt],[`ガチャ（${T.pulls}回）`,T.sales.pgacha]].concat(SHOPS.filter(k=>T.sales[k]||count(k)).map(k=>[ITEMS[k].label,T.sales[k]||0]));
   const notes=[T.vip?`<div class="good">✨ ${T.vip.name}が来店、ガチャに ${yen(T.vip.spent)}！</div>`:'',T.bvip&&T.bvip.done?`<div class="good">✨ ${T.bvip.who}が${T.bvip.item}を ${yen(T.bvip.amount)} 分ご購入！</div>`:'',
+   rep.dan?`<div class="${rep.dan.out==='refund'?'good':'warn'}">段ボール筐体に客が¥${rep.dan.amt.toLocaleString()}投入 → ${rep.dan.out==='refund'?'返金して円満解決':rep.dan.out==='talk'?'雰囲気料として言いくるめた（評判−1）':'もみ合いの末に追い返した（評判−3）'}</div>`:'',
    rep.catch?(rep.catch.ok?`<div class="good">${rep.catch.kind==='thief'?'万引き犯':'ゴト師'}をティンニンが確保！${rep.catch.kind==='goto'?' 感謝状 +¥10,000':''}</div>`:`<div class="warn">${rep.catch.kind==='thief'?'万引き犯':'ゴト師'}に逃げられた… 被害 ${yen(rep.catch.loot)}</div>`):'',
    rep.raid&&rep.raid.who==='pro'?(rep.raid.win?`<div class="good">道場破りの自称プロパズドラーに勝利！ 戦利品「${rep.raid.bet}」＋口コミ宣伝（5日間 来客×1.35・評判UP）</div>`:`<div class="warn">道場破りに敗北… ${rep.raid.lostCab?'PBT筐体を1台持っていかれた':'筐体は勘弁してもらえた'}</div>`):rep.raid?(rep.raid.win?`<div class="good">${RAID_NAME[rep.raid.who]}のガサ入れ → ${DUELS[rep.raid.method]||'勝負'}で勝利！ 所持金×${rep.raid.mult}（+${yen(rep.raid.gain)}）</div>`:`<div class="warn">${RAID_NAME[rep.raid.who]}のガサ入れ → 敗北… ${rep.raid.who==='police'?'懲役'+rep.raid.hours+'時間（営業停止）＋罰金'+yen(rep.raid.fine):rep.raid.who==='caa'?'課徴金 '+yen(rep.raid.fine):'追徴課税 '+yen(rep.raid.fine)}</div>`):'',
    rep.fight?`<div class="good">ケンカ発生 → ティンニンが物理で鎮圧</div>`:'',rep.rivalNew?`<div class="warn">ライバル店オープン！ 7日間 来客減（評判70以上なら影響小）</div>`:'',rep.rivalEnd?`<div class="good">ライバル店の勢いが落ち着きました</div>`:'',
@@ -1451,7 +1497,8 @@ function enterSim(){try{sessionStorage.setItem('pbtSimOn','1');}catch(e){}ensure
   BOX=ROOMBOX;[th,ph]=SIM_CAMS[SIM.cam||0];camBtns();fit();SIM.paused=false;lastMg='';renderUI();if(G.over)showOver();}
 function exitSim(){try{sessionStorage.removeItem('pbtSimOn');}catch(e){}CAMA=null;if(typeof FIGHT!=='undefined')FIGHT.focus=false;if(typeof RAID!=='undefined'&&RAID.focus){RAID.focus=false;for(const cu of customers)if(cu.mesh)setGhost(cu.mesh,false);}SIM.on=false;$('titleBar').style.display='none';$('simCam').style.display='none';resize();$('telop').style.display='none';$('chart').style.display='none';save();simG.visible=false;layoutG.visible=true;fpLine.visible=true;grid.visible=$('grid').classList.contains('on');
   $('normalUI').style.display='block';$('simUI').style.display='none';$('modal').style.display='none';setLayout(cur);}
-$('mgmt').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled||!G)return;
+$('mgmt').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled||!G)return;mgClick(b);});
+function mgClick(b){
   if(b.dataset.price){G.price=b.dataset.price;}
   if(b.dataset.repair){if(G.money<brokenCost()){toast('お金が足りません');return;}const n=repairAll(true);if(n)popup(new THREE.Vector3(0,0,0),'修理完了','#1a7f37');}
   if(b.dataset.promo){if(G.money>=PROMOS[b.dataset.promo].price)promoBuy(b.dataset.promo,crimeOn('ad'));}
@@ -1461,7 +1508,8 @@ $('mgmt').addEventListener('click',e=>{const b=e.target.closest('button');if(!b|
   if(b.dataset.plus){const t=b.dataset.plus,u=upg(t),c=plusCost(t);if(u.plus<PLUS_MAX&&G.money>=c){G.money-=c;u.plus=Math.min(PLUS_MAX,u.plus+10);upgFxAll(t);se.coin&&se.coin();se.pop();toast(ITEMS[t].name+' +'+u.plus+'！');}}
   if(b.dataset.soft){const k=b.dataset.soft,S=soft(),D=SOFT[k],c=D.cost();if(G.money>=c){G.money-=c;S.fresh=Math.min(100,S.fresh+D.fresh);if(k==='ver')S.ver++;if(k==='chara'){S.chars++;S.chara=D.days;}if(k==='collab')S.collab=D.days;se.promo();
     popup(ENTRANCE.clone().setZ(ROOM.z1-800),k==='ver'?'PBT '+verLabel(S.ver)+'！':k==='chara'?'新キャラ『'+CHARS[(S.chars*7)%CHARS.length]+'』追加！':'コラボガチャ開催！','#d0349b');}}
-  save();renderUI();});
+  save();renderUI();}
+$('upg')&&$('upg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled||!G)return;mgClick(b);});
 $('shop').addEventListener('click',e=>{const b=e.target.closest('[data-buy]');if(b&&!b.disabled)buy(b.dataset.buy);});
 $('simUI').addEventListener('click',ensureAudio,true);
 function renderSfx(){$('sfx').textContent=sfxOn?'🔊 効果音 ON':'🔇 効果音 OFF';$('sfx').classList.toggle('on',sfxOn);$('amb').textContent=ambOn?'🎮 店内の音 ON':'🔕 店内の音 OFF';$('amb').classList.toggle('on',ambOn);
@@ -1512,8 +1560,9 @@ function staffFree(){try{staffPoseReset();STAFF.run=false;STAFF.mode='return';ST
 function watchdog(dt){if(SIM.paused||!dt)return;
   if(RAID.on){RAID.wd=(RAID.wd||0)+dt;if(RAID.wd>WD_LIMIT){simErr('watchdog','raid stuck '+RAID.phase);try{raidClear();}catch(e){}RAID.wd=0;staffFree();}}else RAID.wd=0;
   if(FIGHT.on){FIGHT.wd=(FIGHT.wd||0)+dt;if(FIGHT.wd>WD_LIMIT){simErr('watchdog','fight stuck '+FIGHT.phase);try{fightClear();}catch(e){}FIGHT.wd=0;staffFree();}}else FIGHT.wd=0;
+  if(DANEV.on){DANEV.wd=(DANEV.wd||0)+dt;if(DANEV.wd>WD_LIMIT){simErr('watchdog','dan stuck '+DANEV.phase);try{danClear();}catch(e){}staffFree();}}
   if(CATCH.on){CATCH.wd=(CATCH.wd||0)+dt;if(CATCH.wd>WD_LIMIT){simErr('watchdog','catch stuck '+CATCH.phase);try{catchClear();}catch(e){}CATCH.wd=0;staffFree();}}else CATCH.wd=0;
-  if(!RAID.on&&!FIGHT.on&&!CATCH.on&&(STAFF.mode==='raid'||STAFF.mode==='fight')&&!jailActive()){STAFF.wd=(STAFF.wd||0)+dt;if(STAFF.wd>5){STAFF.wd=0;staffFree();}}else STAFF.wd=0;}
+  if(!RAID.on&&!FIGHT.on&&!CATCH.on&&!DANEV.on&&(STAFF.mode==='raid'||STAFF.mode==='fight')&&!jailActive()){STAFF.wd=(STAFF.wd||0)+dt;if(STAFF.wd>5){STAFF.wd=0;staffFree();}}else STAFF.wd=0;}
 function simTick(){const now=performance.now();const dt=Math.min(0.1,(now-lastT)/1000);lastT=now;
   try{vtStep(SIM.on?0:dt);}catch(e){simErr('vtStep',e);try{vtReset();}catch(_){}}
   try{ambTick(dt);}catch(e){}try{camStep(dt);}catch(e){CAMA=null;}if(!SIM.on||!G)return;
