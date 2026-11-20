@@ -141,7 +141,7 @@ button.wide{grid-column:span 2}
   <div class="spLab">倍速モード</div><div class="grid3" style="grid-template-columns:repeat(4,1fr)"><button data-sp="0">停止</button><button data-sp="1" class="on">等倍</button><button data-sp="2">×2</button><button data-sp="3">×3</button></div><div class="spLab">音声</div><div class="grid3 sndRow" style="grid-template-columns:1fr 1fr"><button id="sfx" title="効果音（全体）">🔊 効果音 ON</button><button id="amb" title="店内の環境音（賑わい）">🎮 店内の音 ON</button></div><button id="autoBtn" class="autob">1か月オート（ティンニンにおまかせ）</button><div class="autoSp"><span>オート速度</span><button data-asp="1" class="on">等倍</button><button data-asp="2">×2</button><button data-asp="3">×3</button></div>
   <h2>経営</h2><div id="mgmt"></div>
   <h2 id="sGoal">目標：<span style="white-space:nowrap">パズドラバトルトーナメント２</span>の<br>開発費用＆導入費用<br>100,000,000円を稼ごう！</h2><div class="bar"><i id="sGoalBar"></i></div>
-  <h2>購入・設置</h2><div id="shop"></div><div class="lvHint">購入数が上限に達した設備は「Lv↑」「+10」で強化できます（Lv1ごとに+5%、＋1ごとに+0.4%：集客・購入率・ガチャ）</div>
+  <h2>購入・設置</h2><div id="shop"></div><div class="lvHint">購入数が上限に達した設備は「Lv↑」で強化できます（Lv1ごとに+5%：集客・購入率・ガチャ）</div>
   <button id="simReset" style="width:100%;margin-top:8px">最初からやり直す</button>
   <button id="simExit" class="big">3Dビューアに戻る</button>
   <div id="crimeBox"></div>
@@ -375,7 +375,7 @@ function promoMult(){return 1+(G.promos||[]).reduce((a,p)=>a+(promoDef(p.k).mult
 // ---- 育成（パズドラ風：レベル＆プラス）・パズバトソフト更新・不法行為の疑惑度 ----
 const UPG_MAX=20,PLUS_MAX=99;
 function upg(t){G.up=G.up||{};return G.up[t]||(G.up[t]={lv:1,plus:0});}
-function lvMult(t){const u=G&&G.up&&G.up[t];return u?1+0.05*(u.lv-1)+0.004*u.plus:1;}
+function lvMult(t){const u=G&&G.up&&G.up[t];return u?1+0.05*(u.lv-1):1;}
 function lvCost(t){return Math.max(5000,Math.round(ITEMS[t].price*0.06*upg(t).lv/1000)*1000);}
 function plusCost(t){return Math.max(2000,Math.round(ITEMS[t].price*0.01/1000)*1000)*10;}
 function soft(){return G.pbtSoft||(G.pbtSoft={ver:1,chars:0,fresh:100,chara:0,collab:0});}
@@ -625,17 +625,17 @@ function buildLineDeco(){if(SIM.headless||!count('pbt'))return;const g=new THREE
 // ---- 育成の見た目：レベル帯でリング色、＋でキラキラ、バッジ表示 ----
 const TIER=[[20,'rainbow'],[15,0xffc928],[10,0xdfe6ee],[5,0xcd7f32]];
 function upgTier(lv){for(const [l,c] of TIER)if(lv>=l)return c;return null;}
-function upgFx(m){if(SIM.headless||!m.g)return;const u=(G.up||{})[m.type]||{lv:1,plus:0};if(m.fx){m.g.remove(m.fx);m.fx.traverse(o=>{if(o.material&&o.material.map)o.material.map.dispose();});}m.fx=null;if(u.lv<=1&&u.plus<=0)return;
+function upgFx(m){if(SIM.headless||!m.g)return;const u=(G.up||{})[m.type]||{lv:1,plus:0};if(m.fx){m.g.remove(m.fx);m.fx.traverse(o=>{if(o.material&&o.material.map)o.material.map.dispose();});}m.fx=null;if(u.lv<=1)return;
   const fx=new THREE.Group();m.g.updateMatrixWorld(true);const bb=new THREE.Box3().setFromObject(m.g),inv=new THREE.Matrix4().copy(m.g.matrixWorld).invert();const c=bb.getCenter(new THREE.Vector3()).applyMatrix4(inv),H=bb.max.y,R=Math.max(bb.max.x-bb.min.x,bb.max.z-bb.min.z)/2+160;
   const tier=upgTier(u.lv);fx.userData={tier,ring:null,sp:null,lv:u.lv,plus:u.plus};
   if(tier){const rg=new THREE.Mesh(new THREE.RingGeometry(R-90,R,48),new THREE.MeshBasicMaterial({color:tier==='rainbow'?0xff00ff:tier,transparent:true,opacity:.75,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));
     rg.rotation.x=-Math.PI/2;rg.position.set(c.x,12,c.z);fx.add(rg);fx.userData.ring=rg;
     const gl=new THREE.Mesh(new THREE.CircleGeometry(R-90,40),new THREE.MeshBasicMaterial({color:tier==='rainbow'?0xffffff:tier,transparent:true,opacity:.16,blending:THREE.AdditiveBlending,depthWrite:false}));gl.rotation.x=-Math.PI/2;gl.position.set(c.x,10,c.z);fx.add(gl);fx.userData.glow=gl;}
-  if(u.plus>=30){const n=u.plus>=99?18:u.plus>=60?12:7,pts=[];for(let i=0;i<n;i++){const a=i/n*Math.PI*2;pts.push(Math.cos(a)*R*0.8,H*0.35+((i*577)%7)/7*H*0.6,Math.sin(a)*R*0.8);}
+  if(u.lv>=8){const n=u.lv>=20?18:u.lv>=14?12:7,pts=[];for(let i=0;i<n;i++){const a=i/n*Math.PI*2;pts.push(Math.cos(a)*R*0.8,H*0.35+((i*577)%7)/7*H*0.6,Math.sin(a)*R*0.8);}
     const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(pts,3));
-    const sp=new THREE.Points(geo,new THREE.PointsMaterial({map:sparkTex(),size:u.plus>=99?220:160,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,color:0xffee88}));sp.position.set(c.x,0,c.z);fx.add(sp);fx.userData.sp=sp;}
-  const col=tier==='rainbow'?'#ff4f9a':tier?'#'+new THREE.Color(tier).getHexString():'#5b6b8c';const txt=(u.lv>=20?'👑 ':'')+'Lv'+u.lv+(u.plus?' +'+u.plus:'');
-  const bt=canvasTex(320,96,(g,w,h)=>{g.fillStyle='rgba(20,16,40,.85)';g.beginPath();g.roundRect(4,4,w-8,h-8,40);g.fill();g.strokeStyle=col;g.lineWidth=8;g.stroke();g.font='900 50px sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillStyle=u.plus?'#ffe066':'#fff';g.fillText(txt,w/2,h/2+2);});
+    const sp=new THREE.Points(geo,new THREE.PointsMaterial({map:sparkTex(),size:u.lv>=20?220:160,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,color:0xffee88}));sp.position.set(c.x,0,c.z);fx.add(sp);fx.userData.sp=sp;}
+  const col=tier==='rainbow'?'#ff4f9a':tier?'#'+new THREE.Color(tier).getHexString():'#5b6b8c';const txt=(u.lv>=20?'👑 ':'')+'Lv'+u.lv;
+  const bt=canvasTex(320,96,(g,w,h)=>{g.fillStyle='rgba(20,16,40,.85)';g.beginPath();g.roundRect(4,4,w-8,h-8,40);g.fill();g.strokeStyle=col;g.lineWidth=8;g.stroke();g.font='900 50px sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillStyle=u.lv>=10?'#ffe066':'#fff';g.fillText(txt,w/2,h/2+2);});
   const bd=new THREE.Sprite(new THREE.SpriteMaterial({map:bt,transparent:true,depthTest:false}));bd.scale.set(560,168,1);bd.position.set(c.x,H+260,c.z);bd.renderOrder=8;fx.add(bd);
   m.g.add(fx);m.fx=fx;}
 let _spark=null;function sparkTex(){if(_spark)return _spark;_spark=canvasTex(64,64,(g,w,h)=>{const r=g.createRadialGradient(32,32,0,32,32,32);r.addColorStop(0,'rgba(255,255,255,1)');r.addColorStop(.3,'rgba(255,240,150,.9)');r.addColorStop(1,'rgba(255,200,0,0)');g.fillStyle=r;g.fillRect(0,0,64,64);g.fillStyle='#fff';g.fillRect(30,4,4,56);g.fillRect(4,30,56,4);});return _spark;}
@@ -752,6 +752,7 @@ const CLERK_LINES=["いらっしゃいませ〜！", "空いてる台どうぞ�
 const clerkLine=()=>CLERK_LINES[Math.floor(Math.random()*CLERK_LINES.length)];
 function staffDecide(){const S_=STAFF,u=S_.mesh.userData;u.head.rotation.y=0;const r=Math.random();
   if(Math.random()<(S_.mode==='home'?0.3:0.4)){say(S_,Math.random()<0.8?clerkLine():pazLine());}
+  if((S_.mode==='home'||S_.mode==='wander')&&customers.length<=2&&G.min>OPEN_MIN+20&&G.min<CLOSE_MIN-90&&!jailActive()&&Math.random()<0.55){S_.mode='toTout';S_.target=null;staffRoute(TOUT_POS());return;}
   if((S_.mode==='home'||S_.mode==='wander')&&lineWaiters().length>=3&&Math.random()<0.5){const W=lineWaiters(),p=linePos(Math.min(W.length-1,Math.floor(W.length/2)));S_.mode='line';S_.target=null;staffRoute(p.clone().add(new THREE.Vector3(0,0,-330)));return;}
   if(S_.mode==='home'){if(r<0.12){S_.mode='sleep';S_.wait=14+Math.random()*12;u.head.rotation.x=0.5;}
     else if(r<0.45||machines.some(m=>m.broken)&&Math.random()<0.6){S_.mode='wander';staffRoute(staffPick());}else S_.wait=5+Math.random()*8;return;}
@@ -768,6 +769,21 @@ function checkout(c){const S_=STAFF;if(SIM.headless||!S_.mesh){buyAt(c);nextStop
   if(['wander','return','toPlay','play','call'].includes(S_.mode)){c.state='waitStaff';c.waitT=0;if(c.mesh)pose(c,'stand');S_.calls.push(c);return;}
   buyAt(c);nextStop(c);}
 function payAtCounter(c){c.vendPos=c.payPos;buyAt(c);if(STAFF.mode==='home'&&Math.random()<0.5)popup(STAFF.mesh.position,'まいど！','#ff4f9a');nextStop(c);}
+// ---- 客が少ないとき：ティンニンが入口で客引き（手書きの旗「大人気ぱずばと！」） ----
+const TOUT_POS=()=>new THREE.Vector3(650,0,ROOM.z1-650);
+const TOUT_LINES=['いらっしゃいませ〜！ パズバトあるよ〜！','今なら待ち時間ゼロだよ〜！','大人気ぱずばと、遊んでって〜！','ちょっとそこのパズドラー！','1回100円だよ〜！','ガチャも回せるよ〜！'];
+let toutFlag=null;function makeToutFlag(){const g=new THREE.Group();const pole=cyl(22,2300,mat(0x8b5a2b),10);pole.position.y=1150;g.add(pole);
+  const tx=canvasTex(512,300,(c,w,h)=>{c.fillStyle='#fff7e0';c.fillRect(0,0,w,h);c.strokeStyle='#ff4f9a';c.lineWidth=14;c.strokeRect(10,10,w-20,h-20);
+    const draw=(t,x,y,size,col,rot)=>{c.font=`900 ${size}px "Hiragino Maru Gothic ProN","Rounded Mplus 1c",sans-serif`;const ch=[...t],ws=ch.map(q=>c.measureText(q).width),W2=ws.reduce((a,b)=>a+b,0);let cx=x-W2/2;ch.forEach((q,i)=>{c.save();c.translate(cx+ws[i]/2,y+(Math.random()-.5)*14+Math.sin(i)*6);c.rotate(rot+(Math.random()-.5)*0.28);const sz=size*(0.9+Math.random()*0.22);c.font=`900 ${sz}px "Hiragino Maru Gothic ProN","Rounded Mplus 1c",sans-serif`;c.textAlign='center';c.textBaseline='middle';c.lineWidth=6;c.strokeStyle='#fff';c.strokeText(q,0,0);c.fillStyle=col;c.fillText(q,0,0);c.restore();cx+=ws[i];});};
+    draw('大人気',w/2-40,92,78,'#e53935',-0.06);draw('ぱずばと！',w/2+10,200,96,'#1e3a8a',0.04);c.fillStyle='#fdd835';c.beginPath();c.arc(440,70,26,0,7);c.fill();c.fillStyle='#43a047';c.beginPath();c.arc(70,250,20,0,7);c.fill();});
+  const cloth=new THREE.Mesh(new THREE.PlaneGeometry(900,530,12,1),new THREE.MeshStandardMaterial({map:tx,side:THREE.DoubleSide,roughness:.9}));cloth.position.set(470,1980,0);g.add(cloth);g.userData.cloth=cloth;g.userData.base=cloth.geometry.attributes.position.array.slice();g.visible=false;return g;}
+function toutStep(dt,k){const S_=STAFF,u=S_.mesh.userData;if(!toutFlag){toutFlag=makeToutFlag();S_.mesh.add(toutFlag);toutFlag.position.set(260,0,80);}
+  toutFlag.visible=S_.mode==='tout';if(S_.mode!=='tout')return false;
+  S_.phase+=dt*k;const sw=Math.sin(S_.phase*5);toutFlag.rotation.z=sw*0.28;u.arms[1].rotation.x=-2.6+sw*0.35;u.arms[0].rotation.x=-0.4-Math.abs(sw)*0.5;S_.mesh.position.y=Math.abs(Math.sin(S_.phase*5))*35;
+  const cl=toutFlag.userData.cloth,pa=cl.geometry.attributes.position,b=toutFlag.userData.base;for(let i=0;i<pa.count;i++){const x=b[i*3];pa.array[i*3+2]=Math.sin(x*0.008+S_.phase*7)*40*((x+450)/900);}pa.needsUpdate=true;
+  S_.talkT=(S_.talkT||0)-dt*k;if(S_.talkT<=0){S_.talkT=3.5+Math.random()*2;say(S_,TOUT_LINES[Math.floor(Math.random()*TOUT_LINES.length)],2.6);}
+  S_.wait-=dt*k;if(S_.wait<=0||customers.length>=7||G.min>=CLOSE_MIN-30){toutFlag.visible=false;staffPoseReset();S_.mesh.position.y=0;if(customers.length>=7)say(S_,'お客さん来た〜！',1.8);S_.mode='return';staffRoute(null,true);}
+  return true;}
 function staffStep(dt){const S_=STAFF;if(!S_.mesh||!dt)return;bubStep(S_,dt);const u=S_.mesh.userData,k=Math.min(2.5,Math.sqrt(SIM.speed));
   fightStep(dt,k);raidStep(dt,k);catchStep(dt,k);danStep(dt,k);S_.zzz.visible=S_.mode==='sleep';
   if(S_.mode==='jail'){S_.mesh.visible=false;if(!jailActive()){S_.mesh.visible=true;staffPoseReset();S_.mesh.position.copy(ENTRANCE);S_.mode='return';staffRoute(null,true);say(S_,'シャバの空気うまい！',2.5);}return;}
@@ -775,6 +791,7 @@ function staffStep(dt){const S_=STAFF;if(!S_.mesh||!dt)return;bubStep(S_,dt);con
   S_.calls=S_.calls.filter(c=>c.state==='waitStaff');
   if(S_.calls.length&&['wander','return','toPlay','play'].includes(S_.mode)){if(S_.mode==='play'){standUp();popup(S_.mesh.position,'はーい！','#ff4f9a');}
     const c=S_.calls[0];S_.mode='call';S_.run=true;S_.target=null;staffRoute(c.vendPos.clone().add(new THREE.Vector3(c.vendPos.x>0?-500:500,0,c.vendPos.z<ROOM.z0+1500?300:0)));}
+  if(toutStep(dt,k))return;
   if(S_.mode==='sleep'){S_.phase+=dt*k;u.head.rotation.x=0.45+Math.sin(S_.phase*1.5)*0.08;S_.zzz.position.y=2250+Math.sin(S_.phase*2)*60;S_.wait-=dt*k;
     if(S_.wait<=0){u.head.rotation.x=0;popup(S_.mesh.position,'ふわぁ…','#4a6fd8');S_.mode='home';S_.wait=4;}return;}
   if(S_.mode==='play'){const m=S_.playM;S_.phase+=dt*k;const a=Math.sin(S_.phase*18);u.arms[0].rotation.x=-1.15+a*0.18;u.arms[1].rotation.x=-1.15-a*0.18;u.head.rotation.y=Math.sin(S_.phase*0.7)*0.15;
@@ -785,6 +802,7 @@ function staffStep(dt){const S_=STAFF;if(!S_.mesh||!dt)return;bubStep(S_,dt);con
       if(S_.mode==='return'){S_.mode='home';S_.mesh.rotation.y=-Math.PI/2;S_.wait=6+Math.random()*8;}
       else if(S_.mode==='toPlay'){const m=S_.playM;if(m&&!m.busy&&!m.broken){const sp=toWorld(m,0,m.seatL[1]+60);S_.mesh.position.set(sp.x,60,sp.z);const t=toWorld(m,0,0);S_.mesh.rotation.y=Math.atan2(t.x-sp.x,t.z-sp.z);
           for(const l of u.legs)l.rotation.x=-1.5;S_.mode='play';S_.wait=10+Math.random()*10;S_.phase=0;S_.nx=1;}else{S_.mode='wander';S_.wait=1;S_.playM=null;}}
+      else if(S_.mode==='toTout'){S_.mode='tout';S_.mesh.rotation.y=0;S_.wait=16+Math.random()*10;S_.talkT=0;S_.phase=0;popup(S_.mesh.position,'客引き中！（来客アップ）','#ff4f9a');}
       else if(S_.mode==='line'){S_.mesh.rotation.y=0;say(S_,LINE_LINES[Math.floor(Math.random()*LINE_LINES.length)],2.4);u.arms[1].rotation.x=-2.6;lineReflow();for(const q of lineWaiters())q.patience+=8;popup(S_.mesh.position,'行列整理！（待ち時間＋）','#ff4f9a');S_.mode='wander';S_.wait=3;}
       else if(S_.mode==='call'){let n=0;for(const c of S_.calls.slice()){if(c.state==='waitStaff'&&c.vendPos.distanceTo(S_.mesh.position)<2600){buyAt(c);nextStop(c);n++;}}
         if(n)popup(S_.mesh.position,'まいどあり！','#ff4f9a');S_.mode='wander';S_.wait=1.2;}
@@ -935,7 +953,7 @@ function showCutin(who,crime,method){se.impact();setTimeout(()=>who==='police'?s
 // ---- 万引き犯・ゴト師をティンニンが追いかけて確保 ----
 const CATCH={on:false};
 const PRO_BETS=['食べかけのうまい棒（めんたい味）','魔法石1個（無料配布分）','100円ショップのスライムのぬいぐるみ','ドロップ操作用の指サック','ドラゴンボールの1つ（星なし）','期限切れのペロリドラゴン引換券','モンスターポイント3ポイント','ガチャ爆死記録の手書きノート','自作のパズドラ必勝法（3行）','ニジピー（自称）','自分のサイン色紙','昨日のコンビニのレシート','たまドラのキーホルダー（片耳なし）','パズル用の謎の指ぬき','黒歴史のコンボ動画DVD'];
-function proWin(){return Math.min(0.8,0.45+0.02*(upg('pbt').lv-1)+0.002*upg('pbt').plus);}
+function proWin(){return Math.min(0.8,0.45+0.02*(upg('pbt').lv-1));}
 function startCatch(kind){
   let src;if(kind==='thief'){const ms=machines.filter(m=>SHOPS.includes(m.type));if(!ms.length)return;src=ms[Math.floor(Math.random()*ms.length)];}
   else{const ms=machines.filter(m=>m.T.kind==='game'&&!m.broken);if(!ms.length)return;src=ms[Math.floor(Math.random()*ms.length)];}
@@ -1249,7 +1267,7 @@ function breakMachine(m){m.broken=true;G.today.breaks++;se.brk();
 function repairAll(pay){if(machines.some(m=>m.broken))se.repair();let n=0,cost=brokenCost();for(const m of machines)if(m.broken){m.broken=false;n++;if(m.bs){fxG.remove(m.bs);m.bs=null;}}if(pay&&n){G.money-=cost;}return n;}
 function stepGame(dm){
   // arrivals
-  const h=G.min/60;const lam=demandCurve(h)*0.05*Math.pow(0.6+attraction(),0.72)*demandMult();
+  const h=G.min/60;const lam=demandCurve(h)*0.05*Math.pow(0.6+attraction(),0.72)*demandMult()*(!SIM.headless&&STAFF.mode==='tout'?1.6:1);
   const bd=G.today.bad;if(bd&&!bd.fired&&G.min>=bd.start)fireBad(bd);
   if(G.caa&&G.day>=G.caa.day&&G.min>=G.caa.min&&!G.today.caa&&!RAID.on&&!FIGHT.on){G.caa=null;startRaid('caa');}
   const RD=G.today.raid;if(RD&&!RD.started&&G.min>=RD.at&&G.min<CLOSE_MIN-90&&!RAID.on&&!FIGHT.on&&!CATCH.on){RD.started=true;startRaid(RD.who||'police');}
@@ -1426,8 +1444,8 @@ function renderUI(){if(!G)return;if(!Number.isFinite(G.money))normalize(G);const
   $('sGoal').innerHTML=G.cleared?`クリア済み！ パズバト２ ${count('pbt2')}/18台・パズバト ${count('pbt')}/18台`:`目標：<span style="white-space:nowrap">パズドラバトルトーナメント２</span>の<br>開発費用＆導入費用<br><span style="white-space:nowrap">${GOAL_PRICE.toLocaleString()}円</span>を稼ごう！`;$('sGoalBar').style.width=(G.cleared?100:Math.max(0,Math.min(100,G.money/GOAL_PRICE*100)))+'%';
   const shopHTML=ORDER.map(t=>{const I=ITEMS[t];const r=canBuy(t);const lab=r==='max'?'上限':r==='money'?'資金不足':'購入';
     const info=`${I.note?'<br>'+I.note:''}${I.kind==='game'?`${t==='pbt2'?'':`<br>キャラガチャ1回${I.gacha}円`}・${I.watt}W`:I.watt?`<br>${I.watt}W`:''}`;
-    if(r==='max'&&I.kind!=='fake'&&t!=='pbt2'){const u=upg(t),m=lvMult(t),lmax=u.lv>=UPG_MAX,pmax=u.plus>=PLUS_MAX;
-      return `<div class="item up"><div><b>${I.disp||I.name}</b><span><em class="lvb">Lv${u.lv}/${UPG_MAX}${u.plus?' <i>+'+u.plus+'</i>':''}</em>　${count(t)}/${maxOf(t)}台・効果×${m.toFixed(2)}${I.kind==='game'?'・修理費'+yen(repairCost(t))+'/台':''}${info}</span></div><div class="upb"><button data-lv="${t}" ${lmax||G.money<lvCost(t)?'disabled':''}>${lmax?'Lv MAX':'Lv↑ '+yen(lvCost(t))}</button><button data-plus="${t}" ${pmax||G.money<plusCost(t)?'disabled':''}>${pmax?'+MAX':'+10 '+yen(plusCost(t))}</button></div></div>`;}
+    if(r==='max'&&I.kind!=='fake'&&t!=='pbt2'){const u=upg(t),m=lvMult(t),lmax=u.lv>=UPG_MAX;
+      return `<div class="item up"><div><b>${I.disp||I.name}</b><span><em class="lvb">Lv${u.lv}/${UPG_MAX}</em>　${count(t)}/${maxOf(t)}台・効果×${m.toFixed(2)}${I.kind==='game'?'・修理費'+yen(repairCost(t))+'/台':''}${info}</span></div><div class="upb"><button data-lv="${t}" ${lmax||G.money<lvCost(t)?'disabled':''}>${lmax?'Lv MAX':'Lv↑ '+yen(lvCost(t))}</button></div></div>`;}
     return `<div class="item"><div><b>${I.disp||I.name}</b><span>${yen(I.price)}　${count(t)}/${maxOf(t)}${info}</span></div><button data-buy="${t}" ${r?'disabled':''}>${lab}</button></div>`}).join('');
   if(shopHTML!==lastShop){lastShop=shopHTML;$('shop').innerHTML=shopHTML;}
   renderTelop();drawChart();
