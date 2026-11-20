@@ -62,6 +62,10 @@ button.wide{grid-column:span 2}
 .ev{color:#fff;border-radius:6px;padding:4px 6px;font-weight:700;font-size:10.5px;margin:2px 0 4px}.evn{color:#8a5a00;font-size:10px;margin-bottom:4px}
 #shop button{white-space:nowrap;padding-left:6px;padding-right:6px}
 .pipw{position:absolute;display:none;z-index:3;border:2px solid #fff;border-radius:6px;box-shadow:0 2px 10px rgba(0,0,0,.4);pointer-events:none;overflow:hidden}.pipw .pl{position:absolute;left:0;top:0;right:0;background:rgba(0,0,0,.55);color:#fff;font-size:8.5px;padding:1px 5px;white-space:nowrap}.pipw.live .pl{background:rgba(200,0,0,.75)}
+.pipw .cm span.fx{left:50%;transform:translateX(-50%);animation:none}
+#tweet{position:absolute;top:58px;left:50%;transform:translateX(-50%);width:min(340px,80%);z-index:6;display:none;background:#fff;color:#0f1419;border:1px solid #cfd9de;border-radius:14px;box-shadow:0 6px 24px rgba(0,0,0,.25);padding:9px 12px;font-size:12px;pointer-events:none}
+#tweet.go{animation:twIn 5.2s ease both}@keyframes twIn{0%{opacity:0;transform:translate(-50%,-14px)}8%{opacity:1;transform:translate(-50%,0)}88%{opacity:1}100%{opacity:0}}
+#tweet .tw-h{display:flex;align-items:center;gap:7px}#tweet .tw-h img{width:34px;height:34px;border-radius:50%;background:#ffe4ef;object-fit:cover}#tweet .tw-h b{display:block;font-size:12px}#tweet .tw-h small{color:#536471;font-size:10.5px}#tweet .tw-x{margin-left:auto;font-weight:900;font-size:15px}#tweet p{margin:6px 0;line-height:1.5}#tweet .tw-f{color:#536471;font-size:10.5px}
 .pipw .cm span{position:absolute;left:100%;white-space:nowrap;color:#fff;font-weight:700;font-size:9.5px;text-shadow:0 0 2px #000,0 0 2px #000;animation:nicoflow 4s linear forwards}@keyframes nicoflow{to{transform:translateX(-260px)}}
 #cutin{display:none;position:absolute;left:0;right:0;top:34%;z-index:6;pointer-events:none;text-align:center}
 #cutin .ci-band{display:flex;align-items:center;justify-content:center;gap:14px;background:linear-gradient(90deg,#0b1f5c,#1d3c9a 40%,#b0002a 60%,#5c0016);color:#fff;padding:8px 10px;transform:skewY(-4deg);border-top:4px solid #ffd54a;border-bottom:4px solid #ffd54a;box-shadow:0 6px 18px rgba(0,0,0,.5)}
@@ -748,7 +752,7 @@ function staffPick(){const br=machines.filter(m=>m.broken);if(br.length&&Math.ra
   const W=walkways();if(r<0.6)return new THREE.Vector3(W[Math.floor(Math.random()*W.length)],0,-2200+Math.random()*3800);
   return new THREE.Vector3(-3000+Math.random()*6000,0,Math.random()<.7?ZF_LANE:ZB_LANE);}
 const freeGames=()=>machines.filter(m=>m.T.kind==='game'&&!m.busy&&!m.broken&&!m.queue.length);
-const CLERK_LINES=["いらっしゃいませ〜！", "空いてる台どうぞ〜", "お一人様1プレイずつでお願いしま〜す", "両替はカウンターでどうぞ", "ガチャ、今日は当たり出てますよ〜", "順番抜かしはダメですよ！", "お飲み物は物販コーナーへ", "台を叩かないでくださ〜い", "ありがとうございました〜！", "またのお越しを〜", "ただいまベンチ空いてま〜す", "後ろの方お待ちで〜す", "100円玉ありますか？", "レシートいりますか〜？", "台の調子どうですか？", "カード忘れてますよ〜", "お席詰めてお待ちくださ〜い", "新キャラ入荷しました！", "閉店まであと少しで〜す", "トイレは奥で〜す", "筐体の上に物置かないでね", "ポイントカードお持ちですか？", "本日イベント開催中で〜す", "故障の台は修理中で〜す", "いい勝負でしたね〜！", "次の方どうぞ〜", "お会計こちらで〜す", "店内での飲食は物販のだけでお願いしま〜す", "お忘れ物ないですか〜？", "大会エントリー受付中で〜す"];
+const CLERK_LINES=["いらっしゃいませ〜！", "空いてる台どうぞ〜", "お一人様1プレイずつでお願いしま〜す", "両替はカウンターでどうぞ", "ガチャ、今日は当たり出てますよ〜", "順番抜かしはダメですよ！", "お飲み物は物販コーナーへ", "台を叩かないでくださ〜い", "ありがとうございました〜！", "またのお越しを〜", "ただいまベンチ空いてま〜す", "後ろの方お待ちで〜す", "100円玉ありますか？", "レシートいりますか〜？", "台の調子どうですか？", "カード忘れてますよ〜", "お席詰めてお待ちくださ〜い", "新キャラ入荷しました！",  "トイレは奥で〜す", "筐体の上に物置かないでね", "ポイントカードお持ちですか？", "本日イベント開催中で〜す", "故障の台は修理中で〜す", "いい勝負でしたね〜！", "次の方どうぞ〜", "お会計こちらで〜す", "店内での飲食は物販のだけでお願いしま〜す", "お忘れ物ないですか〜？", "大会エントリー受付中で〜す"];
 const clerkLine=()=>CLERK_LINES[Math.floor(Math.random()*CLERK_LINES.length)];
 function staffDecide(){const S_=STAFF,u=S_.mesh.userData;u.head.rotation.y=0;const r=Math.random();
   if(Math.random()<(S_.mode==='home'?0.3:0.4)){say(S_,Math.random()<0.8?clerkLine():pazLine());}
@@ -1071,10 +1075,42 @@ function pipInit(){if(PIP.S)return;const P=new THREE.Scene();P.background=new TH
     const mic=box(1.2,3,1.2,mat(0x333333),0,-11.6,0.9);s.t.userData.arms[0].add(mic);const ball=new THREE.Mesh(new THREE.SphereGeometry(1.1,10,8),mat(0xaaaaaa,{metalness:.7}));ball.position.set(0,-13.3,0.9);s.t.userData.arms[0].add(ball);
     for(let i=0;i<26;i++){const p=new THREE.Mesh(new THREE.PlaneGeometry(90,60),new THREE.MeshBasicMaterial({color:[0xffd54a,0xff6fae,0x7cc4ff,0x9cf08a][i%4],side:THREE.DoubleSide}));p.position.set((Math.random()-.5)*3600,Math.random()*2800,(Math.random()-.5)*800);p.userData.v=300+Math.random()*400;s.g.add(p);s.fx.push(p);}});
   mk('nico',20000,tx('#20232e','#0d0f16','',(c,W,H)=>{c.fillStyle='#333a4d';for(let i=0;i<6;i++)c.fillRect(30+i*82,120,60,160);c.fillStyle='#ffd54a';c.fillRect(0,300,W,8);}),s=>{});}
-const NICO_CMT=['wwwww','8888888','ティンニン！','かわいい','パズバト10周年まだ？','てま崩壊','なんなすみません','消費者庁ｷﾀ━━━━','初見です','神回','うぽつ','石油王いる？','ガチャ回せ','ｗｗｗ','おつ','草','店長〜！','パズバト２はよ'];
+const NICO_CMT=['wwwww','8888888','ティンニン！','かわいい','パズバト10周年まだ？','てま崩壊','なんなすみません','消費者庁ｷﾀ━━━━','初見です','神回','うぽつ','石油王いる？','ガチャ回せ','ｗｗｗ','おつ','草','店長〜！','パズバト２はよ',
+ '実機まだ動いてるの！？','うおおおお','かわいすぎか','ティンニンちゃん今日もかわいい','わこつ','わこつです','初見','こんばんは〜','こんにちは〜','今北産業','888888888','きたああああ','ナイスコンボ','10コンボ！','ドロップ操作うますぎ','指さばきやばい','神操作','それは無理ｗ','今の見た？','おしい！','だめだったか…','落ちコンｷﾀｰ','ガチャ爆死してて草','虹演出きた？','確定演出ｗ','金玉ｷﾀ━(ﾟ∀ﾟ)━!','石10個ください','魔法石ほしい','課金は計画的に','財布が死んだ','今月ピンチ','俺も遊びたい','近所なら行くのに','場所どこ？','聖地巡礼したい','この店好き','段ボール筐体ｗｗｗ','手作り筐体で草','ゲーセン行きてえ','パズバト懐かしい','当時やってたわ','全国大会出たことある','ランキング1位だった（自称）','プロパズドラー来てる？','警察来てて草','税務署ｗｗｗ','脱税はダメｗ','風営法ｗ','盛りすぎ','大丈夫？この店','優良誤認ｗｗ','ティンニン店長ファイト！','応援してる','がんばえー','かわいい（2回目）','声かわいい','ポーズきまってる','もっとアップで','カメラ揺れすぎ','画質ｗ','回線重い？','コメ速すぎ','弾幕職人こい','（＊´ω｀＊）','(｀・ω・´)ｼｬｷｰﾝ','ｷﾀ━━━(ﾟ∀ﾟ)━━━!!','ｶﾜ(・∀・)ｲｲ!!','ぱずばと！ぱずばと！','パズバト２開発費にどうぞ','赤スパ（気持ち）','ギフト送りました','おひねり投げとく','明日も配信する？','次は大会配信して','ガンホーさん見てる〜？','運営に届け','続編待ってます','10年待った','まだ待ってる','次回作に期待','ティンニン総理','ティンニンは天才','うちの子にほしい','寝落ちしそう','おやすみ〜','いい配信だった','乙でした'];
+const NICO_STYLE=[['#fff',1],['#fff',1],['#fff',1],['#ffd54a',1],['#ff6fae',1],['#7cc4ff',1],['#9cf08a',1],['#ff5252',1.25],['#fff',1.4]];
+function nicoComment(el){const cm=el.querySelector('.cm');const sp=document.createElement('span');let t=NICO_CMT[Math.floor(Math.random()*NICO_CMT.length)];
+  if(G&&Math.random()<0.15){const extra=[G.fuei?'深夜まで営業してて草':null,crimeOn('tax')?'税金払ってる？ｗ':null,crimeOn('ad')?'それ盛ってない？':null,count('dan')?'段ボールのやつ気になる':null,lineWaiters&&lineWaiters().length>=3?'行列できてるじゃん':null,'所持金'+Math.round(G.money/10000)+'万ｗ'].filter(Boolean);t=extra[Math.floor(Math.random()*extra.length)];}
+  const st=NICO_STYLE[Math.floor(Math.random()*NICO_STYLE.length)],fix=Math.random()<0.06;sp.textContent=t;sp.style.color=st[0];sp.style.fontSize=(9.5*st[1])+'px';
+  if(fix){sp.className='fx';sp.style.top=(Math.random()<0.5?14:PIP.H-18)+'px';}else{sp.style.top=(16+Math.random()*(PIP.H-34))+'px';sp.style.animationDuration=(3.2+Math.random()*1.8)+'s';}
+  cm.appendChild(sp);setTimeout(()=>sp.remove(),fix?2500:5200);}
+// ---- 店内イベント：壁と床に張り紙 ----
+let cupDeco=null;function cupDecoSync(){const on=!!(SIM.on&&G&&(G.promos||[]).some(p=>p.k==='cup'));
+  if(on&&!cupDeco){cupDeco=new THREE.Group();const boost=(G.promos||[]).find(p=>p.k==='cup');
+    const poster=canvasTex(512,720,(c,w,h)=>{c.fillStyle='#fffbe8';c.fillRect(0,0,w,h);c.strokeStyle='#ff4f9a';c.lineWidth=18;c.strokeRect(9,9,w-18,h-18);
+      const hand=(t,x,y,sz,col,r)=>{c.font=`900 ${sz}px "Hiragino Maru Gothic ProN",sans-serif`;const ch=[...t],ws=ch.map(q=>c.measureText(q).width);let cx=x-ws.reduce((a,b)=>a+b,0)/2;ch.forEach((q,i)=>{c.save();c.translate(cx+ws[i]/2,y+(Math.random()-.5)*10);c.rotate(r+(Math.random()-.5)*0.22);c.fillStyle=col;c.textAlign='center';c.textBaseline='middle';c.fillText(q,0,0);c.restore();cx+=ws[i];});};
+      hand('店内イベント',w/2,90,64,'#e53935',-0.04);hand('開催中！',w/2,175,84,'#1e3a8a',0.03);
+      c.fillStyle='#ffd54a';c.beginPath();c.arc(w/2,330,120,0,7);c.fill();hand('パズバト',w/2,305,58,'#7a1c00',0);hand('大会',w/2,365,58,'#7a1c00',0);
+      hand(boost&&boost.boost?'賞金総額100万円！？':'参加無料！',w/2,500,48,'#d4001a',-0.03);hand('飛び入り大歓迎',w/2,575,42,'#333',0.02);hand('てぃんにん',w-120,670,30,'#ff4f9a',-0.1);});
+    const pm=new THREE.MeshStandardMaterial({map:poster,roughness:.9,emissive:0xffffff,emissiveMap:poster,emissiveIntensity:.25});
+    const free=(ROOM.x1-ROOM.x0)/2-2900;if(free>=1000){for(const sx of [-1,1]){const p=new THREE.Mesh(new THREE.PlaneGeometry(900,1265),pm);p.position.set(sx*(2900+free/2),1500,ROOM.z0+16);p.rotation.z=sx*0.03;cupDeco.add(p);}}
+    // 入口近くの立て看板（A型スタンド）にも張り紙
+    if(free<1000){const st=new THREE.Group();const fr=mat(0x5d4037);st.add(box(60,1500,60,fr,-420,750,0),box(60,1500,60,fr,420,750,0));const pp=new THREE.Mesh(new THREE.PlaneGeometry(800,1125),pm);pp.position.set(0,880,40);st.add(pp);st.add(box(860,40,40,fr,0,1460,20));
+    st.position.set(2200,0,ROOM.z1-1700);st.rotation.y=-0.4;cupDeco.add(st);}
+    const fl=canvasTex(512,512,(c,w,h)=>{c.fillStyle='rgba(255,79,154,.92)';c.beginPath();c.arc(w/2,h/2,240,0,7);c.fill();c.strokeStyle='#fff';c.lineWidth=14;c.stroke();c.fillStyle='#fff';c.font='900 70px sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText('イベント',w/2,h/2-50);c.fillText('開催中！',w/2,h/2+45);c.font='700 34px sans-serif';c.fillText('▲ 店内へどうぞ ▲',w/2,h/2+130);});
+    const f=new THREE.Mesh(new THREE.PlaneGeometry(1300,1300),new THREE.MeshBasicMaterial({map:fl,transparent:true,depthWrite:false}));f.rotation.x=-Math.PI/2;f.position.set(1500,6,ROOM.z1-1000);cupDeco.add(f);
+    S.add(cupDeco);}
+  else if(!on&&cupDeco){S.remove(cupDeco);cupDeco.traverse(o=>{if(o.material){if(o.material.map)o.material.map.dispose();o.material.dispose();}if(o.geometry)o.geometry.dispose();});cupDeco=null;}}
+// ---- SNS：期間中は開店時に宣伝ツイートを数秒表示 ----
+const TWEETS=['本日も元気に開店しました！ 実機のパズバトで遊べるのはここだけ！ #パズバト #おティンニンランド','パズバト1回100円！ ティンニン店長が待ってるよ〜 #パズバト','今日のおティンニンランドは空いてます！ 待ち時間ゼロでパズバト遊べるチャンス！','パズバト２の開発費を稼ぐため、本日も営業中！ 応援よろしくお願いします！','新キャラ入りました！ ガチャ回しに来てね〜 #パズバト'];
+const TWEETS_BOOST=['【超人気】日本一のパズバト聖地・おティンニンランド！ 来店者全員がスーパーパズドラーに！？ #パズバト','【公式】パズバトの実機、世界にここだけ！（※たぶん） 今日来ないと一生後悔！','芸能人も多数来店！（※ティンニン調べ） 大人気パズバト専門店、本日も開店！'];
+function showTweet(){if(SIM.headless)return;let el=document.getElementById('tweet');if(!el){el=document.createElement('div');el.id='tweet';$('view').appendChild(el);}
+  const p=(G.promos||[]).find(q=>q.k==='sns'),L=p&&p.boost?TWEETS_BOOST:TWEETS,t=L[Math.floor(Math.random()*L.length)],img=portRender('tin'),rt=Math.floor(3+Math.random()*(p&&p.boost?400:40)),lk=rt*3+Math.floor(Math.random()*30);
+  el.innerHTML=`<div class="tw-h">${img?`<img src="${img}">`:''}<div><b>おティンニンランド【公式】</b><small>@otinninland・今</small></div><span class="tw-x">𝕏</span></div><p>${t}</p><div class="tw-f">💬 ${Math.floor(rt/3)}　🔁 ${rt}　♡ ${lk}</div>`;
+  el.classList.remove('go');void el.offsetWidth;el.classList.add('go');el.style.display='block';se.pop&&se.pop();clearTimeout(el._t);el._t=setTimeout(()=>{el.style.display='none';},5200);}
+function snsTick(){if(!SIM.on||!G||!G.today)return;const on=(G.promos||[]).some(p=>p.k==='sns');if(on&&!G.today.tweeted&&G.min>=OPEN_MIN&&G.min<OPEN_MIN+60){G.today.tweeted=true;showTweet();}}
 function pipEl(k,i){let el=document.getElementById('pip_'+k);if(!el){el=document.createElement('div');el.id='pip_'+k;el.className='pipw';el.innerHTML=`<b class="pl"></b><div class="cm"></div>`;$('view').appendChild(el);}
-  el.style.right=(8+i*(PIP.W+6))+'px';el.style.left='auto';el.style.top='auto';el.style.bottom='62px';el.style.width=PIP.W+'px';el.style.height=PIP.H+'px';el.style.display='block';return el;}
-function renderPiP(){const act=SIM.on&&G?['sns','cup','nico'].filter(k=>(G.promos||[]).some(p=>p.k===k)):[];
+  el.style.right='6px';el.style.left='auto';el.style.top='auto';el.style.bottom='6px';el.style.width=PIP.W+'px';el.style.height=PIP.H+'px';el.style.display='block';return el;}
+function renderPiP(){try{cupDecoSync();snsTick();}catch(e){}const act=SIM.on&&G?['nico'].filter(k=>(G.promos||[]).some(p=>p.k===k)):[];
   for(const k of ['sns','cup','nico'])if(!act.includes(k)){const el=document.getElementById('pip_'+k);if(el)el.style.display='none';}
   if(!act.length)return;pipInit();const {W,H}=size();const now=performance.now()/1000;R.setScissorTest(true);
   act.forEach((k,i)=>{const s=PIP.st[k],u=s.t.userData,p=G.promos.find(q=>q.k===k);const el=pipEl(k,i);
@@ -1083,8 +1119,8 @@ function renderPiP(){const act=SIM.on&&G?['sns','cup','nico'].filter(k=>(G.promo
     else if(k==='cup'){const a=Math.sin(now*6);s.t.position.y=Math.abs(a)*260;u.arms[0].rotation.x=-2.6;u.arms[1].rotation.x=-2.2+a*0.8;u.legs[0].rotation.x=a*0.4;u.legs[1].rotation.x=-a*0.4;
       for(const f of s.fx){f.position.y-=f.userData.v*0.016;f.rotation.x+=0.1;f.rotation.y+=0.07;if(f.position.y<0)f.position.y=2800;}}
     else{u.arms[1].rotation.x=-2.6+Math.sin(now*8)*0.5;u.arms[0].rotation.x=0;u.head.rotation.z=Math.sin(now*2)*0.12;s.t.position.y=Math.abs(Math.sin(now*2.5))*40;
-      const cm=el.querySelector('.cm');if(!el._t||now-el._t>0.7){el._t=now;const sp=document.createElement('span');sp.textContent=NICO_CMT[Math.floor(Math.random()*NICO_CMT.length)];sp.style.top=(16+Math.random()*(PIP.H-34))+'px';cm.appendChild(sp);setTimeout(()=>sp.remove(),4200);}}
-    const x=W-8-(i+1)*PIP.W-i*6,y=62;R.setScissor(x,y,PIP.W,PIP.H);R.setViewport(x,y,PIP.W,PIP.H);R.render(PIP.S,s.cam);});
+      if(!el._t||now-el._t>el._gap){el._t=now;el._gap=0.25+Math.random()*0.7;nicoComment(el);if(Math.random()<0.12)for(let q=0;q<4;q++)setTimeout(()=>nicoComment(el),q*90);}}
+    const x=W-6-PIP.W-2,y=8;R.setScissor(x,y,PIP.W,PIP.H);R.setViewport(x,y,PIP.W,PIP.H);R.render(PIP.S,s.cam);});
   R.setScissorTest(false);R.setViewport(0,0,W,H);}
 // ---- sound (チャリーン) : synthesized with WebAudio ----
 let AC=null,sfxOn=true;try{sfxOn=localStorage.getItem('pbtSfx')!=='0'}catch(e){}
@@ -1470,7 +1506,7 @@ function promoAsk(k){const p=PROMOS[k];SIM.pausedBy=SIM.paused;SIM.paused=true;$
 function promoBuy(k,boost){const p=PROMOS[k];if(G.money<p.price)return;G.money-=p.price;se.promo();G.promos=(G.promos||[]).concat([{k,days:p.days,boost}]);
   if(boost)addHeat('caa',k==='nico'?40:k==='cup'?22:15,k==='nico'?'景品表示法違反（ニコ生での優良誤認表示）':k==='cup'?'景品表示法違反（店内イベントの誇大告知）':'景品表示法違反（SNS広告の優良誤認）');
   if(k==='nico'){const d=dateOf(G.day);G.nicoMonth=d.getFullYear()*12+d.getMonth();G.caa={day:G.day+1+Math.floor(Math.random()*5),min:OPEN_MIN+60+Math.random()*600};}
-  popup(ENTRANCE.clone().setZ(ROOM.z1-800),p.label+(boost?'（盛り）':'')+'！','#e67e22');save();}
+  popup(ENTRANCE.clone().setZ(ROOM.z1-800),p.label+(boost?'（盛り）':'')+'！','#e67e22');if(k==='sns'){G.today.tweeted=true;setTimeout(showTweet,300);}save();}
 const CRIMES=[{k:'fuei',l:'風営法を無視しますか？',on:'深夜営業・年齢確認なし（来客×1.45）',who:'警察'},{k:'tax',l:'脱税しときますか？',on:'月末の税金を払わない',who:'税務署'},{k:'ad',l:'優良誤認させますか？',on:'宣伝を盛る（効果×1.6）',who:'消費者庁'}];
 function crimeOn(k){return k==='fuei'?!!G.fuei:!!(G.crime&&G.crime[k]);}
 function crimeHTML(){return `<div class="crime"><b>裏稼業スイッチ<small>ONにすると儲かるが疑惑度が上がる</small></b>${CRIMES.map(c=>{const on=crimeOn(c.k);return `<div class="mrow"><span>${c.l}<small class="cd">${on?c.on+'・'+c.who+'の疑惑度↑':'OFF（クリーン営業）'}${c.k==='fuei'&&G.fueiGain?'<br>深夜営業の儲け '+yen(G.fueiGain)+'（捕まると没収）':''}${c.k==='tax'&&G.evaded?'<br>脱税額 '+yen(G.evaded)+'（バレると1.4倍で追徴）':''}</small></span><div class="seg"><button data-crime="${c.k}" class="${on?'on':''}" style="${on?'background:#c0392b;color:#fff;border-color:#c0392b':''}">${on?'ON':'OFF'}</button></div></div>`;}).join('')}</div>`;}
