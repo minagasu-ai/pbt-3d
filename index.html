@@ -311,14 +311,14 @@ const ITEMS={
  pbt:  {name:'パズドラバトルトーナメント',price:500000,gacha:200,max:18,watt:180,credit:100,mins:4,cr:[2,5],attr:1.0,kind:'game',pose:'sit'},
  pbt2: {name:'パズドラバトルトーナメント２',note:'開発費用＆導入費用込み・導入でクリア！ 1プレイ料金×2／ガチャ1回300円',price:100000000,gacha:300,max:18,watt:300,credit:200,cmul:2,mins:4,cr:[1,3],attr:2.0,kind:'game',pose:'sit'},
  dan:  {name:'段ボール偽筐体（ティンニン作）',note:'遊べないけど店がにぎやかに見える（集客ちょいアップ）・本物を買うと置き換え・たまに客が間違えてお金を入れる',price:1000,max:6,watt:0,attr:0.12,kind:'fake'},
- bench:{name:'休憩ベンチ・テーブル',note:'待ちきれずに帰る客が減る（1台ごとに我慢＋5分・待ち列＋1）',price:30000,max:1,watt:0,attr:0,kind:'bench',w:1700,walls:['backC','left','right','backL','backR','frontL']},
- anime:{name:'アニメ上映モニター',note:'「パズドラクロス」アニメ上映中！ 集客アップ',price:120000,max:1,watt:150,attr:0.35,kind:'deco',w:1700,walls:['left','right','frontL']},
- vend: {name:'ドリンク自販機',note:'1本150円（仕入30%）',price:50000,max:1,watt:400,attr:0.1,kind:'shop',w:1000,walls:['right','left','backL','backR','frontL'],buyP:0.22,spend:[150,150],costRate:0.3,label:'ドリンク',stay:0.5},
- goods:{name:'パズドラグッズ販売所',note:'客単価600〜2,000円（仕入35%）',price:150000,max:1,watt:60,attr:0.3,kind:'shop',w:1600,walls:['left','backL','backR','right','frontL'],buyP:0.07,spend:[600,2000],costRate:0.35,label:'グッズ',stay:1.5},
- gacha:{name:'パズドラガチャガチャ',note:'1回300円×1〜3回（原価30%）',price:80000,max:1,watt:20,attr:0.2,kind:'shop',w:950,walls:['left','backL','backR','right','frontL'],buyP:0.15,spend:[300,900],step:300,costRate:0.3,label:'ガチャガチャ',stay:1},
- doujin:{name:'パズドラ同人誌コーナー',note:'1冊500円×1〜2冊（委託40%）・置いておくと、いいことがあるかも…？',price:100000,max:1,watt:30,attr:0.25,kind:'shop',w:1800,walls:['left','backL','backR','right','frontL'],buyP:0.035,spend:[500,1000],step:500,costRate:0.4,label:'同人誌',stay:3},
- crane:{name:'クレーンゲーム',note:'1回100円・数回遊ぶ（景品原価25%）',price:200000,max:1,watt:200,attr:0.4,kind:'shop',w:1100,walls:['left','backL','backR','right','frontL'],buyP:0.15,spend:[200,1500],step:100,costRate:0.25,label:'クレーンゲーム',stay:4},
- ice:  {name:'31アイス',note:'シングル〜トリプル 400〜1,100円（原価30%）',price:250000,max:1,watt:800,attr:0.35,kind:'shop',w:1800,walls:['left','right','frontL'],buyP:0.12,spend:[400,1100],step:10,costRate:0.3,label:'31アイス',stay:2}
+ bench:{name:'休憩ベンチ・テーブル',note:'待ちきれずに帰る客が減る（1台ごとに我慢＋5分・待ち列＋1）',price:30000,max:1,watt:0,attr:0,kind:'bench',w:1700,walls:['backC','left','right','backL','backR']},
+ anime:{name:'アニメ上映モニター',note:'「パズドラクロス」アニメ上映中！ 集客アップ',price:120000,max:1,watt:150,attr:0.35,kind:'deco',w:1700,walls:['left','right']},
+ vend: {name:'ドリンク自販機',note:'1本150円（仕入30%）',price:50000,max:1,watt:400,attr:0.1,kind:'shop',w:1000,walls:['right','left','backL','backR'],buyP:0.22,spend:[150,150],costRate:0.3,label:'ドリンク',stay:0.5},
+ goods:{name:'パズドラグッズ販売所',note:'客単価600〜2,000円（仕入35%）',price:150000,max:1,watt:60,attr:0.3,kind:'shop',w:1600,walls:['left','backL','backR','right'],buyP:0.07,spend:[600,2000],costRate:0.35,label:'グッズ',stay:1.5},
+ gacha:{name:'パズドラガチャガチャ',note:'1回300円×1〜3回（原価30%）',price:80000,max:1,watt:20,attr:0.2,kind:'shop',w:950,walls:['left','backL','backR','right'],buyP:0.15,spend:[300,900],step:300,costRate:0.3,label:'ガチャガチャ',stay:1},
+ doujin:{name:'パズドラ同人誌コーナー',note:'1冊500円×1〜2冊（委託40%）・置いておくと、いいことがあるかも…？',price:100000,max:1,watt:30,attr:0.25,kind:'shop',w:1800,walls:['left','backL','backR','right'],buyP:0.035,spend:[500,1000],step:500,costRate:0.4,label:'同人誌',stay:3},
+ crane:{name:'クレーンゲーム',note:'1回100円・数回遊ぶ（景品原価25%）',price:200000,max:1,watt:200,attr:0.4,kind:'shop',w:1100,walls:['left','backL','backR','right'],buyP:0.15,spend:[200,1500],step:100,costRate:0.25,label:'クレーンゲーム',stay:4},
+ ice:  {name:'31アイス',note:'シングル〜トリプル 400〜1,100円（原価30%）',price:250000,max:1,watt:800,attr:0.35,kind:'shop',w:1800,walls:['left','right'],buyP:0.12,spend:[400,1100],step:10,costRate:0.3,label:'31アイス',stay:2}
 };
 const SHOPS=['vend','goods','gacha','doujin','crane','ice'];
 // ---- calendar & seasonal bonus weeks (パズドラ季節イベント連動) ----
@@ -603,7 +603,7 @@ function addMachine(it){
     machG.add(b.g);}else{m.depth=isGame(it.type)?842:1000;m.seatL=[0,m.depth+350];}
   machines.push(m);if(!SIM.headless)try{upgFx(m);}catch(e){}return m;}
 // ---- PBTの待機列（店の前方スペースにジグザグで1列）----
-const LINE={x0:-700,dx:-460,n:8,z0:1950,dz:520};
+const LINE={x0:-700,dx:-460,n:6,z0:1950,dz:520};
 const isLineM=m=>m&&m.type==='pbt';
 function lineWaiters(){return customers.filter(c=>isLineM(c.m)&&(c.dest==='queue')&&c.m.queue.includes(c)).sort((a,b)=>a.qT-b.qT);}
 function linePos(r){const row=Math.floor(r/LINE.n),i=r%LINE.n,rr=Math.min(row,3);const x=rr%2===0?LINE.x0+LINE.dx*i:LINE.x0+LINE.dx*(LINE.n-1-i);return new THREE.Vector3(x+(row>3?(row-3)*120:0),0,LINE.z0+LINE.dz*rr);}
@@ -649,6 +649,7 @@ function rebuild(){
   // 店のサイズが変わった古いセーブ：設備を今の壁に置き直す（壁の外に置かれて客がすり抜けるのを防ぐ）
   if(G.layoutV!==3){G.layoutV=3;G.extra=0;for(const it of G.items)if(!isGame(it.type)){it.w=null;it.p=null;}}
   {const WD=WALLDEF(roomZ1());for(const it of G.items){if(isGame(it.type)||!it.w)continue;const seg=WD[it.w],hw=ITEMS[it.type].w/2;if(!seg||it.p-hw<seg.a-1||it.p+hw>seg.b+1){it.w=null;it.p=null;}}}
+  for(const it of G.items)if(it.w==='frontL'){it.w=null;it.p=null;}
   for(const it of G.items)if(!isGame(it.type)&&(it.w==null||it.p==null))placeItem(it);roomIslands=0;buildRoom();if(SIM.on&&!SIM.headless){BOX=ROOMBOX;fit();}machG.clear();peopleG.clear();fxG.clear();machines=[];customers=[];G.items.forEach(addMachine);buildLineDeco();staffReset();}
 const count=t=>G.items.filter(i=>i.type===t).length;
 const benches=()=>count('bench');
