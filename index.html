@@ -56,6 +56,7 @@ button.wide{grid-column:span 2}
 .soft{font-size:10.5px}.soft>div:first-child{margin-bottom:3px}.soft small{display:block;color:#888;font-size:9px}.fb{display:block;height:6px;background:#e5e7eb;border-radius:3px;overflow:hidden;margin:2px 0}.fb u{display:block;height:100%;background:linear-gradient(90deg,#c0392b,#e0a400,#1a7f37)}.soft .seg button{flex:1;font-size:10px;line-height:1.25}.soft .seg small{display:inline;color:inherit;opacity:.8}
 .ups .uph{display:block;color:#888;font-size:9px;margin-bottom:2px}.uprow{display:flex;justify-content:space-between;align-items:center;gap:4px;padding:3px 0;border-bottom:1px solid #e3e6ec;font-size:10.5px}.uprow small{display:block;font-size:9.5px;color:#555}.uprow em{color:#e0a400;font-style:normal;font-weight:800}.uprow .seg button{font-size:10px;line-height:1.2;min-width:52px}.uprow .seg small{display:inline;color:inherit;opacity:.8}
 .crime{background:#2a1215;color:#fff;border-radius:8px;padding:5px 7px;margin:5px 0}.crime>b{display:block;color:#ff8a80;font-size:11px}.crime>b small{display:block;color:#bbb;font-weight:400;font-size:9px}.crime .mrow{border-bottom-color:#4a2a2e}.crime .mrow small{color:#ccc}.crime .seg button{min-width:44px}.crime .mrow>span{font-weight:700;font-size:11px}.crime small.cd{display:block;margin-top:2px;font-size:10px;line-height:1.45;font-weight:400;color:#ddd}
+.item.up{background:linear-gradient(90deg,#fff8e1,#fff)}.item .lvb{font-style:normal;font-weight:800;color:#b8860b}.item .lvb i{font-style:normal;color:#e0a400}.item .upb{display:flex;flex-direction:column;gap:3px}.item .upb button{font-size:10px;padding:4px 6px;white-space:nowrap}.lvHint{font-size:9.5px;color:#888;margin:4px 0}
 #modal h3{margin:0 0 6px;font-size:15px}#modal tr.sum td{font-weight:800;border-top:2px solid #cfd5df}
 #modal .clear h3{color:#d0349b;font-size:20px;text-align:center}
 .ev{color:#fff;border-radius:6px;padding:4px 6px;font-weight:700;font-size:10.5px;margin:2px 0 4px}.evn{color:#8a5a00;font-size:10px;margin-bottom:4px}
@@ -140,9 +141,10 @@ button.wide{grid-column:span 2}
   <div class="spLab">倍速モード</div><div class="grid3" style="grid-template-columns:repeat(4,1fr)"><button data-sp="0">停止</button><button data-sp="1" class="on">等倍</button><button data-sp="2">×2</button><button data-sp="3">×3</button></div><div class="spLab">音声</div><div class="grid3 sndRow" style="grid-template-columns:1fr 1fr"><button id="sfx" title="効果音（全体）">🔊 効果音 ON</button><button id="amb" title="店内の環境音（賑わい）">🎮 店内の音 ON</button></div><button id="autoBtn" class="autob">1か月オート（ティンニンにおまかせ）</button><div class="autoSp"><span>オート速度</span><button data-asp="1" class="on">等倍</button><button data-asp="2">×2</button><button data-asp="3">×3</button></div>
   <h2>経営</h2><div id="mgmt"></div>
   <h2 id="sGoal">目標：<span style="white-space:nowrap">パズドラバトルトーナメント２</span>の<br>開発費用＆導入費用<br>100,000,000円を稼ごう！</h2><div class="bar"><i id="sGoalBar"></i></div>
-  <h2>購入・設置</h2><div id="shop"></div><div id="upg"></div><div id="crimeBox"></div>
+  <h2>購入・設置</h2><div id="shop"></div><div class="lvHint">購入数が上限に達した設備は「Lv↑」「+10」で強化できます（Lv1ごとに+5%、＋1ごとに+0.4%：集客・購入率・ガチャ）</div>
   <button id="simReset" style="width:100%;margin-top:8px">最初からやり直す</button>
   <button id="simExit" class="big">3Dビューアに戻る</button>
+  <div id="crimeBox"></div>
  </div>
  </div>
  <div id="view"><canvas id="c"></canvas><div id="simCam"><button data-cam="0" class="on">斜め</button><button data-cam="1">正面</button><button data-cam="2">真上</button></div><div id="hint">ドラッグで回転</div><div id="modal"></div><canvas id="chart"></canvas><div id="contract"></div><div id="toast"></div><div id="telop"><b id="telopLab">速報</b><div class="tl"><span id="telopTxt"></span></div></div></div>
@@ -310,7 +312,7 @@ const KWH_YEN=31,BASE_LIGHT_W=1500,RENT_BASE=2000,RENT_PER_MACHINE=200,START_MON
 const ITEMS={
  pbt:  {name:'パズドラバトルトーナメント',price:500000,gacha:200,max:18,watt:180,credit:100,mins:4,cr:[2,5],attr:1.0,kind:'game',pose:'sit'},
  pbt2: {name:'パズドラバトルトーナメント２',note:'開発費用＆導入費用込み・導入でクリア！ 1プレイ料金×2／ガチャ1回300円',price:100000000,gacha:300,max:18,watt:300,credit:200,cmul:2,mins:4,cr:[1,3],attr:2.0,kind:'game',pose:'sit'},
- dan:  {name:'ぱずばと２（手作り）',note:'ティンニンが願いを込めて段ボールから生み出したマシン。待機中に遊ぶパズドラーも（待ち時間延長・集客ちょいアップ・本物を買うと置き換え）',price:1000,max:6,watt:0,attr:0.12,kind:'fake'},
+ dan:  {name:'パズバト（段ボール）',note:'筐体を買うお金がないのでティンニンが手作りしたよ',price:1000,max:6,watt:0,attr:0.12,kind:'fake'},
  bench:{name:'休憩ベンチ・テーブル',note:'待ちきれずに帰る客が減る（1台ごとに我慢＋5分・待ち列＋1）',price:30000,max:1,watt:0,attr:0,kind:'bench',w:1700,walls:['backC','left','right','backL','backR']},
  anime:{name:'アニメ上映モニター',note:'「パズドラクロス」アニメ上映中！ 集客アップ',price:120000,max:1,watt:150,attr:0.35,kind:'deco',w:1700,walls:['left','right']},
  vend: {name:'ドリンク自販機',note:'1本150円（仕入30%）',price:50000,max:1,watt:400,attr:0.1,kind:'shop',w:1000,walls:['right','left','backL','backR'],buyP:0.22,spend:[150,150],costRate:0.3,label:'ドリンク',stay:0.5},
@@ -370,7 +372,7 @@ const repMult=()=>0.55+0.9*(G.rep/100);
 const stars=r=>'★★★★★'.slice(0,Math.max(1,Math.round(r/20)))+'☆☆☆☆☆'.slice(0,5-Math.max(1,Math.round(r/20)));
 const PROMO_FREE={pro:{label:'自称プロパズドラーの口コミ',days:5,mult:1.35,rep:3}};const promoDef=k=>PROMOS[k]||PROMO_FREE[k];
 function promoMult(){return 1+(G.promos||[]).reduce((a,p)=>a+(promoDef(p.k).mult-1)*(p.boost?1.6:1),0);}
-// ---- 育成（パズドラ風：レベル＆プラス）・PBTソフト更新・不法行為の疑惑度 ----
+// ---- 育成（パズドラ風：レベル＆プラス）・パズバトソフト更新・不法行為の疑惑度 ----
 const UPG_MAX=20,PLUS_MAX=99;
 function upg(t){G.up=G.up||{};return G.up[t]||(G.up[t]={lv:1,plus:0});}
 function lvMult(t){const u=G&&G.up&&G.up[t];return u?1+0.05*(u.lv-1)+0.004*u.plus:1;}
@@ -393,9 +395,9 @@ function gachaBoost(c){if(c.vip||c.m.T.kind!=='game')return;const gm=(c.m.type==
 function rivalMult(){return G.rival&&G.rival.days>0?(G.rep>=70?0.9:0.75):1;}
 // ---- bad events (悲報) ----
 const BADS={
- maint:{name:'PBTサーバー緊急メンテナンス',w:3,mid:true,dur:[120,240],txt:b=>`【悲報】PBTサーバーで障害発生、緊急メンテナンス中（${hm(b.start)}〜${hm(b.end)}予定）。全台プレイできません…`,after:b=>`メンテ明け！ お詫びのガチャチケット配布で、しばらく来客＆課金アップ`},
+ maint:{name:'パズバトサーバー緊急メンテナンス',w:3,mid:true,dur:[120,240],txt:b=>`【悲報】パズバトサーバーで障害発生、緊急メンテナンス中（${hm(b.start)}〜${hm(b.end)}予定）。全台プレイできません…`,after:b=>`メンテ明け！ お詫びのガチャチケット配布で、しばらく来客＆課金アップ`},
  blackout:{name:'停電',w:2,mid:true,dur:[60,120],txt:b=>`【悲報】落雷で店内が停電！ 全設備がストップ（${hm(b.start)}〜${hm(b.end)}復旧見込み）`,after:b=>`停電から復旧しました`},
- daipan:{name:'台パン客',w:3,mid:true,dur:[0,0],txt:b=>`【悲報】台パン客が暴れてPBT筐体が1台故障…！ 評判ダウン`},
+ daipan:{name:'台パン客',w:3,mid:true,dur:[0,0],txt:b=>`【悲報】台パン客が暴れてパズバト筐体が1台故障…！ 評判ダウン`},
  enjo:{name:'SNS炎上',w:2,mid:true,dur:[0,0],txt:b=>`【悲報】「店員の態度が悪い」とSNSで炎上…！ 評判大幅ダウン、3日間来客減`},
  manbiki:{name:'万引き被害',w:2,mid:true,dur:[0,0],need:()=>count('goods')+count('doujin')>0,txt:b=>`【悲報】グッズ・同人誌コーナーで万引き被害！ 損失 ${yen(b.loss)}`},
  food:{name:'食中毒の噂',w:1,mid:true,dur:[0,0],need:()=>false,txt:b=>`【悲報】食堂に食中毒の噂…！ 保健所の指導で食堂は3日間営業停止`},
@@ -486,7 +488,7 @@ const BUILD={
  mon(){const g=new THREE.Group();g.add(box(700,60,500,mat(0x2a2d35),0,30,250));const pole=cyl(50,1500,mat(0x2a2d35));pole.position.set(0,780,250);g.add(pole);
   g.add(box(1700,1000,90,mat(0x111318),0,2000,250));
   const t=canvasTex(640,360,(c,W,H)=>{const gr=c.createLinearGradient(0,0,W,H);gr.addColorStop(0,'#3a1c71');gr.addColorStop(.5,'#d76d77');gr.addColorStop(1,'#ffaf7b');c.fillStyle=gr;c.fillRect(0,0,W,H);
-    c.fillStyle='rgba(0,0,0,.35)';c.fillRect(0,0,W,64);c.fillStyle='#fff';c.font='900 40px sans-serif';c.textAlign='center';c.fillText('PBT 店内大会 LIVE',W/2,46);
+    c.fillStyle='rgba(0,0,0,.35)';c.fillRect(0,0,W,64);c.fillStyle='#fff';c.font='900 40px sans-serif';c.textAlign='center';c.fillText('パズバト 店内大会 LIVE',W/2,46);
     c.strokeStyle='#fff';c.lineWidth=5;for(let i=0;i<4;i++){const y=100+i*62;c.strokeRect(40,y,150,40);c.beginPath();c.moveTo(190,y+20);c.lineTo(250,y+20);c.stroke();}
     c.beginPath();c.moveTo(250,120);c.lineTo(250,182);c.moveTo(250,244);c.lineTo(250,306);c.moveTo(250,151);c.lineTo(330,151);c.moveTo(250,275);c.lineTo(330,275);c.moveTo(330,151);c.lineTo(330,275);c.moveTo(330,213);c.lineTo(410,213);c.stroke();
     c.fillStyle='#ffe14d';c.fillRect(410,188,170,50);c.fillStyle='#222';c.font='900 30px sans-serif';c.fillText('優勝',495,224);});
@@ -543,7 +545,7 @@ const ISLAND_PITCH=6400;let roomIslands=0;
 const floorTex=canvasTex(256,256,(c,W,H)=>{c.fillStyle='#e9e6f2';c.fillRect(0,0,W,H);c.fillStyle='#dcd7ea';c.fillRect(0,0,W/2,H/2);c.fillRect(W/2,H/2,W/2,H/2);c.strokeStyle='#b9b2d3';c.lineWidth=3;c.strokeRect(0,0,W,H);c.beginPath();c.moveTo(W/2,0);c.lineTo(W/2,H);c.moveTo(0,H/2);c.lineTo(W,H/2);c.stroke();});
 floorTex.wrapS=floorTex.wrapT=THREE.RepeatWrapping;
 const pbt2Tex=canvasTex(512,168,(c,W,H)=>{const g=c.createLinearGradient(0,0,0,H);g.addColorStop(0,'#fff2a8');g.addColorStop(.5,'#f2c230');g.addColorStop(1,'#b8860b');c.fillStyle=g;c.beginPath();c.roundRect(4,4,W-8,H-8,28);c.fill();c.lineWidth=8;c.strokeStyle='#7a4b00';c.stroke();
-  c.textAlign='center';c.textBaseline='middle';c.font='900 64px sans-serif';c.lineWidth=10;c.strokeStyle='#fff';c.strokeText('PBT',W*0.36,H/2+4);c.fillStyle='#8a1c00';c.fillText('PBT',W*0.36,H/2+4);c.font='900 128px sans-serif';c.strokeText('2',W*0.74,H/2+8);c.fillStyle='#d4001a';c.fillText('2',W*0.74,H/2+8);});
+  c.textAlign='center';c.textBaseline='middle';c.font='900 60px sans-serif';c.lineWidth=10;c.strokeStyle='#fff';c.strokeText('パズバト',W*0.36,H/2+4);c.fillStyle='#8a1c00';c.fillText('パズバト',W*0.36,H/2+4);c.font='900 128px sans-serif';c.strokeText('2',W*0.74,H/2+8);c.fillStyle='#d4001a';c.fillText('2',W*0.74,H/2+8);});
 const animeTex=canvasTex(640,360,(c,W,H)=>{const gr=c.createLinearGradient(0,0,0,H);gr.addColorStop(0,'#3aa0ff');gr.addColorStop(.6,'#bfe6ff');gr.addColorStop(1,'#6fcf6f');c.fillStyle=gr;c.fillRect(0,0,W,H);
   c.fillStyle='rgba(255,255,255,.85)';for(const [x,y,r] of [[90,90,40],[130,80,50],[170,95,36],[470,70,34],[510,60,44]]){c.beginPath();c.arc(x,y,r,0,7);c.fill();}
   const cols=['#e5452a','#3b8fe0','#22a35a','#f2b61b','#9b59b6','#ff7ab6'];for(let i=0;i<9;i++){c.fillStyle=cols[i%6];c.beginPath();c.arc(70+i*62,250+Math.sin(i)*24,26,0,7);c.fill();c.fillStyle='rgba(255,255,255,.6)';c.beginPath();c.arc(62+i*62,242+Math.sin(i)*24,8,0,7);c.fill();}
@@ -602,7 +604,7 @@ function addMachine(it){
     if(b.stool){const st=cyl(190,480,mat(0x3a3d46));const p=toWorld(m,0,b.seat[1]);st.position.set(p.x,240,p.z);machG.add(st);m.stool=st;}
     machG.add(b.g);}else{m.depth=isGame(it.type)?842:1000;m.seatL=[0,m.depth+350];}
   machines.push(m);if(!SIM.headless)try{upgFx(m);}catch(e){}return m;}
-// ---- PBTの待機列（店の前方スペースにジグザグで1列）----
+// ---- パズバトの待機列（店の前方スペースにジグザグで1列）----
 const LINE={x0:-700,dx:-460,n:6,z0:1950,dz:520};
 const isLineM=m=>m&&m.type==='pbt';
 function lineWaiters(){return customers.filter(c=>isLineM(c.m)&&(c.dest==='queue')&&!c.dan&&c.m.queue.includes(c)).sort((a,b)=>a.qT-b.qT);}
@@ -618,7 +620,7 @@ function buildLineDeco(){if(SIM.headless||!count('pbt'))return;const g=new THREE
   const belt=(x0,x1,z)=>{const L=Math.abs(x1-x0);const b=box(L,70,16,bm,(x0+x1)/2,840,z);g.add(b);};
   const xr=LINE.x0+260,xl=LINE.x0+LINE.dx*(LINE.n-1)-260;
   [[LINE.z0-260,xl,xr],[LINE.z0+LINE.dz*0.5,xl+520,xr],[LINE.z0+LINE.dz*1.5,xl,xr-520],[LINE.z0+LINE.dz*2.5,xl+520,xr]].forEach(([z,a,b])=>{belt(a,b,z);for(let x=a;x<=b+1;x+=(b-a)/Math.max(1,Math.round((b-a)/1300)))post(x,z);});
-  const sg=new THREE.Sprite(new THREE.SpriteMaterial({map:canvasTex(512,160,(c,w,h)=>{c.fillStyle='#ff4f9a';c.fillRect(0,0,w,h);c.fillStyle='#fff';c.font='900 64px sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText('PBT 待機列',w/2,62);c.font='700 36px sans-serif';c.fillText('お一人様1列でお並びください',w/2,124);}),transparent:true}));
+  const sg=new THREE.Sprite(new THREE.SpriteMaterial({map:canvasTex(512,160,(c,w,h)=>{c.fillStyle='#ff4f9a';c.fillRect(0,0,w,h);c.fillStyle='#fff';c.font='900 64px sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText('パズバト 待機列',w/2,62);c.font='700 36px sans-serif';c.fillText('お一人様1列でお並びください',w/2,124);}),transparent:true}));
   sg.scale.set(1100,345,1);sg.position.set(LINE.x0+250,1650,LINE.z0-260);g.add(sg);machG.add(g);}
 // ---- 育成の見た目：レベル帯でリング色、＋でキラキラ、バッジ表示 ----
 const TIER=[[20,'rainbow'],[15,0xffc928],[10,0xdfe6ee],[5,0xcd7f32]];
@@ -928,7 +930,7 @@ function portSil(who){const col={police:'#2f6bff',caa:'#ff9f1a',tax:'#3ad07a',pr
   return 'data:image/svg+xml,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 200"><defs><filter id="g"><feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="${col}"/></filter></defs><g fill="#0d0f16" filter="url(#g)"><path d="M10 200 Q14 128 54 118 L68 112 L88 112 L106 118 Q146 128 150 200 Z"/><rect x="62" y="96" width="30" height="24"/><ellipse cx="76" cy="78" rx="27" ry="31"/>${hat}</g><g>${acc}</g><path d="M60 82 l12 3" stroke="#ff3030" stroke-width="3.5" stroke-linecap="round"/><path d="M80 85 l12 -3" stroke="#ff3030" stroke-width="3.5" stroke-linecap="round"/></svg>`);}
 function ciCard(img,org,name,side,flip){return `<div class="ci-${side}">${img?`<img class="ci-p${flip?' fl':''}" src="${img}">`:''}<div class="ci-n"><small>${org}</small><b>${name}</b></div></div>`;}
 function showCutin(who,crime,method){se.impact();setTimeout(()=>who==='police'?se.siren():who==='pro'?se.whoosh():se.alarm(),500);const I=RAID_INFO[who];let el=document.getElementById('cutin');if(!el){el=document.createElement('div');el.id='cutin';$('view').appendChild(el);}
-  el.className='';el.innerHTML=`<div class="ci-band">${ciCard(portSil(who),I.org,I.name,'l')}<div class="ci-vs">VS</div>${ciCard(portRender('tin'),'パズバト専門店 店長','ティンニン','r')}</div><div class="ci-sub"><span class="ci-tag">${who==='pro'?'道場破り':'ガサ入れ'}</span>${who==='pro'?'賭け：PBT筐体1台 VS '+crime:'容疑：'+crime}</div><div class="ci-m">${method}！</div>`;
+  el.className='';el.innerHTML=`<div class="ci-band">${ciCard(portSil(who),I.org,I.name,'l')}<div class="ci-vs">VS</div>${ciCard(portRender('tin'),'パズバト専門店 店長','ティンニン','r')}</div><div class="ci-sub"><span class="ci-tag">${who==='pro'?'道場破り':'ガサ入れ'}</span>${who==='pro'?'賭け：パズバト筐体1台 VS '+crime:'容疑：'+crime}</div><div class="ci-m">${method}！</div>`;
   el.style.display='block';el.classList.remove('go');void el.offsetWidth;el.classList.add('go');clearTimeout(el._t);el._t=setTimeout(()=>{el.style.display='none';},3600);}
 // ---- 万引き犯・ゴト師をティンニンが追いかけて確保 ----
 const CATCH={on:false};
@@ -1028,7 +1030,7 @@ function raidStep(dt,k){if(!RAID.on)return;const Rd=RAID,S_=STAFF,u=S_.mesh.user
         bigPop(S_.mesh.position,H[a],'#ff4f9a',2300);bigPop(o.mesh.position,H[b],'#34495e',2300);if(r<2)popup(Rd.spot,'あいこで…','#555');}}
     if(Rd.t>(D==='janken'?7:7)){const win=Rd.win,res=raidResolve(Rd.who,win,D);win?se.win():se.lose();Rd.phase='result';Rd.t=0;S_.mesh.rotation.z=0;o.mesh.rotation.z=0;
       if(Rd.who==='pro'){if(win){say(S_,'パズバトなめんな！ 一昨日来やがれ！',3);say(o,'くっ…「'+res.bet+'」は置いていくぜ…',3);popup(S_.mesh.position,'🏆 '+res.bet+' ゲット！','#b8860b');setTimeout(()=>{if(RAID.o===o){say(o,'…いい店だな。おれのフォロワー（12人）に宣伝しといてやるよ',3.4);setTimeout(()=>{say(STAFF,'（実はいいやつ…？）',2.6);popup(STAFF.mesh.position,'📣 口コミ宣伝 5日間 来客×1.35・評判UP','#e67e22');},1800);}},2600);}
-        else{say(S_,'うわぁぁん！',3);say(o,res.lostCab?'この筐体はいただいていくぜ！':'たった'+count('pbt')+'台か…筐体は勘弁してやるよ',3);popup(o.mesh.position,res.lostCab?'PBT筐体を1台持っていかれた…':'情けをかけられた…','#c0392b');}}
+        else{say(S_,'うわぁぁん！',3);say(o,res.lostCab?'この筐体はいただいていくぜ！':'たった'+count('pbt')+'台か…筐体は勘弁してやるよ',3);popup(o.mesh.position,res.lostCab?'パズバト筐体を1台持っていかれた…':'情けをかけられた…','#c0392b');}}
       else if(win){say(S_,'勝った！出直してきな！',3);say(o,'…今日のところは引き上げる',3);popup(S_.mesh.position,'💰 ×'+res.mult+' +¥'+res.gain.toLocaleString(),'#b8860b');if(D==='fist')fLie({mesh:o.mesh,s:-1},-1);}
       else{say(S_,'ぐぬぬ…',3);say(o,Rd.who==='police'?'逮捕する！ 深夜営業の儲けは没収だ！':Rd.who==='caa'?'課徴金を納付しなさい！':'追徴課税です！',3);if(D==='fist')fLie({mesh:S_.mesh,s:1},1);}}}
   else if(Rd.phase==='result'){for(const a of u.arms)a.rotation.x*=0.9;if(Rd.t>3){Rd.phase='leave';raidFocus(false);pose(o,'stand');o.mesh.rotation.set(0,0,0);o.mesh.position.y=0;
@@ -1342,7 +1344,7 @@ function doBuy(t){if(canBuy(t))return;const T=ITEMS[t];let it;
   if(isGame(t)){const used=new Set(G.items.filter(i=>isGame(i.type)).map(i=>i.slot));let s=0;while(used.has(s))s++;it={type:t,slot:s};}else{it={type:t};}
   G.money-=T.price;G.items.push(it);if(!isGame(t))placeItem(it);
   if(!SIM.headless&&buildRoom())fit();
-  const m=addMachine(it);se.buy();if(isGame(t))repositionGames();popup(new THREE.Vector3(m.x,0,m.z),t==='pbt2'?'PBT2 導入！':'設置！','#e67e22');
+  const m=addMachine(it);se.buy();if(isGame(t))repositionGames();popup(new THREE.Vector3(m.x,0,m.z),t==='pbt2'?'パズバト２ 導入！':'設置！','#e67e22');
   if(t==='pbt2'&&!G.cleared){G.cleared=true;G.clearDay=G.day;G.clearDate=dateLabel(G.day);}save();if(!SIM.headless){renderUI();if(G.clearDay===G.day&&count('pbt2')===1&&!G.clearShown){G.clearShown=true;showClear();}}}
 function rebuildMachinesOnly(){for(const c of customers)if(c.mesh)peopleG.remove(c.mesh);customers=[];machG.clear();machines=[];G.items.filter(i=>i!==G.items[G.items.length-1]).forEach(addMachine);}
 
@@ -1374,16 +1376,16 @@ function renderTelop(){const el=$('telop');if(!el)return;el.classList.remove('wa
   if(SIM.on&&G&&G.today&&daysToMonthEnd(G.day)===5&&G.min>=CLOSE_MIN-180){const MB=monthBill();if(MB.total>G.money){if(G.today.warnSE!==G.day){G.today.warnSE=G.day;se.warn();}const t=`【注意】月末決算まであと5日！　月末請求予定 ${yen(MB.total)} に対して所持金 ${yen(G.money)}…このままだと支払えません！`;el.style.display='block';el.classList.remove('bad');el.classList.add('warn');$('telopLab').textContent='注意';if(t.slice(0,40)!==lastTelop.slice(0,40)){lastTelop=t;$('telopTxt').textContent=t;}return;}}
   const rn=G&&G.today&&G.today.raidNow,rr=G&&G.today&&G.today.raidRes;
   if(SIM.on&&rn&&(RAID.on||(rr&&performance.now()-rr.at<10000))){const I=RAID_INFO[rn.who];let t,lab='ガサ入れ',bad=false;
-    if(rr&&(!RAID.on||RAID.phase==='result'||RAID.phase==='leave')){if(rr.who==='pro'){bad=!rr.win;lab=rr.win?'勝利':'敗北';t=rr.win?`ティンニン、自称プロパズドラーを撃破！ 「${rr.bet}」をゲット＆お店を宣伝してくれることに（実はいいやつ？）`:rr.lostCab?'自称プロパズドラーに負けて、PBT筐体を1台持っていかれた…':'自称プロパズドラーに負けたが、筐体は勘弁してもらえた…';}
+    if(rr&&(!RAID.on||RAID.phase==='result'||RAID.phase==='leave')){if(rr.who==='pro'){bad=!rr.win;lab=rr.win?'勝利':'敗北';t=rr.win?`ティンニン、自称プロパズドラーを撃破！ 「${rr.bet}」をゲット＆お店を宣伝してくれることに（実はいいやつ？）`:rr.lostCab?'自称プロパズドラーに負けて、パズバト筐体を1台持っていかれた…':'自称プロパズドラーに負けたが、筐体は勘弁してもらえた…';}
     else if(rr.win){lab='勝利';t=`ティンニン、${I.name}を撃退！ 所持金×${rr.mult}（+${yen(rr.gain)}）＆評判アップ！`;}
       else{bad=true;lab='敗北';t=rr.who==='police'?`ティンニン逮捕！ 懲役${rr.hours}時間（営業停止）＋罰金 ${yen(rr.fine)}（深夜営業の儲けを没収）`:rr.who==='caa'?`課徴金 ${yen(rr.fine)} を納付させられました…`:`追徴課税 ${yen(rr.fine)} を徴収されました…`;}}
-    else if(rn.duel){lab='対決';t=`${I.name} VS ティンニン ─ ${DUELS[rn.method]}！${rn.who==='pro'?'（PBT筐体1台を賭けて）':''}`;}
+    else if(rn.duel){lab='対決';t=`${I.name} VS ティンニン ─ ${DUELS[rn.method]}！${rn.who==='pro'?'（パズバト筐体1台を賭けて）':''}`;}
     else t=rn.who==='pro'?`道場破り！ 自称プロパズドラーが「${rn.crime}」を賭けて勝負を挑んできた！`:`${I.org}が来店！ 容疑：${rn.crime}`;
     el.style.display='block';el.classList.toggle('bad',bad);$('telopLab').textContent=lab;if(t!==lastTelop){lastTelop=t;$('telopTxt').textContent=t;}return;}
   const cn=G&&G.today&&G.today.catchNow,cr=G&&G.today&&G.today.catchRes;
   if(SIM.on&&cn&&(CATCH.on||(cr&&performance.now()-cr.at<8000))){const nm=cn.kind==='thief'?'万引き犯':'ゴト師';let t,lab='事件',bad=false;
     if(cr){if(cr.ok){lab='確保';t=`ティンニンが${nm}を確保！ ${cn.kind==='goto'?'警察から感謝状（+¥10,000）':'盗品は無事回収'}・評判アップ`;}else{bad=true;lab='逃走';t=`${nm}に逃げられた… 被害 ${yen(cr.loot)}${cn.kind==='goto'?'・筐体が故障':''}`;}}
-    else t=cn.kind==='thief'?'万引き発生！ ティンニンが追跡中！':'ゴト師がPBT筐体で不正行為！ ティンニンが追跡中！';
+    else t=cn.kind==='thief'?'万引き発生！ ティンニンが追跡中！':'ゴト師がパズバト筐体で不正行為！ ティンニンが追跡中！';
     el.style.display='block';el.classList.toggle('bad',bad);$('telopLab').textContent=lab;if(t!==lastTelop){lastTelop=t;$('telopTxt').textContent=t;}return;}
   if(SIM.on&&jailActive()){const t=`店長ティンニン服役中… 営業停止（あと約${jailLeftH()}時間）`;el.style.display='block';el.classList.add('bad');$('telopLab').textContent='営業停止';if(t!==lastTelop){lastTelop=t;$('telopTxt').textContent=t;}return;}
   const v=G&&G.today&&G.today.vip;
@@ -1399,9 +1401,9 @@ function renderTelop(){const el=$('telop');if(!el)return;el.classList.remove('wa
   const show=vipShow||!!badT;el.style.display=show?'block':'none';el.classList.toggle('bad',!vipShow&&!!badT);
   $('telopLab').textContent=vipShow?'速報':badT&&badT.startsWith('【お知らせ】')?'お知らせ':'悲報';if(!show){lastTelop='';return;}
   if(!vipShow){if(badT!==lastTelop){lastTelop=badT;$('telopTxt').textContent=badT;}return;}
-  const t=v.done?`【速報】${v.name}、PBTガチャに ${yen(v.spent)} を使い、颯爽と帰っていきました…！`
-    :v.spent>0?`【速報】${v.name}がご来店！　ただいまPBTキャラガチャに ${yen(v.spent)} 課金中！！　（予算 ${yen(v.amount)}…!?）`
-    :`【速報】${v.name}がご来店！　PBTの台へ向かっています…！`;
+  const t=v.done?`【速報】${v.name}、パズバトガチャに ${yen(v.spent)} を使い、颯爽と帰っていきました…！`
+    :v.spent>0?`【速報】${v.name}がご来店！　ただいまパズバトキャラガチャに ${yen(v.spent)} 課金中！！　（予算 ${yen(v.amount)}…!?）`
+    :`【速報】${v.name}がご来店！　パズバトの台へ向かっています…！`;
   if(t!==lastTelop){lastTelop=t;$('telopTxt').textContent=t;}}
 function renderUI(){if(!G)return;if(!Number.isFinite(G.money))normalize(G);const T=G.today;const hh=Math.floor(G.min/60),mm=Math.floor(G.min%60);
   $('sDay').textContent=`${G.day}日目 ${dateLabel(G.day)}`;const ev=eventOf(G.day),nx=nextEvent(G.day);const wk=[0,6].includes(dateOf(G.day).getDay());
@@ -1421,11 +1423,13 @@ function renderUI(){if(!G)return;if(!Number.isFinite(G.money))normalize(G);const
    ${broken?`<div class="mrow"><span style="color:#c0392b">故障中 ${broken}台<br><small>閉店時に自動修理（${yen(brokenCost())}・高レベルほど高額）</small></span><div class="seg"><button data-repair="1">すぐ修理</button></div></div>`:''}
    <div class="mrow" style="display:block"><span>宣伝<small>（同時に複数OK・倍率は合算）</small></span><div class="seg" style="margin-top:3px;justify-content:flex-start">${Object.entries(PROMOS).map(([k,p])=>`<button data-promo="${k}" ${G.money<p.price||(G.promos||[]).some(x=>x.k===k)||k==='nico'&&G.nicoMonth===dateOf(G.day).getFullYear()*12+dateOf(G.day).getMonth()?'disabled':''}>${p.label}<br><small>${yen(p.price)}・${p.days}日 来客×${p.mult}${k==='nico'?'<br>月1回まで・消費者庁が必ず来る':''}</small></button>`).join('')}</div></div>`;
   const mg2=mgHTML+upHTML();{const ch='<h2>裏稼業</h2>'+crimeHTML()+heatHTML();if($('crimeBox')&&ch!==window.__lastCrime){window.__lastCrime=ch;$('crimeBox').innerHTML=ch;}}if(mg2!==lastMg){lastMg=mg2;$('mgmt').innerHTML=mg2;}
-  $('sGoal').innerHTML=G.cleared?`クリア済み！ PBT2 ${count('pbt2')}/18台・PBT ${count('pbt')}/18台`:`目標：<span style="white-space:nowrap">パズドラバトルトーナメント２</span>の<br>開発費用＆導入費用<br><span style="white-space:nowrap">${GOAL_PRICE.toLocaleString()}円</span>を稼ごう！`;$('sGoalBar').style.width=(G.cleared?100:Math.max(0,Math.min(100,G.money/GOAL_PRICE*100)))+'%';
+  $('sGoal').innerHTML=G.cleared?`クリア済み！ パズバト２ ${count('pbt2')}/18台・パズバト ${count('pbt')}/18台`:`目標：<span style="white-space:nowrap">パズドラバトルトーナメント２</span>の<br>開発費用＆導入費用<br><span style="white-space:nowrap">${GOAL_PRICE.toLocaleString()}円</span>を稼ごう！`;$('sGoalBar').style.width=(G.cleared?100:Math.max(0,Math.min(100,G.money/GOAL_PRICE*100)))+'%';
   const shopHTML=ORDER.map(t=>{const I=ITEMS[t];const r=canBuy(t);const lab=r==='max'?'上限':r==='money'?'資金不足':'購入';
-    return `<div class="item"><div><b>${I.disp||I.name}</b><span>${yen(I.price)}　${count(t)}/${maxOf(t)}${I.note?'<br>'+I.note:''}${I.kind==='game'?`${t==='pbt2'?'':`<br>キャラガチャ1回${I.gacha}円`}・${I.watt}W`:I.watt?`<br>${I.watt}W`:''}</span></div><button data-buy="${t}" ${r?'disabled':''}>${lab}</button></div>`}).join('');
+    const info=`${I.note?'<br>'+I.note:''}${I.kind==='game'?`${t==='pbt2'?'':`<br>キャラガチャ1回${I.gacha}円`}・${I.watt}W`:I.watt?`<br>${I.watt}W`:''}`;
+    if(r==='max'&&I.kind!=='fake'&&t!=='pbt2'){const u=upg(t),m=lvMult(t),lmax=u.lv>=UPG_MAX,pmax=u.plus>=PLUS_MAX;
+      return `<div class="item up"><div><b>${I.disp||I.name}</b><span><em class="lvb">Lv${u.lv}/${UPG_MAX}${u.plus?' <i>+'+u.plus+'</i>':''}</em>　${count(t)}/${maxOf(t)}台・効果×${m.toFixed(2)}${I.kind==='game'?'・修理費'+yen(repairCost(t))+'/台':''}${info}</span></div><div class="upb"><button data-lv="${t}" ${lmax||G.money<lvCost(t)?'disabled':''}>${lmax?'Lv MAX':'Lv↑ '+yen(lvCost(t))}</button><button data-plus="${t}" ${pmax||G.money<plusCost(t)?'disabled':''}>${pmax?'+MAX':'+10 '+yen(plusCost(t))}</button></div></div>`;}
+    return `<div class="item"><div><b>${I.disp||I.name}</b><span>${yen(I.price)}　${count(t)}/${maxOf(t)}${info}</span></div><button data-buy="${t}" ${r?'disabled':''}>${lab}</button></div>`}).join('');
   if(shopHTML!==lastShop){lastShop=shopHTML;$('shop').innerHTML=shopHTML;}
-  {const uh=window.__upgRows||'';if($('upg')&&uh!==window.__lastUpg){window.__lastUpg=uh;$('upg').innerHTML=uh;}}
   renderTelop();drawChart();
 
   document.querySelectorAll('[data-sp]').forEach(b=>b.classList.toggle('on',(+b.dataset.sp)===(SIM.paused?0:SIM.speed)));
@@ -1453,19 +1457,19 @@ function crimeHTML(){return `<div class="crime"><b>裏稼業スイッチ<small>O
 function heatHTML(){const H=heat(),L={police:'👮 警察',tax:'💼 税務署',caa:'📢 消費者庁'};if(!Object.values(H).some(v=>v>0.5))return '';
   return `<div class="heat"><b>疑惑度</b>${Object.keys(L).map(k=>`<span>${L[k]}<i><u style="width:${Math.round(H[k])}%;background:${H[k]>=60?'#c0392b':H[k]>=20?'#e67e22':'#8a92a0'}"></u></i></span>`).join('')}<small>25%を超えるとガサ入れが来ることがあります</small></div>`;}
 function upHTML(){const S=soft(),own=ORDER.filter(t=>count(t)>0&&ITEMS[t].kind!=='fake');
-  const soft1=count('pbt')?`<h2>PBTソフト運営</h2><div class="soft"><div>${verLabel(S.ver)}・追加キャラ${S.chars}体　鮮度 <b style="color:${S.fresh<40?'#c0392b':'#1a7f37'}">${Math.round(S.fresh)}%</b><i class="fb"><u style="width:${Math.round(S.fresh)}%"></u></i><small>放置すると鮮度が下がり客足が落ちます${S.chara?'・新キャラ効果 あと'+S.chara+'日':''}${S.collab?'・コラボ中 あと'+S.collab+'日':''}</small></div>
+  const soft1=count('pbt')?`<h2>パズバトソフト運営</h2><div class="soft"><div>${verLabel(S.ver)}・追加キャラ${S.chars}体　鮮度 <b style="color:${S.fresh<40?'#c0392b':'#1a7f37'}">${Math.round(S.fresh)}%</b><i class="fb"><u style="width:${Math.round(S.fresh)}%"></u></i><small>放置すると鮮度が下がり客足が落ちます${S.chara?'・新キャラ効果 あと'+S.chara+'日':''}${S.collab?'・コラボ中 あと'+S.collab+'日':''}</small></div>
    <div class="seg">${Object.entries(SOFT).map(([k,D])=>`<button data-soft="${k}" ${G.money<D.cost()||(k!=='ver'&&S[k]>0)?'disabled':''}>${k==='ver'?verLabel(S.ver+1)+'へ':D.label}<br><small>${yen(D.cost())}<br>${D.eff}</small></button>`).join('')}</div></div>`:'';
-  const rows=own.map(t=>{const u=upg(t),m=lvMult(t);return `<div class="uprow"><span><b>${ITEMS[t].name.replace('パズドラバトルトーナメント','PBT')}</b><small>Lv${u.lv}/${UPG_MAX} <em>+${u.plus}</em>　効果×${m.toFixed(2)}${ITEMS[t].kind==='game'?'　修理費'+yen(repairCost(t))+'/台':''}</small></span><div class="seg">
+  const rows=own.map(t=>{const u=upg(t),m=lvMult(t);return `<div class="uprow"><span><b>${ITEMS[t].name.replace('パズドラバトルトーナメント','パズバト')}</b><small>Lv${u.lv}/${UPG_MAX} <em>+${u.plus}</em>　効果×${m.toFixed(2)}${ITEMS[t].kind==='game'?'　修理費'+yen(repairCost(t))+'/台':''}</small></span><div class="seg">
     <button data-lv="${t}" ${u.lv>=UPG_MAX||G.money<lvCost(t)?'disabled':''}>${u.lv>=UPG_MAX?'Lv MAX':'Lv↑'}<br><small>${u.lv>=UPG_MAX?'':yen(lvCost(t))}</small></button><button data-plus="${t}" ${u.plus>=PLUS_MAX||G.money<plusCost(t)?'disabled':''}>${u.plus>=PLUS_MAX?'+MAX':'+10'}<br><small>${u.plus>=PLUS_MAX?'':yen(plusCost(t))}</small></button></div></div>`;}).join('');
   window.__upgRows=`<h2>育成（レベル・＋）</h2><div class="ups"><small class="uph">Lv1ごとに+5%、＋1ごとに+0.4%（集客・購入率・ガチャ）</small>${rows}</div>`;return soft1;}
 function showReport(rep){const T=rep.T,c=rep.c;SIM.paused=true;se.bell();
   const prof=rep.sales-c.total,cell=(l,v,st='')=>`<div><small>${l}</small><b style="${st}">${v}</b></div>`;
-  const sales=[[`PBT（${T.credits}回）`,T.sales.pbt],[`ガチャ（${T.pulls}回）`,T.sales.pgacha]].concat(SHOPS.filter(k=>T.sales[k]||count(k)).map(k=>[ITEMS[k].label,T.sales[k]||0]));
+  const sales=[[`パズバト（${T.credits}回）`,T.sales.pbt],[`ガチャ（${T.pulls}回）`,T.sales.pgacha]].concat(SHOPS.filter(k=>T.sales[k]||count(k)).map(k=>[ITEMS[k].label,T.sales[k]||0]));
   const notes=[T.vip?`<div class="good">✨ ${T.vip.name}が来店、ガチャに ${yen(T.vip.spent)}！</div>`:'',T.bvip&&T.bvip.done?`<div class="good">✨ ${T.bvip.who}が${T.bvip.item}を ${yen(T.bvip.amount)} 分ご購入！</div>`:'',
-   rep.danSit?`<div class="good">待ちきれない客 ${rep.danSit}人がぱずばと２（手作り）でエアプレイして待ってくれた</div>`:'',
-   rep.dan?`<div class="${rep.dan.out==='refund'?'good':'warn'}">ぱずばと２（手作り）に客が¥${rep.dan.amt.toLocaleString()}投入 → ${rep.dan.out==='refund'?'しぶしぶ返金':rep.dan.out==='talk'?'「パズバト２開発費」として押し切った（評判−1）':'もみ合いの末に追い返した（評判−3）'}</div>`:'',
+   rep.danSit?`<div class="good">待ちきれない客 ${rep.danSit}人がパズバト（段ボール）でエアプレイして待ってくれた</div>`:'',
+   rep.dan?`<div class="${rep.dan.out==='refund'?'good':'warn'}">パズバト（段ボール）に客が¥${rep.dan.amt.toLocaleString()}投入 → ${rep.dan.out==='refund'?'しぶしぶ返金':rep.dan.out==='talk'?'「パズバト２開発費」として押し切った（評判−1）':'もみ合いの末に追い返した（評判−3）'}</div>`:'',
    rep.catch?(rep.catch.ok?`<div class="good">${rep.catch.kind==='thief'?'万引き犯':'ゴト師'}をティンニンが確保！${rep.catch.kind==='goto'?' 感謝状 +¥10,000':''}</div>`:`<div class="warn">${rep.catch.kind==='thief'?'万引き犯':'ゴト師'}に逃げられた… 被害 ${yen(rep.catch.loot)}</div>`):'',
-   rep.raid&&rep.raid.who==='pro'?(rep.raid.win?`<div class="good">道場破りの自称プロパズドラーに勝利！ 戦利品「${rep.raid.bet}」＋口コミ宣伝（5日間 来客×1.35・評判UP）</div>`:`<div class="warn">道場破りに敗北… ${rep.raid.lostCab?'PBT筐体を1台持っていかれた':'筐体は勘弁してもらえた'}</div>`):rep.raid?(rep.raid.win?`<div class="good">${RAID_NAME[rep.raid.who]}のガサ入れ → ${DUELS[rep.raid.method]||'勝負'}で勝利！ 所持金×${rep.raid.mult}（+${yen(rep.raid.gain)}）</div>`:`<div class="warn">${RAID_NAME[rep.raid.who]}のガサ入れ → 敗北… ${rep.raid.who==='police'?'懲役'+rep.raid.hours+'時間（営業停止）＋罰金'+yen(rep.raid.fine):rep.raid.who==='caa'?'課徴金 '+yen(rep.raid.fine):'追徴課税 '+yen(rep.raid.fine)}</div>`):'',
+   rep.raid&&rep.raid.who==='pro'?(rep.raid.win?`<div class="good">道場破りの自称プロパズドラーに勝利！ 戦利品「${rep.raid.bet}」＋口コミ宣伝（5日間 来客×1.35・評判UP）</div>`:`<div class="warn">道場破りに敗北… ${rep.raid.lostCab?'パズバト筐体を1台持っていかれた':'筐体は勘弁してもらえた'}</div>`):rep.raid?(rep.raid.win?`<div class="good">${RAID_NAME[rep.raid.who]}のガサ入れ → ${DUELS[rep.raid.method]||'勝負'}で勝利！ 所持金×${rep.raid.mult}（+${yen(rep.raid.gain)}）</div>`:`<div class="warn">${RAID_NAME[rep.raid.who]}のガサ入れ → 敗北… ${rep.raid.who==='police'?'懲役'+rep.raid.hours+'時間（営業停止）＋罰金'+yen(rep.raid.fine):rep.raid.who==='caa'?'課徴金 '+yen(rep.raid.fine):'追徴課税 '+yen(rep.raid.fine)}</div>`):'',
    rep.fight?`<div class="good">ケンカ発生 → ティンニンが物理で鎮圧</div>`:'',rep.rivalNew?`<div class="warn">ライバル店オープン！ 7日間 来客減（評判70以上なら影響小）</div>`:'',rep.rivalEnd?`<div class="good">ライバル店の勢いが落ち着きました</div>`:'',
    rep.caa?`<div class="warn">消費者庁コラボ：ニコ生宣伝が優良誤認で行政指導。今月の売上 ${yen(rep.caa.amount)} を回収…</div>`:'',rep.bad?`<div class="warn">悲報：${rep.bad.name}${rep.bad.end>rep.bad.start?`（${hm(rep.bad.start)}〜${hm(rep.bad.end)}）`:''}</div>`:'',
    rep.debt&&!rep.over?`<div class="warn">赤字です。月末（あと${rep.toEnd}日）の支払い後も赤字だと倒産！</div>`:'',rep.billWarn?`<div class="warn"><b>【注意】</b>月末請求予定 ${yen(rep.billWarn)} に所持金 ${yen(rep.money)} では足りません！</div>`:'',rep.monthEnd&&!rep.over?`<div class="good">月末を乗り切りました！</div>`:''].join('');
@@ -1475,15 +1479,15 @@ function showReport(rep){const T=rep.T,c=rep.c;SIM.paused=true;se.bell();
   <div class="rl ex"><span>経費 ${rep.sales>0?Math.round(c.total/rep.sales*100):0}%<i>${yen(c.total)}</i></span><span>RS・家賃<i>${yen(c.share+c.rent)}</i></span><span>電気・仕入<i>${yen(c.elec+c.stock)}</i></span>${c.repair?`<span>修理（${c.broken}台）<i>-${yen(c.repair)}</i></span>`:''}${c.loss?`<span>特別損失<i>-${yen(c.loss)}</i></span>`:''}
   ${rep.tax!=null?`<span class="w">税金（法人税等）<i style="color:${rep.evaded?'#555':'#c0392b'}">${rep.evaded?'脱税（0円）':rep.taxLate&&!rep.taxPaid?'未納':'-'+yen(rep.taxPaid||0)}${rep.taxLate?'・延滞'+yen(rep.taxLate):''}</i></span>`:''}${rep.paid!=null?`<span class="w">月末支払い<i style="color:#c0392b">-${yen(rep.paid)}</i></span>`:`<span class="w">今月の支払予定<i>${yen(rep.dueNow)}</i></span>`}</div>
   <div class="chips"><span>来客 <b>${T.visitors}</b>人</span><span>ガチャ客 <b>${T.payers}</b>人</span><span>最高 <b>${yen(T.maxSpend)}</b></span><span>物販 <b>${T.buyers}</b>回</span><span>満足 <b>${T.served}</b>人</span><span>離脱 <b>${T.lost}</b>人</span><span>故障 <b>${T.breaks}</b>回</span><span>評判 <b>${Math.round(rep.rep1)}</b>（${rep.rep1>=rep.rep0?'+':''}${Math.round(rep.rep1-rep.rep0)}）</span></div>
-  ${rep.fresh1!=null&&rep.fresh1<40?`<div class="warn">PBTの鮮度が${Math.round(rep.fresh1)}%に低下（マンネリ化で来客減）。バージョンアップや新キャラ追加を！</div>`:''}${notes}<div class="fore">明日：${WX[rep.wxNext].i} ${WX[rep.wxNext].l}（来客×${WX[rep.wxNext].m}）</div></div>
+  ${rep.fresh1!=null&&rep.fresh1<40?`<div class="warn">パズバトの鮮度が${Math.round(rep.fresh1)}%に低下（マンネリ化で来客減）。バージョンアップや新キャラ追加を！</div>`:''}${notes}<div class="fore">明日：${WX[rep.wxNext].i} ${WX[rep.wxNext].l}（来客×${WX[rep.wxNext].m}）</div></div>
   <div class="rfoot">${rep.over?`<button id="overBtn" class="big" style="background:#c0392b;color:#fff;border-color:#c0392b">結果を見る</button>`:`<button id="nextDay" class="big">${rep.day+1}日目の営業を始める ▶</button>`}</div></div>`;
   $('modal').style.display='flex';if(rep.over){$('overBtn').onclick=showOver;return;}$('nextDay').onclick=()=>{$('modal').style.display='none';SIM.paused=false;G.closing=false;renderUI();};}
 function showOver(){autoStop();SIM.paused=true;$('modal').innerHTML=`<div class="card"><h3 style="color:#c0392b">倒産…</h3><p>月末の支払い後に赤字となり、資金繰りに行き詰まりました。</p>
-  <table><tr><td>営業日数</td><td>${G.day-1}日</td></tr><tr><td>PBT筐体</td><td>${count('pbt')}台</td></tr><tr><td>累計売上</td><td>${yen(G.total.sales)}</td></tr><tr><td>累計来客数</td><td>${G.total.visitors.toLocaleString()}人</td></tr></table>
+  <table><tr><td>営業日数</td><td>${G.day-1}日</td></tr><tr><td>パズバト筐体</td><td>${count('pbt')}台</td></tr><tr><td>累計売上</td><td>${yen(G.total.sales)}</td></tr><tr><td>累計来客数</td><td>${G.total.visitors.toLocaleString()}人</td></tr></table>
   <button id="restart" class="big">最初からやり直す</button></div>`;$('modal').style.display='flex';
   $('restart').onclick=()=>{try{localStorage.removeItem('pbtSim2')}catch(e){}G=newGame();G.today=freshToday();rebuild();$('modal').style.display='none';SIM.paused=false;G.closing=false;renderUI();};}
 function rankOf(d){const a=dateOf(d),mi=(a.getFullYear()-START_DATE.getFullYear())*12+a.getMonth()-START_DATE.getMonth();return mi<=3?'SS':['S','A','B'][mi-4]||'C';}
-function showClear(){const wp=SIM.paused;SIM.paused=true;se.clear();$('modal').innerHTML=`<div class="card clear"><h3>ゲームクリア！</h3><p>${G.clearDate||''}、ついに<b>パズドラバトルトーナメント２</b>を導入しました！<br>ここからはPBT2を最大18台まで増設できます。</p>
+function showClear(){const wp=SIM.paused;SIM.paused=true;se.clear();$('modal').innerHTML=`<div class="card clear"><h3>ゲームクリア！</h3><p>${G.clearDate||''}、ついに<b>パズドラバトルトーナメント２</b>を導入しました！<br>ここからはパズバト２を最大18台まで増設できます。</p>
   <div class="rank">経営ランク <b>${rankOf(G.clearDay)}</b></div><table><tr><td>かかった日数</td><td>${G.clearDay}日目（${G.clearDate||''}）</td></tr><tr><td>評判</td><td>${stars(G.rep)} ${Math.round(G.rep)}</td></tr><tr><td>累計売上</td><td>${yen(G.total.sales)}</td></tr><tr><td>累計来客数</td><td>${G.total.visitors.toLocaleString()}人</td></tr><tr><td>所持金</td><td>${yen(G.money)}</td></tr></table>
   <button id="goOn" class="big">このまま営業を続ける</button></div>`;$('modal').style.display='flex';$('goOn').onclick=()=>{$('modal').style.display='none';SIM.paused=wp;renderUI();};}
 // ---- mode switching ----
@@ -1513,11 +1517,11 @@ function mgClick(b){
   if(b.dataset.lv){const t=b.dataset.lv,u=upg(t),c=lvCost(t);if(u.lv<UPG_MAX&&G.money>=c){G.money-=c;u.lv++;se.buy();upgFxAll(t);toast(ITEMS[t].name+' Lv'+u.lv+' にレベルアップ！');}}
   if(b.dataset.plus){const t=b.dataset.plus,u=upg(t),c=plusCost(t);if(u.plus<PLUS_MAX&&G.money>=c){G.money-=c;u.plus=Math.min(PLUS_MAX,u.plus+10);upgFxAll(t);se.coin&&se.coin();se.pop();toast(ITEMS[t].name+' +'+u.plus+'！');}}
   if(b.dataset.soft){const k=b.dataset.soft,S=soft(),D=SOFT[k],c=D.cost();if(G.money>=c){G.money-=c;S.fresh=Math.min(100,S.fresh+D.fresh);if(k==='ver')S.ver++;if(k==='chara'){S.chars++;S.chara=D.days;}if(k==='collab')S.collab=D.days;se.promo();
-    popup(ENTRANCE.clone().setZ(ROOM.z1-800),k==='ver'?'PBT '+verLabel(S.ver)+'！':k==='chara'?'新キャラ『'+CHARS[(S.chars*7)%CHARS.length]+'』追加！':'コラボガチャ開催！','#d0349b');}}
+    popup(ENTRANCE.clone().setZ(ROOM.z1-800),k==='ver'?'パズバト '+verLabel(S.ver)+'！':k==='chara'?'新キャラ『'+CHARS[(S.chars*7)%CHARS.length]+'』追加！':'コラボガチャ開催！','#d0349b');}}
   save();renderUI();}
 $('crimeBox')&&$('crimeBox').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled||!G)return;mgClick(b);});
 $('upg')&&$('upg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled||!G)return;mgClick(b);});
-$('shop').addEventListener('click',e=>{const b=e.target.closest('[data-buy]');if(b&&!b.disabled)buy(b.dataset.buy);});
+$('shop').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled||!G)return;if(b.dataset.buy)buy(b.dataset.buy);else mgClick(b);});
 $('simUI').addEventListener('click',ensureAudio,true);
 function renderSfx(){$('sfx').textContent=sfxOn?'🔊 効果音 ON':'🔇 効果音 OFF';$('sfx').classList.toggle('on',sfxOn);$('amb').textContent=ambOn?'🎮 店内の音 ON':'🔕 店内の音 OFF';$('amb').classList.toggle('on',ambOn);
   const vb=$('vsfx');if(vb){vb.textContent=sfxOn?'🔊 効果音 ON':'🔇 効果音 OFF';vb.classList.toggle('on',sfxOn);}}
@@ -1541,7 +1545,7 @@ function autoBuy(){const reserve=monthBill().total+80000;let bought=[];
     if(!did)break;}
   if(!G.fuei||!crimeOn('tax')||!crimeOn('ad')){G.fuei=true;G.crime={tax:true,ad:true};bought.push('裏稼業スイッチ全部ON');}
   for(const k of ['sns','cup']){const p=PROMOS[k];if(count('pbt')+count('pbt2')>=6&&!(G.promos||[]).some(x=>x.k===k)&&G.money-p.price>=reserve*1.5){promoBuy(k,crimeOn('ad'));bought.push(p.label+'（盛り）');}}
-  {const S=soft();if(S.fresh<50&&G.money-SOFT.ver.cost()>=reserve*1.3){G.money-=SOFT.ver.cost();S.ver++;S.fresh=Math.min(100,S.fresh+45);bought.push('PBT '+verLabel(S.ver));}
+  {const S=soft();if(S.fresh<50&&G.money-SOFT.ver.cost()>=reserve*1.3){G.money-=SOFT.ver.cost();S.ver++;S.fresh=Math.min(100,S.fresh+45);bought.push('パズバト '+verLabel(S.ver));}
    else if(S.fresh<70&&!S.chara&&G.money-SOFT.chara.cost()>=reserve*1.5){G.money-=SOFT.chara.cost();S.chars++;S.chara=7;S.fresh=Math.min(100,S.fresh+18);bought.push('新キャラ追加');}
    for(const t of [...new Set(G.items.map(i=>i.type))]){const u=upg(t);if(u.lv<UPG_MAX&&G.money-lvCost(t)>=reserve*2){G.money-=lvCost(t);u.lv++;bought.push(ITEMS[t].name.slice(0,8)+' Lv'+u.lv);}}}
   if(machines.some(m=>m.broken)&&G.money>=reserve)repairAll(true);
@@ -1642,7 +1646,7 @@ function vtAnticStep(dt){const M=VT.mesh,g=M.children[0],u=M.userData,A=VT.ant;A
   if(VT.t>=A.dur){vtAnticReset();if(['roll','cartwheel','crawl','moonwalk'].includes(A.k)){const t0=vtNearestT(M.position);VT.pt=t0;VT.mode='walkOut';VT.path=[vtPt(t0)];}else{VT.mode='idle';VT.wait=0.6+Math.random();}}}
 // ---- ビューア：筐体と相撲 → ときどき筐体が反撃して肉弾戦（カットイン付き） ----
 function vCutin(robo){let el=document.getElementById('cutin');if(!el){el=document.createElement('div');el.id='cutin';$('view').appendChild(el);}
-  el.className='kb';el.innerHTML=`<div class="ci-band">${ciCard(portRender('cab'),robo?'全筐体合体！':'やられっぱなしの',robo?'PBTカイザー':'PBT筐体','l')}<div class="ci-vs">VS</div>${ciCard(portRender('tin'),'暇をもてあます店長','ティンニン','r')}</div><div class="ci-sub"><span class="ci-tag">逆襲</span>${robo?'筐体たちが合体した！ 巨大ロボ戦スタート！':'ついに筐体がキレた！ 肉弾戦スタート！'}</div><div class="ci-m">ファイト！</div>`;
+  el.className='kb';el.innerHTML=`<div class="ci-band">${ciCard(portRender('cab'),robo?'全筐体合体！':'やられっぱなしの',robo?'パズバトカイザー':'パズバト筐体','l')}<div class="ci-vs">VS</div>${ciCard(portRender('tin'),'暇をもてあます店長','ティンニン','r')}</div><div class="ci-sub"><span class="ci-tag">逆襲</span>${robo?'筐体たちが合体した！ 巨大ロボ戦スタート！':'ついに筐体がキレた！ 肉弾戦スタート！'}</div><div class="ci-m">ファイト！</div>`;
   el.style.display='block';el.classList.remove('go');void el.offsetWidth;el.classList.add('go');clearTimeout(el._t);el._t=setTimeout(()=>{el.style.display='none';},3000);se.impact();setTimeout(()=>se.whoosh(),350);}
 // ---- 複数台表示時：筐体が合体ロボになって反撃 ----
 const ROBO_SLOTS=[[-420,0,0,'legL'],[420,0,0,'legR'],[-429,3898,1.57,'armL'],[429,3898,-1.57,'armR'],[0,4396,0,'head'],[-420,3700,0.55,'wingL'],[420,3700,-0.55,'wingR']];
@@ -1670,7 +1674,7 @@ function vtRoboStep(dt){const M=VT.mesh,g=M.children[0],u=M.userData,C=VT.c0,RB=
       c.position.set(s0.x+(e.x-s0.x)*T,s0.y+(e.y-s0.y)*T+Math.sin(Math.PI*T)*1800,s0.z+(e.z-s0.z)*T);c.rotation.set(Math.sin(Math.PI*T)*1.2,s0.ry+(C.ry-s0.ry)*T,rz*T);
       if(T>=1&&!p.in){p.in=1;se.drop();}});
     const Tm=ez((tg-0.2)/1.4);place(main,slotPos(0,legH*Tm),Math.sin(tg*30)*0.02*(1-Tm));
-    if(tg>2.7&&!RB.p1){RB.p1=1;se.impact();say(VT,'合体ロボ「PBTカイザー」！？',2);}return;}
+    if(tg>2.7&&!RB.p1){RB.p1=1;se.impact();say(VT,'合体ロボ「パズバトカイザー」！？',2);}return;}
   const tb=tg-3.4; // バトル
   if(tb<1.4){walk=tb;fwd=Math.min(1,tb/1.4)*500;if(Math.floor(tb*4)!==RB.st){RB.st=Math.floor(tb*4);se.stomp(1);}}
   else{fwd=500;}
@@ -1824,7 +1828,7 @@ $('tnBtn').onclick=()=>{VT.on=!VT.on;$('tnBtn').classList.toggle('on',VT.on);try
 // headless balance test hook
 window.__simBalance=(days)=>{SIM.headless=true;const g0=G;G=newGame();G.today=freshToday();machines=[];customers=[];G.items.forEach(addMachine);const log=[];
   for(let d=0;d<days&&!G.cleared&&!G.over;d++){while(G.min<CLOSE_MIN){G.min+=0.5;stepGame(0.5);}const r=closeDay();if(r.taxChoice)taxApply(r,false);if(soft().fresh<50&&G.money-SOFT.ver.cost()-(G.due||0)>=80000){G.money-=SOFT.ver.cost();soft().ver++;soft().fresh=Math.min(100,soft().fresh+45);}
-    // greedy AI: buy PBT when affordable keeping 10k buffer, sometimes others
+    // greedy AI: buy パズバト when affordable keeping 10k buffer, sometimes others
     for(const t of ['pbt2','pbt','goods','gacha','vend','ice','crane','doujin'])while(!canBuy(t)&&G.money-ITEMS[t].price-(G.due||0)>=50000&&(t==='pbt'||t==='pbt2'||count('pbt')>=3)){buy(t);}
     if(window.__balCrime){G.fuei=true;G.crime={tax:true,ad:true};for(const k of ['sns','cup']){if(count('pbt')>=4&&!(G.promos||[]).some(x=>x.k===k)&&G.money-PROMOS[k].price-(G.due||0)>=200000)promoBuy(k,true);}}
     if(window.__balUp){for(const t of [...new Set(G.items.map(i=>i.type))]){const u=upg(t);while(u.lv<UPG_MAX&&(t!=='pbt'||count('pbt')>=6)&&G.money-lvCost(t)-(G.due||0)>=400000){G.money-=lvCost(t);u.lv++;}}if(soft().chara<=0&&soft().fresh<75&&G.money-SOFT.chara.cost()-(G.due||0)>=150000){G.money-=SOFT.chara.cost();soft().chars++;soft().chara=7;soft().fresh+=18;}}
