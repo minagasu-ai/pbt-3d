@@ -12,7 +12,7 @@ html,body{margin:0;height:100%;background:#fff!important;color-scheme:light only
 #titleBar .t{font-family:'Dela Gothic One','Hiragino Sans',sans-serif;font-size:21px;letter-spacing:.06em;color:#fff6c8;background:linear-gradient(180deg,#fffbe0 0%,#ffe06a 45%,#ffb300 55%,#fff2a8 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 2px 0 #7a1f6b) drop-shadow(0 0 6px rgba(255,120,220,.6))}
 #titleBar .t small{font-size:.82em;margin-left:.5em}
 #titleBar .st{color:#ffd54a;font-size:16px;text-shadow:0 0 8px #ff6fd8}
-#simCam{display:none;position:absolute;right:8px;top:98px;z-index:3;gap:4px}#simCam button{padding:3px 9px;font-size:11px;border-radius:14px;background:rgba(255,255,255,.92);border:1px solid #cfd5e0}#simCam button.on{background:#2b5fd9;color:#fff;border-color:#2b5fd9}
+#simCam{display:none;position:absolute;right:8px;top:70px;z-index:3;gap:4px}#simCam button{padding:3px 9px;font-size:11px;border-radius:14px;background:rgba(255,255,255,.92);border:1px solid #cfd5e0}#simCam button.on{background:#2b5fd9;color:#fff;border-color:#2b5fd9}
 #side{flex:0 0 auto;width:clamp(178px,27%,270px);height:100%;overflow-y:auto;overflow-x:hidden;border-right:1px solid #dfe3ea;background:#f7f8fb;padding:6px 8px 8px;touch-action:pan-y;font-size:10.5px}
 @media (max-height:430px){h2{margin:6px 0 3px}td{padding:1px 2px}button{padding:4px 2px}}
 #view{position:relative;flex:1 1 auto;height:100%;min-width:0}
@@ -105,7 +105,7 @@ button.wide{grid-column:span 2}
 #contract .cno{text-align:right;font-size:9.5px;color:#555;margin:0 0 4px}#contract td{padding:3px 2px}#contract td:first-child{white-space:nowrap;color:#444}
 #contract .terms{margin:6px 0 6px 16px;padding:0;font-size:10px;line-height:1.5}#contract .agree{display:block;margin:6px 0;font-weight:700}
 #contract .btn2{display:flex;gap:8px}#contract .btn2 button{flex:1;padding:8px;font-size:12px;font-weight:700}#contract .danger{background:#a01818;color:#fff;border-color:#a01818}#contract .danger:disabled{opacity:.4}
-#chart{position:absolute;left:8px;top:8px;width:min(520px,calc(62% - 16px));height:84px;background:rgba(255,255,255,.9);border:1px solid #dde1e7;border-radius:8px;display:none;z-index:3;pointer-events:none;box-shadow:0 1px 6px rgba(0,0,0,.08)}
+#chart{position:absolute;left:8px;top:8px;width:calc(100% - 16px);height:56px;background:rgba(255,255,255,.9);border:1px solid #dde1e7;border-radius:8px;display:none;z-index:3;pointer-events:none;box-shadow:0 1px 6px rgba(0,0,0,.08)}
 #hint{position:absolute;right:8px;bottom:6px;font-size:10px;color:#8a92a0;pointer-events:none}
 </style></head><body>
 <div id="app">
@@ -216,7 +216,7 @@ function fit(){
   cam.aspect=W/H;cam.updateProjectionMatrix();
   tgt.copy(BOX.getCenter(new THREE.Vector3()));
   let pts;if(BOX.userData&&BOX.userData.pts)pts=BOX.userData.pts();else{pts=[];for(const x of [BOX.min.x,BOX.max.x])for(const y of [BOX.min.y,BOX.max.y])for(const z of [BOX.min.z,BOX.max.z])pts.push(new THREE.Vector3(x,y,z));}
-  const pad=SIM.on?6:Math.max(10,Math.min(W,H)*0.04),top=SIM.on?100:pad,left=pad;
+  const pad=SIM.on?6:Math.max(10,Math.min(W,H)*0.04),top=SIM.on?72:pad,left=pad;
   const proj=()=>pts.map(p=>{const q=p.clone().project(cam);return [(q.x+1)/2*W,(1-q.y)/2*H,q.z];});
   const ok=r=>{rad=r;place();for(const [sx,sy,qz] of proj()){if(qz>1||qz<-1||sx<left||sx>W-pad||sy<top||sy>H-pad)return false}return true};
   const search=()=>{let lo=200,hi=90000;for(let i=0;i<44;i++){const m=(lo+hi)/2;if(ok(m))hi=m;else lo=m}rad=hi;place();};
@@ -1472,15 +1472,15 @@ function salesNow(){return Object.values(G.today.sales).reduce((a,b)=>a+b,0);}
 function recordSeries(){const S_=G.today.series||(G.today.series=[]);const last=S_[S_.length-1];
   if(!last||G.min-last[0]>=5||G.min>=CLOSE_MIN){S_.push([Math.round(G.min),salesNow(),costs(Math.max(0,(G.min-OPEN_MIN)/DAY_MIN)).total]);}}
 function drawChart(){const cv=$('chart');if(!cv||!SIM.on||!G)return;const dpr=Math.min(2,devicePixelRatio||1);
-  const W=Math.max(10,cv.clientWidth),H=Math.max(10,cv.clientHeight);if(cv.width!==Math.round(W*dpr)){cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);}
+  const W=Math.max(10,cv.clientWidth),H=Math.max(10,cv.clientHeight);if(cv.width!==Math.round(W*dpr)||cv.height!==Math.round(H*dpr)){cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);}
   const g=cv.getContext('2d');g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,W,H);
-  const T=G.today.series||[],Y=G.prevSeries||[];const L=46,R=8,Tp=16,B=14,pw=W-L-R,ph=H-Tp-B;
+  const T=G.today.series||[],Y=G.prevSeries||[];const L=40,R=8,Tp=15,B=11,pw=W-L-R,ph=H-Tp-B;
   const now=salesNow(),nowC=costs(Math.max(0,(G.min-OPEN_MIN)/DAY_MIN)).total;
   let mx=Math.max(1000,now,nowC,...T.map(p=>Math.max(p[1],p[2])),...Y.map(p=>p[1]));const st=Math.pow(10,Math.floor(Math.log10(mx)));mx=Math.ceil(mx/st*1.05)*st;
   const X=m=>L+(m-OPEN_MIN)/DAY_MIN*pw,Yv=v=>Tp+ph-v/mx*ph;
-  g.font='10px sans-serif';g.fillStyle='#8a92a0';g.strokeStyle='#e3e6ec';g.lineWidth=1;
+  g.font='9px sans-serif';g.fillStyle='#8a92a0';g.strokeStyle='#e3e6ec';g.lineWidth=1;
   for(const h of [12,15,18,21,24]){const x=X(h*60);g.beginPath();g.moveTo(x,Tp);g.lineTo(x,Tp+ph);g.stroke();g.textAlign='center';g.fillText(h+'時',x,H-2);}
-  for(const f of [0,0.5,1]){const y=Yv(mx*f);g.beginPath();g.moveTo(L,y);g.lineTo(L+pw,y);g.stroke();g.textAlign='right';g.fillText(mx*f>=10000?Math.round(mx*f/10000*10)/10+'万':Math.round(mx*f).toLocaleString(),L-4,y+3);}
+  for(const f of (ph<40?[0,1]:[0,0.5,1])){const y=Yv(mx*f);g.beginPath();g.moveTo(L,y);g.lineTo(L+pw,y);g.stroke();g.textAlign='right';g.fillText(mx*f>=10000?Math.round(mx*f/10000*10)/10+'万':Math.round(mx*f).toLocaleString(),L-4,y+3);}
   const line=(pts,idx,col,dash,wd)=>{if(pts.length<1)return;g.save();g.strokeStyle=col;g.lineWidth=wd;g.setLineDash(dash);g.beginPath();g.moveTo(X(OPEN_MIN),Yv(0));for(const p of pts)g.lineTo(X(p[0]),Yv(p[idx]));g.stroke();g.restore();};
   line(Y,1,'#b8bfcc',[4,3],1.5);
   const Tn=T.concat([[G.min,now,nowC]]);line(Tn,2,'#e05555',[],1.5);line(Tn,1,'#2b5fd9',[],2.2);
