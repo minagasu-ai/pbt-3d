@@ -137,7 +137,7 @@ button.wide{grid-column:span 2}
   <div class="bar"><i id="sBar"></i></div><div id="sEvent"></div><div id="sStat"></div>
   <div>所持金</div><div id="sMoney">¥0</div>
   <div id="sToday" style="margin:3px 0 2px"></div><div id="sCost"></div>
-  <div class="spLab">倍速モード</div><div class="grid3" style="grid-template-columns:repeat(4,1fr)"><button data-sp="0">停止</button><button data-sp="1" class="on">×1</button><button data-sp="3">×3</button><button data-sp="10">×10</button></div><div class="spLab">音声</div><div class="grid3 sndRow" style="grid-template-columns:1fr 1fr"><button id="sfx" title="効果音（全体）">🔊 効果音 ON</button><button id="amb" title="店内の環境音（賑わい）">🎮 店内の音 ON</button></div><button id="autoBtn" class="autob">1か月オート（ティンニンにおまかせ）</button><div class="autoSp"><span>オート速度</span><button data-asp="1" class="on">等倍</button><button data-asp="2">×2</button><button data-asp="5">×5</button><button data-asp="10">×10</button></div>
+  <div class="spLab">倍速モード</div><div class="grid3" style="grid-template-columns:repeat(4,1fr)"><button data-sp="0">停止</button><button data-sp="1" class="on">等倍</button><button data-sp="2">×2</button><button data-sp="3">×3</button></div><div class="spLab">音声</div><div class="grid3 sndRow" style="grid-template-columns:1fr 1fr"><button id="sfx" title="効果音（全体）">🔊 効果音 ON</button><button id="amb" title="店内の環境音（賑わい）">🎮 店内の音 ON</button></div><button id="autoBtn" class="autob">1か月オート（ティンニンにおまかせ）</button><div class="autoSp"><span>オート速度</span><button data-asp="1" class="on">等倍</button><button data-asp="2">×2</button><button data-asp="3">×3</button></div>
   <h2>経営</h2><div id="mgmt"></div>
   <h2 id="sGoal">目標：<span style="white-space:nowrap">パズドラバトルトーナメント２</span>の<br>開発費用＆導入費用<br>100,000,000円を稼ごう！</h2><div class="bar"><i id="sGoalBar"></i></div>
   <h2>購入・設置</h2><div id="shop"></div>
@@ -798,6 +798,7 @@ function fightStep(dt,k){if(!FIGHT.on)return;const F=FIGHT,S_=STAFF,u=S_.mesh.us
   if(F.phase==='walk'){let done=0;for(const o of F.ppl){if(moveAlong(o,2600*k*dt)){done++;o.mesh.position.y=0;}else o.mesh.position.y=Math.abs(Math.sin(performance.now()/120))*30;}
     if(done===2){F.phase='brawl';F.t=0;for(const o of F.ppl){o.mesh.rotation.y=o.s>0?-Math.PI/2:Math.PI/2;o.an.visible=true;}bigPop(F.spot,'ケンカ勃発！','#c0392b');
       S_.mode='fight';S_.run=true;S_.target=null;S_.mesh.userData.head.rotation.y=0;staffRoute(F.spot.clone().add(new THREE.Vector3(0,0,650)));}}
+  if(F.phase==='brawl'&&S_.mode!=='fight'&&!RAID.on&&!CATCH.on&&!jailActive()){S_.mode='fight';S_.run=true;S_.target=null;staffRoute(F.spot.clone().add(new THREE.Vector3(0,0,650)));}
   if(F.phase==='brawl'){for(const o of F.ppl){o.mesh.position.x=F.spot.x+o.s*(420-Math.abs(Math.sin(F.t*5))*120);o.mesh.position.y=Math.abs(Math.sin(F.t*7+o.s))*60;o.an.scale.setScalar(450+Math.sin(F.t*10)*90);}
     if(F.hit<F.t&&F.t>0.8){F.hit=F.t+0.9;bigPop(F.spot,Math.random()<.5?'やんのかコラ！':'表出ろや！','#34495e',2500);}
     if(S_.moving){animWalk(S_,dt,14);if(moveAlong(S_,3200*k*dt)){S_.moving=false;S_.mesh.position.y=0;S_.mesh.rotation.y=Math.PI;for(const o of F.ppl){o.mesh.position.x=F.spot.x+o.s*420;o.mesh.position.y=0;}
@@ -1429,8 +1430,8 @@ $('simBtn').onclick=enterSim;$('simExit').onclick=exitSim;
 try{if(sessionStorage.getItem('pbtSimOn')==='1')setTimeout(()=>{if(!SIM.on){enterSim();if(G&&!G.over){SIM.paused=true;toast('前回のシミュレーションの続きから再開します（タップで再開）');setTimeout(()=>{SIM.paused=false;},1500);}}},600);}catch(e){}
 $('simReset').onclick=()=>{if($('simReset').dataset.arm){delete $('simReset').dataset.arm;$('simReset').textContent='最初からやり直す';try{localStorage.removeItem('pbtSim2')}catch(e){}G=newGame();G.today=freshToday();rebuild();$('modal').style.display='none';SIM.paused=false;renderUI();}
   else{$('simReset').dataset.arm=1;$('simReset').textContent='もう一度押すとリセット';setTimeout(()=>{delete $('simReset').dataset.arm;$('simReset').textContent='最初からやり直す'},3000);}};
-document.querySelectorAll('[data-sp]').forEach(b=>b.onclick=()=>{if(SIM.auto)autoStop();const v=+b.dataset.sp;if(v===0)SIM.paused=true;else{SIM.paused=false;SIM.speed=v;}renderUI();});
-// ---- 1か月オートモード：ティンニンが自動で経営（速度は等倍/×2/×5/×10から選択・決算は自動で閉じる） ----
+document.querySelectorAll('[data-sp]').forEach(b=>b.onclick=()=>{if(SIM.auto)autoStop();const v=Math.min(3,+b.dataset.sp);if(v===0)SIM.paused=true;else{SIM.paused=false;SIM.speed=v;}renderUI();});
+// ---- 1か月オートモード：ティンニンが自動で経営（速度は等倍/×2/×3から選択・決算は自動で閉じる） ----
 const AUTO_LIST=['pbt','doujin','bench','anime','goods','gacha','vend','ice','crane','bench'];
 function autoBuy(){const reserve=monthBill().total+80000;let bought=[];
   if(!G.cleared&&!canBuy('pbt2')&&G.money-ITEMS.pbt2.price>=reserve){doBuy('pbt2');return ['パズバト２'];}
@@ -1452,15 +1453,36 @@ function autoAfterReport(rep){const A=SIM.auto;if(!A)return;A.left--;
   if(G.cleared&&!SIM.auto)return;if(!$('nextDay')){autoStop('クリア！オートを終了しました');return;}
   if(A.left<=0){autoStop('1か月オート終了！');return;}
   setTimeout(()=>{if(SIM.auto&&$('nextDay')&&$('modal').style.display==='flex')$('nextDay').click();},1300);}
-document.querySelectorAll('[data-asp]').forEach(b=>b.onclick=()=>{SIM.autoSpeed=+b.dataset.asp;if(SIM.auto)SIM.speed=SIM.autoSpeed;renderUI();});
+document.querySelectorAll('[data-asp]').forEach(b=>b.onclick=()=>{SIM.autoSpeed=Math.min(3,+b.dataset.asp);if(SIM.auto)SIM.speed=SIM.autoSpeed;renderUI();});
 $('autoBtn').onclick=()=>{if(SIM.auto)autoStop('オートを止めました');else autoStart();};
 let lastT=performance.now(),uiAcc=0;
-function simTick(){const now=performance.now();const dt=Math.min(0.1,(now-lastT)/1000);lastT=now;vtStep(SIM.on?0:dt);try{ambTick(dt);}catch(e){}camStep(dt);if(!SIM.on||!G)return;
+// ---- 安全装置：例外でゲームが止まらないようにする ----
+window.__simErrs=window.__simErrs||[];
+function simErr(where,e){try{window.__simErrs.push(where+': '+(e&&e.message||e));if(window.__simErrs.length>50)window.__simErrs.shift();console.warn('[sim]',where,e);}catch(_){}}
+function safeNextDay(){try{G.closing=false;G.day++;G.min=OPEN_MIN;G.today=freshToday();customers.forEach(c=>c.mesh&&peopleG.remove(c.mesh));customers.length=0;for(const m of machines){m.busy=null;m.reserved=false;}save();}catch(e){simErr('safeNextDay',e);}}
+// イベントが途中で固まったときの見張り（ゲーム内の進行時間で計測）
+const WD_LIMIT=90;
+function staffFree(){try{staffPoseReset();STAFF.run=false;STAFF.mode='return';STAFF.path=[];staffRoute(null,true);}catch(e){simErr('staffFree',e);}}
+function watchdog(dt){if(SIM.paused||!dt)return;
+  if(RAID.on){RAID.wd=(RAID.wd||0)+dt;if(RAID.wd>WD_LIMIT){simErr('watchdog','raid stuck '+RAID.phase);try{raidClear();}catch(e){}RAID.wd=0;staffFree();}}else RAID.wd=0;
+  if(FIGHT.on){FIGHT.wd=(FIGHT.wd||0)+dt;if(FIGHT.wd>WD_LIMIT){simErr('watchdog','fight stuck '+FIGHT.phase);try{fightClear();}catch(e){}FIGHT.wd=0;staffFree();}}else FIGHT.wd=0;
+  if(CATCH.on){CATCH.wd=(CATCH.wd||0)+dt;if(CATCH.wd>WD_LIMIT){simErr('watchdog','catch stuck '+CATCH.phase);try{catchClear();}catch(e){}CATCH.wd=0;staffFree();}}else CATCH.wd=0;
+  if(!RAID.on&&!FIGHT.on&&!CATCH.on&&(STAFF.mode==='raid'||STAFF.mode==='fight')&&!jailActive()){STAFF.wd=(STAFF.wd||0)+dt;if(STAFF.wd>5){STAFF.wd=0;staffFree();}}else STAFF.wd=0;}
+function simTick(){const now=performance.now();const dt=Math.min(0.1,(now-lastT)/1000);lastT=now;
+  try{vtStep(SIM.on?0:dt);}catch(e){simErr('vtStep',e);try{vtReset();}catch(_){}}
+  try{ambTick(dt);}catch(e){}try{camStep(dt);}catch(e){CAMA=null;}if(!SIM.on||!G)return;
+  if(SIM.speed>3)SIM.speed=3;
   if(!SIM.paused&&!G.closing){let dm=dt*SIM.speed*DAY_MIN/REAL_SEC_PER_DAY;
-    while(dm>0){const s=Math.min(dm,0.5);G.min+=s;stepGame(s);dm-=s;if(G.min>=CLOSE_MIN){G.min=CLOSE_MIN;G.closing=true;break;}}
-    recordSeries();
-    if(G.closing){const rep=closeDay();const go=()=>{showReport(rep);if(SIM.auto)autoAfterReport(rep);};if(rep.taxChoice)taxApply(rep,true);go();}}
-  stepVisual(SIM.paused?0:dt);uiAcc+=dt;if(uiAcc>0.25){uiAcc=0;renderUI();}}
+    while(dm>0){const s=Math.min(dm,0.5);G.min+=s;try{stepGame(s);}catch(e){simErr('stepGame',e);}dm-=s;if(G.min>=CLOSE_MIN){G.min=CLOSE_MIN;G.closing=true;break;}}
+    try{recordSeries();}catch(e){simErr('recordSeries',e);}
+    if(G.closing){let rep=null;try{rep=closeDay();}catch(e){simErr('closeDay',e);}
+      if(!rep){safeNextDay();SIM.paused=false;}
+      else{try{if(rep.taxChoice)taxApply(rep,true);}catch(e){simErr('tax',e);}
+        try{showReport(rep);}catch(e){simErr('showReport',e);$('modal').innerHTML=`<div class="card"><h3>${rep.day||''}日目 決算</h3><p>決算画面の表示でエラーが起きました。営業は続けられます。</p><button id="nextDay" class="big">次の日の営業を始める ▶</button></div>`;$('modal').style.display='flex';$('nextDay').onclick=()=>{$('modal').style.display='none';SIM.paused=false;G.closing=false;};}
+        try{if(SIM.auto)autoAfterReport(rep);}catch(e){simErr('auto',e);}}}}
+  try{watchdog(SIM.paused?0:dt*SIM.speed);}catch(e){simErr('watchdog',e);}
+  try{stepVisual(SIM.paused?0:dt);}catch(e){simErr('stepVisual',e);}
+  uiAcc+=dt;if(uiAcc>0.25){uiAcc=0;try{renderUI();}catch(e){simErr('renderUI',e);}}}
 // ---- しゃべる（吹き出し）：パズドラ語録 ----
 const PAZ_LINES=["パズバト１０周年はどうした？！", "てま崩壊！", "なんなすみません", "消費者庁コラボ第２弾！", "パズバト２はよ！", "ゴッドフェス来い〜！", "確定演出きた！？", "魔法石10個くれ〜！", "スキル上げ失敗…", "ゲリラダンジョン開幕！", "10コンボ決めたる！", "落ちコンきたー！", "ガチャ爆死…", "ノーコンクリア！", "覚醒スキルはよ！", "タマゴ割れろ〜！", "コラボ復刻まだ？", "チャレダン難しすぎ！", "ドロップ強化！", "ここは私の城！", "虹の番人どこ〜？", "ノエルドラゴンかわいい", "パズル力が足りない…", "6個消しで回復！", "L字消し決まった！", "十字消しで軽減じゃ！", "根性で耐えた！", "先制攻撃いたい…", "毒ドロップやめて〜", "お邪魔ドロップ邪魔！", "ロック解除はよ！", "スキル溜まった！", "変身！", "超覚醒させたい", "アシスト装備した？", "潜在たまご出た！", "ドロップ目覚め〜", "エンハンス乗った！", "倍率高すぎワロタ", "ワンパン余裕！", "リーダー誰にしよ", "フレンド借りるね", "スタミナ足りない…", "スタミナ回復した！", "ログインボーナス！", "今日は何曜ダンジョン？", "テクニカル行こ〜", "降臨チャレンジ！", "裏ボス強すぎ！", "周回、周回、また周回", "ランキングダンジョン！", "王冠ほしい〜", "ランダン上位目指す！", "メダル交換しなきゃ", "モンスター交換所！", "BOXパンパン…", "売却ミスった…", "合成しなきゃ", "究極進化！", "進化素材足りない", "ダブり出た…", "ピィ集めなきゃ", "＋ポイント振らなきゃ", "コイン足りない…", "魔法石いくつある？", "課金は計画的に！", "ガチャは悪い文明…", "もう一回だけ…！", "天井ってどこ？", "コラボガチャ引く？", "推しキャラ来た〜！", "星６確定！？", "フェス限ゲット！", "おめでとう演出！", "タマゴ金色だった！", "虹たまご〜！", "バトルトーナメント開幕！", "対戦相手まだ〜？", "勝ったら筐体ゆずって", "1プレイ100円だよ！", "キャラガチャ回す？", "筐体ピカピカに磨いた", "POP貼り直さなきゃ", "今日も満員御礼！", "いらっしゃいませ〜！", "ありがとうございました〜", "店長は私です！", "バイト募集中！", "レシート要りますか？", "店内で走らないで〜", "ケンカはダメだよ？", "両成敗するよ？", "お客さん来ないかな", "売上ノルマ…", "家賃高すぎ…", "電気代こわい…", "月末の支払い…", "借金はダメ、ゼッタイ", "石油王まだかな〜", "パズバト２導入したい！", "1億円って何円？", "ちょっと休憩…", "おなかすいた〜", "31アイス食べたい", "同人誌、新刊出てる！", "クレーンゲーム下手…", "ガチャガチャ回したい", "ジュース補充しなきゃ", "グッズ完売したい！", "夢は全国制覇！"];
 const pazLine=()=>PAZ_LINES[Math.floor(Math.random()*PAZ_LINES.length)];
@@ -1705,5 +1727,5 @@ window.__simBalance=(days)=>{SIM.headless=true;const g0=G;G=newGame();G.today=fr
     if(window.__balUp){for(const t of [...new Set(G.items.map(i=>i.type))]){const u=upg(t);while(u.lv<UPG_MAX&&(t!=='pbt'||count('pbt')>=6)&&G.money-lvCost(t)-(G.due||0)>=400000){G.money-=lvCost(t);u.lv++;}}if(soft().chara<=0&&soft().fresh<75&&G.money-SOFT.chara.cost()-(G.due||0)>=150000){G.money-=SOFT.chara.cost();soft().chars++;soft().chara=7;soft().fresh+=18;}}
     log.push([r.day,r.ev?r.ev.name.slice(0,4):'',Math.round(G.rep),r.paid||0,r.sales,r.T.sales.pgacha,r.T.maxSpend,r.c.total,r.T.visitors,Math.round(G.money),count('pbt')]);}
   log.push(['END',G.cleared,G.over,G.day]);SIM.headless=false;G=g0;return log;};
-(function loop(){requestAnimationFrame(loop);simTick();R.render(S,cam);renderPiP();})();
+(function loop(){requestAnimationFrame(loop);try{simTick();}catch(e){try{simErr('tick',e);}catch(_){}}try{R.render(S,cam);}catch(e){}try{renderPiP();}catch(e){}})();
 </script></body></html>
