@@ -731,6 +731,25 @@ function makeTinnin(){
   root.userData={legs,arms,head};return root;}
 // ---- スタッフカウンター & ティンニンの行動 ----
 const staffTex=canvasTex(512,128,(c,W,H)=>{c.fillStyle='#ff6fae';c.fillRect(0,0,W,H);c.fillStyle='#fff';c.font='900 64px sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText('STAFF',W/2,H/2+3);});
+// ---- スタッフ席の後ろ：月替わりのパズバトポスター ----
+const MONTH_POSTER=[
+ ['新春パズバト祭','あけおめ！ 新春限定キャラ登場','#c62828','#ffd54a','🎍'],['バレンタインフェス','チョコより甘いコンボを君に','#ad1457','#ffc1e3','💝'],['ひなまつりカップ','おひなさまドロップ大集合','#f06292','#fff1f6','🎎'],
+ ['パズバト稼働記念月','4/24は稼働記念日！ 記念ガチャ開催','#2e7d32','#ffe0ec','🌸'],['GWスペシャル','連休はパズバト三昧！','#1565c0','#e3f2fd','🎏'],['梅雨のしずくフェス','雨の日もコンボは晴れ','#3949ab','#d1e8ff','☔'],
+ ['七夕パズバト','願いごと：パズバト２','#283593','#fff59d','🎋'],['夏祭りトーナメント','花火みたいな大連鎖！','#ef6c00','#fff3c4','🎆'],['お月見フェス','月夜のドロップ狩り','#4527a0','#fff8e1','🎑'],
+ ['ハロウィンパズバト','トリック・オア・コンボ！','#e65100','#2b1b3a','🎃'],['秋のパズバト大会','食欲より勝利欲','#6d4c41','#ffe0b2','🍁'],['クリスマスフェス','サンタはガチャで来る','#2e7d32','#ffebee','🎄']];
+function posterTex(mo){const P=MONTH_POSTER[mo];return canvasTex(512,720,(c,w,h)=>{const g=c.createLinearGradient(0,0,0,h);g.addColorStop(0,P[3]);g.addColorStop(1,P[2]);c.fillStyle=g;c.fillRect(0,0,w,h);
+  const cols=['#e53935','#1e88e5','#43a047','#fdd835','#8e24aa','#f06292'];for(let i=0;i<22;i++){c.globalAlpha=.55;c.fillStyle=cols[i%6];c.beginPath();c.arc((i*97)%w,((i*173)%h),18+(i%4)*10,0,7);c.fill();}c.globalAlpha=1;
+  c.fillStyle='rgba(0,0,0,.55)';c.fillRect(0,30,w,110);c.fillStyle='#fff';c.font='900 40px sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText('パズドラバトルトーナメント',w/2,62);c.fillStyle='#ffd54a';c.font='900 30px sans-serif';c.fillText((mo+1)+'月のイベント',w/2,112);
+  c.font='160px sans-serif';c.fillText(P[4],w/2,320);
+  c.lineWidth=12;c.strokeStyle='#fff';c.font='900 58px sans-serif';c.strokeText(P[0],w/2,480);c.fillStyle=P[2];c.fillText(P[0],w/2,480);
+  c.fillStyle='#fff';c.fillRect(30,540,w-60,70);c.fillStyle='#222';c.font='700 30px sans-serif';c.fillText(P[1],w/2,576);
+  c.fillStyle='rgba(255,255,255,.85)';c.font='700 24px sans-serif';c.fillText('おティンニンランドで開催中！',w/2,665);c.strokeStyle='#fff';c.lineWidth=10;c.strokeRect(5,5,w-10,h-10);});}
+let posterMesh=null,posterMo=-1;
+function posterSync(){if(SIM.headless||!G||!roomG)return;const mo=dateOf(G.day).getMonth();
+  if(!posterMesh||!posterMesh.parent){posterMesh=new THREE.Group();const x=ROOM.x1-30,z=ROOM.z1-750;
+    posterMesh.add(box(40,1750,1350,mat(0xf4f1fa),x+15,1520,z));posterMesh.add(box(50,40,1400,mat(0xd63fa3,{emissive:0xd63fa3,emissiveIntensity:.5}),x+15,2410,z));
+    const pl=new THREE.Mesh(new THREE.PlaneGeometry(1080,1520),new THREE.MeshStandardMaterial({roughness:.8,emissive:0xffffff,emissiveIntensity:.22}));pl.rotation.y=-Math.PI/2;pl.position.set(x-8,1530,z);posterMesh.add(pl);posterMesh.userData.pl=pl;roomG.add(posterMesh);posterMo=-1;}
+  if(mo!==posterMo){posterMo=mo;const pl=posterMesh.userData.pl;if(pl.material.map)pl.material.map.dispose();const t=posterTex(mo);pl.material.map=t;pl.material.emissiveMap=t;pl.material.needsUpdate=true;}}
 function buildCounter(){const g=new THREE.Group();const x=ROOM.x1-775,z=ROOM.z1-750;
   g.add(box(450,1000,1100,mat(0xffffff),x,500,z));g.add(box(560,50,1180,mat(0xf6a9c0),x,1025,z));
   const sp=new THREE.Mesh(new THREE.PlaneGeometry(1000,250),new THREE.MeshStandardMaterial({map:staffTex,emissive:0xffffff,emissiveMap:staffTex,emissiveIntensity:.3}));sp.rotation.y=-Math.PI/2;sp.position.set(x-228,700,z);g.add(sp);
@@ -1562,7 +1581,7 @@ function normalize(g){const d=newGame();for(const k of ['rep','price','promos','
 function enterSim(){try{sessionStorage.setItem('pbtSimOn','1');}catch(e){}ensureAudio();SIM.on=true;$('titleBar').style.display='flex';$('simCam').style.display='flex';resize();G=normalize(load()||newGame());G.closing=false;rebuild();
   layoutG.visible=false;fpLine.visible=false;grid.visible=false;simG.visible=true;$('normalUI').style.display='none';$('simUI').style.display='block';$('chart').style.display='block';$('hint').style.display='none';
   BOX=ROOMBOX;[th,ph]=SIM_CAMS[SIM.cam||0];camBtns();fit();SIM.paused=false;lastMg='';renderUI();if(G.over)showOver();}
-function exitSim(){try{sessionStorage.removeItem('pbtSimOn');}catch(e){}CAMA=null;if(typeof FIGHT!=='undefined')FIGHT.focus=false;if(typeof RAID!=='undefined'&&RAID.focus){RAID.focus=false;for(const cu of customers)if(cu.mesh)setGhost(cu.mesh,false);}SIM.on=false;$('titleBar').style.display='none';$('simCam').style.display='none';resize();$('telop').style.display='none';$('chart').style.display='none';save();simG.visible=false;layoutG.visible=true;fpLine.visible=true;grid.visible=$('grid').classList.contains('on');
+function exitSim(){try{$('chart').style.display='';}catch(e){}try{sessionStorage.removeItem('pbtSimOn');}catch(e){}CAMA=null;if(typeof FIGHT!=='undefined')FIGHT.focus=false;if(typeof RAID!=='undefined'&&RAID.focus){RAID.focus=false;for(const cu of customers)if(cu.mesh)setGhost(cu.mesh,false);}SIM.on=false;$('titleBar').style.display='none';$('simCam').style.display='none';resize();$('telop').style.display='none';$('chart').style.display='none';save();simG.visible=false;layoutG.visible=true;fpLine.visible=true;grid.visible=$('grid').classList.contains('on');
   $('normalUI').style.display='block';$('simUI').style.display='none';$('modal').style.display='none';setLayout(cur);}
 $('mgmt').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled||!G)return;mgClick(b);});
 function mgClick(b){
@@ -1646,7 +1665,8 @@ function simTick(){const now=performance.now();const dt=Math.min(0.1,(now-lastT)
   try{watchdog(SIM.paused?0:dt*SIM.speed);}catch(e){simErr('watchdog',e);}
   try{if(SIM.auto&&!SIM.paused&&!G.closing&&machines.some(m=>m.broken)&&G.money-brokenCost()>=0){const c=brokenCost(),n=repairAll(true);if(n){popup(STAFF.mesh?STAFF.mesh.position:ENTRANCE,'自動修理 '+n+'台 -¥'+c.toLocaleString(),'#2e86de');}}}catch(e){simErr('autoRepair',e);}
   try{stepVisual(SIM.paused?0:dt);}catch(e){simErr('stepVisual',e);}try{upgFxStep(dt);}catch(e){}
-  uiAcc+=dt;if(uiAcc>0.25){uiAcc=0;try{renderUI();}catch(e){simErr('renderUI',e);}}}
+  uiAcc+=dt;if(uiAcc>0.25){uiAcc=0;try{renderUI();}catch(e){simErr('renderUI',e);}try{posterSync();}catch(e){}}
+  try{const fo=(RAID.focus||FIGHT.focus||CATCH.focus);const ch=$('chart');if(ch){const want=fo?'none':'';if(ch.style.display!==want)ch.style.display=want;}}catch(e){}}
 // ---- しゃべる（吹き出し）：パズドラ語録 ----
 const PAZ_LINES=["パズバト１０周年はどうした？！", "てま崩壊！", "なんなすみません", "消費者庁コラボ第２弾！", "パズバト２はよ！", "ゴッドフェス来い〜！", "確定演出きた！？", "魔法石10個くれ〜！", "スキル上げ失敗…", "ゲリラダンジョン開幕！", "10コンボ決めたる！", "落ちコンきたー！", "ガチャ爆死…", "ノーコンクリア！", "覚醒スキルはよ！", "タマゴ割れろ〜！", "コラボ復刻まだ？", "チャレダン難しすぎ！", "ドロップ強化！", "ここは私の城！", "虹の番人どこ〜？", "ノエルドラゴンかわいい", "パズル力が足りない…", "6個消しで回復！", "L字消し決まった！", "十字消しで軽減じゃ！", "根性で耐えた！", "先制攻撃いたい…", "毒ドロップやめて〜", "お邪魔ドロップ邪魔！", "ロック解除はよ！", "スキル溜まった！", "変身！", "超覚醒させたい", "アシスト装備した？", "潜在たまご出た！", "ドロップ目覚め〜", "エンハンス乗った！", "倍率高すぎワロタ", "ワンパン余裕！", "リーダー誰にしよ", "フレンド借りるね", "スタミナ足りない…", "スタミナ回復した！", "ログインボーナス！", "今日は何曜ダンジョン？", "テクニカル行こ〜", "降臨チャレンジ！", "裏ボス強すぎ！", "周回、周回、また周回", "ランキングダンジョン！", "王冠ほしい〜", "ランダン上位目指す！", "メダル交換しなきゃ", "モンスター交換所！", "BOXパンパン…", "売却ミスった…", "合成しなきゃ", "究極進化！", "進化素材足りない", "ダブり出た…", "ピィ集めなきゃ", "＋ポイント振らなきゃ", "コイン足りない…", "魔法石いくつある？", "課金は計画的に！", "ガチャは悪い文明…", "もう一回だけ…！", "天井ってどこ？", "コラボガチャ引く？", "推しキャラ来た〜！", "星６確定！？", "フェス限ゲット！", "おめでとう演出！", "タマゴ金色だった！", "虹たまご〜！", "バトルトーナメント開幕！", "対戦相手まだ〜？", "勝ったら筐体ゆずって", "1プレイ100円だよ！", "キャラガチャ回す？", "筐体ピカピカに磨いた", "POP貼り直さなきゃ", "今日も満員御礼！", "いらっしゃいませ〜！", "ありがとうございました〜", "店長は私です！", "バイト募集中！", "レシート要りますか？", "店内で走らないで〜", "ケンカはダメだよ？", "両成敗するよ？", "お客さん来ないかな", "売上ノルマ…", "家賃高すぎ…", "電気代こわい…", "月末の支払い…", "借金はダメ、ゼッタイ", "石油王まだかな〜", "パズバト２導入したい！", "1億円って何円？", "ちょっと休憩…", "おなかすいた〜", "31アイス食べたい", "同人誌、新刊出てる！", "クレーンゲーム下手…", "ガチャガチャ回したい", "ジュース補充しなきゃ", "グッズ完売したい！", "夢は全国制覇！"];
 const pazLine=()=>PAZ_LINES[Math.floor(Math.random()*PAZ_LINES.length)];
