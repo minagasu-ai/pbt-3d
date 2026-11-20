@@ -789,6 +789,8 @@ function moveAlong(o,sp){let left=sp;while(left>0&&o.path.length){const p=o.path
 function standUp(){const S_=STAFF,m=S_.playM;staffPoseReset();if(m){const p=toWorld(m,(Math.random()<.5?-1:1)*560,m.seatL[1]);S_.mesh.position.set(p.x,0,p.z);}}
 // 物販の会計：カウンターにいる時はレジで、うろうろ中は売り場まで出向いて対応
 function checkout(c){const S_=STAFF;if(SIM.headless||!S_.mesh){buyAt(c);nextStop(c);return;}
+  if(S_.mode==='sleep'){S_.mesh.userData.head.rotation.x=0;S_.mode='home';S_.wait=4;S_.zzz.visible=false;if(c.mesh){say(c,'あの〜、すみませ〜ん…',1.6);const cc=c;setTimeout(()=>{if(cc.bub)cc.bub.visible=false;},1600/Math.max(1,SIM.speed));}
+    setTimeout(()=>{say(S_,['は？寝てねーし','は？寝てねーし！目つぶって考えごとしてただけだし','寝てねーし！ 店長なめんな！'][Math.floor(Math.random()*3)],2.6);popup(S_.mesh.position,'逆ギレ！','#c0392b');se.alarm&&se.alarm();},700/Math.max(1,SIM.speed));}
   if(S_.mode==='home'&&!S_.moving){c.state='walk';c.dest='pay';c.payPos=new THREE.Vector3(ROOM.x1-1300,0,ROOM.z1-750+(Math.random()-.5)*600);if(c.mesh)pose(c,'stand');routeTo(c,c.payPos);return;}
   if(['wander','return','toPlay','play','call'].includes(S_.mode)){c.state='waitStaff';c.waitT=0;if(c.mesh)pose(c,'stand');S_.calls.push(c);return;}
   buyAt(c);nextStop(c);}
