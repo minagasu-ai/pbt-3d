@@ -310,7 +310,7 @@ const KWH_YEN=31,BASE_LIGHT_W=1500,RENT_BASE=2000,RENT_PER_MACHINE=200,START_MON
 const ITEMS={
  pbt:  {name:'パズドラバトルトーナメント',price:500000,gacha:200,max:18,watt:180,credit:100,mins:4,cr:[2,5],attr:1.0,kind:'game',pose:'sit'},
  pbt2: {name:'パズドラバトルトーナメント２',note:'開発費用＆導入費用込み・導入でクリア！ 1プレイ料金×2／ガチャ1回300円',price:100000000,gacha:300,max:18,watt:300,credit:200,cmul:2,mins:4,cr:[1,3],attr:2.0,kind:'game',pose:'sit'},
- dan:  {name:'段ボール製パズバト（ティンニン手作り）',disp:'段ボール製パズバト<br>ティンニン手作り',note:'遊べないけど店がにぎやか（集客ちょいアップ）・待ちきれない客が座って遊ぶフリで待ち時間延長・本物を買うと置き換え・たまに客が間違えてお金を入れる',price:1000,max:6,watt:0,attr:0.12,kind:'fake'},
+ dan:  {name:'ぱずばと２（手作り）',note:'ティンニンが願いを込めて段ボールから生み出したマシン。待機中に遊ぶパズドラーも（待ち時間延長・集客ちょいアップ・本物を買うと置き換え）',price:1000,max:6,watt:0,attr:0.12,kind:'fake'},
  bench:{name:'休憩ベンチ・テーブル',note:'待ちきれずに帰る客が減る（1台ごとに我慢＋5分・待ち列＋1）',price:30000,max:1,watt:0,attr:0,kind:'bench',w:1700,walls:['backC','left','right','backL','backR']},
  anime:{name:'アニメ上映モニター',note:'「パズドラクロス」アニメ上映中！ 集客アップ',price:120000,max:1,watt:150,attr:0.35,kind:'deco',w:1700,walls:['left','right']},
  vend: {name:'ドリンク自販機',note:'1本150円（仕入30%）',price:50000,max:1,watt:400,attr:0.1,kind:'shop',w:1000,walls:['right','left','backL','backR'],buyP:0.22,spend:[150,150],costRate:0.3,label:'ドリンク',stay:0.5},
@@ -968,7 +968,7 @@ function catchClear(){if(CATCH.focus)catchFocus(false);if(CATCH.o)peopleG.remove
 // ---- 段ボール筐体にお金を入れてしまった客とティンニンがもめる ----
 const DANEV={on:false};
 function startDanEv(){const ds=machines.filter(m=>m.type==='dan'&&!m.danUser);if(!ds.length)return;const m=ds[Math.floor(Math.random()*ds.length)];const amt=[100,100,200,500,1000][Math.floor(Math.random()*5)];
-  const r=Math.random(),out=r<0.35?'refund':r<0.7?'talk':'brawl';
+  const r=Math.random(),out=r<0.15?'refund':r<0.6?'talk':'brawl';
   if(SIM.headless){danResolve(out,amt);return;}
   const mesh=makePerson();mesh.position.copy(ENTRANCE);peopleG.add(mesh);const o={mesh,path:[]};routeTo(o,seatPos(m));
   Object.assign(DANEV,{on:true,m,o,amt,out,phase:'walk',t:0,wd:0});G.today.danNow={at:performance.now()};}
@@ -979,11 +979,11 @@ function danStep(dt,k){if(!DANEV.on)return;const D=DANEV,o=D.o,S_=STAFF,u=S_.mes
     if(D.t>1.2&&!D.c2){D.c2=1;say(o,'あれ？ 動かねえ…',1.8);}
     if(D.t>3&&!D.c3){D.c3=1;say(o,'これ段ボールじゃねーか！ 金返せ！',2.4);se.alarm();bigPop(o.mesh.position,'もめごと発生！','#c0392b');
       if(STAFF.mode==='sleep')say(STAFF,'はっ！',1.2);staffPoseReset();S_.calls=[];S_.mode='raid';S_.run=true;S_.path=[];staffRoute(toWorld(D.m,0,D.m.seatL[1]+650));D.phase='staff';D.t=0;}return;}
-  if(D.phase==='staff'){if(!S_.moving||D.t>8){D.phase='talk';D.t=0;const d=o.mesh.position.clone().sub(S_.mesh.position);S_.mesh.rotation.y=Math.atan2(d.x,d.z);say(S_,'それはティンニン作の段ボール筐体です！',2.6);}return;}
+  if(D.phase==='staff'){if(!S_.moving||D.t>8){D.phase='talk';D.t=0;const d=o.mesh.position.clone().sub(S_.mesh.position);S_.mesh.rotation.y=Math.atan2(d.x,d.z);say(S_,'それはティンニンが一生懸命つくったんだよ！',2.6);}return;}
   if(D.phase==='talk'){if(D.t>2.8&&!D.c4){D.c4=1;
-      if(D.out==='refund'){say(S_,'…ごめんなさい、返金します',2.4);setTimeout(()=>say(o,'次から本物置けよな',2.2),1200);}
-      else if(D.out==='talk'){say(S_,'雰囲気料です！ 段ボールの味わいをどうぞ！',2.6);setTimeout(()=>say(o,'…まあ、味はあるな',2.2),1400);}
-      else{say(o,'ふざけんな！',1.6);say(S_,'ティンニンの力作になにを〜！',2);bigPop(S_.mesh.position,'もみ合い！','#c0392b');}}
+      if(D.out==='refund'){say(S_,'…むぅ、しょうがないから返してあげる！',2.4);setTimeout(()=>say(o,'お、おう…なんかごめん',2.2),1200);}
+      else if(D.out==='talk'){say(S_,'そのお金はパズバト２開発費としていただきます！',2.6);setTimeout(()=>say(o,'…なんか、ごめん',2.2),1400);}
+      else{say(o,'ふざけんな！',1.6);say(S_,'ティンニンの力作に文句あるならかかってこい！',2.2);bigPop(S_.mesh.position,'もみ合い！','#c0392b');}}
     if(D.out==='brawl'&&D.t>3&&D.t<5.5){o.mesh.position.x+=Math.sin(D.t*40)*12;S_.mesh.position.x-=Math.sin(D.t*40)*12;u.arms[0].rotation.x=-1.5-Math.sin(D.t*30)*0.6;u.arms[1].rotation.x=-1.5+Math.sin(D.t*30)*0.6;if(Math.floor(D.t*6)!==D.hp){D.hp=Math.floor(D.t*6);se.hit();}}
     if(D.t>5.8){if(!D.res){D.res=1;danResolve(D.out,D.amt);staffPoseReset();
         popup(S_.mesh.position,D.out==='refund'?'返金 -¥'+D.amt.toLocaleString():D.out==='talk'?'¥'+D.amt.toLocaleString()+' いただき（評判−）':'追い返した…（評判ダウン）',D.out==='refund'?'#7f8c8d':'#c0392b');
@@ -1338,7 +1338,7 @@ function buy(t){if(canBuy(t))return;const T=ITEMS[t];
   doBuy(t);}
 function doBuy(t){if(canBuy(t))return;const T=ITEMS[t];let it;
   if(t==='pbt'&&count('dan')>0){const di=G.items.filter(i=>i.type==='dan').sort((a,b)=>a.slot-b.slot)[0];const k=G.items.indexOf(di);G.items.splice(k,1);G.money-=T.price;it={type:'pbt',slot:di.slot};G.items.push(it);
-    if(SIM.headless){machines=machines.filter(m=>m.it!==di);addMachine(it);}else{const dm=machines.find(m=>m.it===di);if(dm){machG.remove(dm.g);machines.splice(machines.indexOf(dm),1);}const m=addMachine(it);se.buy();popup(new THREE.Vector3(m.x,0,m.z),'段ボール→本物に！','#e67e22');say(STAFF,'ついに本物だ〜！',2.2);}save();if(!SIM.headless)renderUI();return;}
+    if(SIM.headless){machines=machines.filter(m=>m.it!==di);addMachine(it);}else{const dm=machines.find(m=>m.it===di);if(dm){machG.remove(dm.g);machines.splice(machines.indexOf(dm),1);}const m=addMachine(it);se.buy();popup(new THREE.Vector3(m.x,0,m.z),'手作り→本物に！','#e67e22');say(STAFF,'ついに本物だ〜！',2.2);}save();if(!SIM.headless)renderUI();return;}
   if(isGame(t)){const used=new Set(G.items.filter(i=>isGame(i.type)).map(i=>i.slot));let s=0;while(used.has(s))s++;it={type:t,slot:s};}else{it={type:t};}
   G.money-=T.price;G.items.push(it);if(!isGame(t))placeItem(it);
   if(!SIM.headless&&buildRoom())fit();
@@ -1462,8 +1462,8 @@ function showReport(rep){const T=rep.T,c=rep.c;SIM.paused=true;se.bell();
   const prof=rep.sales-c.total,cell=(l,v,st='')=>`<div><small>${l}</small><b style="${st}">${v}</b></div>`;
   const sales=[[`PBT（${T.credits}回）`,T.sales.pbt],[`ガチャ（${T.pulls}回）`,T.sales.pgacha]].concat(SHOPS.filter(k=>T.sales[k]||count(k)).map(k=>[ITEMS[k].label,T.sales[k]||0]));
   const notes=[T.vip?`<div class="good">✨ ${T.vip.name}が来店、ガチャに ${yen(T.vip.spent)}！</div>`:'',T.bvip&&T.bvip.done?`<div class="good">✨ ${T.bvip.who}が${T.bvip.item}を ${yen(T.bvip.amount)} 分ご購入！</div>`:'',
-   rep.danSit?`<div class="good">待ちきれない客 ${rep.danSit}人が段ボール筐体でエアプレイして待ってくれた</div>`:'',
-   rep.dan?`<div class="${rep.dan.out==='refund'?'good':'warn'}">段ボール筐体に客が¥${rep.dan.amt.toLocaleString()}投入 → ${rep.dan.out==='refund'?'返金して円満解決':rep.dan.out==='talk'?'雰囲気料として言いくるめた（評判−1）':'もみ合いの末に追い返した（評判−3）'}</div>`:'',
+   rep.danSit?`<div class="good">待ちきれない客 ${rep.danSit}人がぱずばと２（手作り）でエアプレイして待ってくれた</div>`:'',
+   rep.dan?`<div class="${rep.dan.out==='refund'?'good':'warn'}">ぱずばと２（手作り）に客が¥${rep.dan.amt.toLocaleString()}投入 → ${rep.dan.out==='refund'?'しぶしぶ返金':rep.dan.out==='talk'?'「パズバト２開発費」として押し切った（評判−1）':'もみ合いの末に追い返した（評判−3）'}</div>`:'',
    rep.catch?(rep.catch.ok?`<div class="good">${rep.catch.kind==='thief'?'万引き犯':'ゴト師'}をティンニンが確保！${rep.catch.kind==='goto'?' 感謝状 +¥10,000':''}</div>`:`<div class="warn">${rep.catch.kind==='thief'?'万引き犯':'ゴト師'}に逃げられた… 被害 ${yen(rep.catch.loot)}</div>`):'',
    rep.raid&&rep.raid.who==='pro'?(rep.raid.win?`<div class="good">道場破りの自称プロパズドラーに勝利！ 戦利品「${rep.raid.bet}」＋口コミ宣伝（5日間 来客×1.35・評判UP）</div>`:`<div class="warn">道場破りに敗北… ${rep.raid.lostCab?'PBT筐体を1台持っていかれた':'筐体は勘弁してもらえた'}</div>`):rep.raid?(rep.raid.win?`<div class="good">${RAID_NAME[rep.raid.who]}のガサ入れ → ${DUELS[rep.raid.method]||'勝負'}で勝利！ 所持金×${rep.raid.mult}（+${yen(rep.raid.gain)}）</div>`:`<div class="warn">${RAID_NAME[rep.raid.who]}のガサ入れ → 敗北… ${rep.raid.who==='police'?'懲役'+rep.raid.hours+'時間（営業停止）＋罰金'+yen(rep.raid.fine):rep.raid.who==='caa'?'課徴金 '+yen(rep.raid.fine):'追徴課税 '+yen(rep.raid.fine)}</div>`):'',
    rep.fight?`<div class="good">ケンカ発生 → ティンニンが物理で鎮圧</div>`:'',rep.rivalNew?`<div class="warn">ライバル店オープン！ 7日間 来客減（評判70以上なら影響小）</div>`:'',rep.rivalEnd?`<div class="good">ライバル店の勢いが落ち着きました</div>`:'',
