@@ -315,8 +315,8 @@ const OPEN_MIN=10*60,CLOSE_MIN=24*60,DAY_MIN=CLOSE_MIN-OPEN_MIN,REAL_SEC_PER_DAY
 const KWH_YEN=31,BASE_LIGHT_W=1500,RENT_BASE=2000,RENT_PER_MACHINE=200,START_MONEY=50000,GOAL_PRICE=100000000;
 const ITEMS={
  pbt:  {name:'パズドラバトルトーナメント',disp:'パズバト（筐体）',price:500000,gacha:200,max:18,watt:180,credit:100,mins:4,cr:[2,5],attr:1.0,kind:'game',pose:'sit'},
- pbt2: {name:'パズドラバトルトーナメント２',note:'開発費用＆導入費用込み・導入でクリア！ 1プレイ料金×2／ガチャ1回300円',price:100000000,gacha:300,max:18,watt:300,credit:200,cmul:2,mins:4,cr:[1,3],attr:2.0,kind:'game',pose:'sit'},
- dan:  {name:'パズバト（段ボール）',note:'筐体を買うお金がないのでティンニンが手作りしたよ',price:1000,max:6,watt:0,attr:0.12,kind:'fake'},
+ pbt2: {name:'パズドラバトルトーナメント２',note:'開発費用＆導入費用込み・導入でクリア！ 1プレイ料金×2（ガチャも連動）',price:100000000,gacha:300,max:18,watt:300,credit:200,cmul:2,mins:4,cr:[1,3],attr:2.0,kind:'game',pose:'sit'},
+ dan:  {name:'パズバト（段ボール）',note:'筐体を買うお金がないのでティンニンが手作りしたよ。エアパズバト1プレイ10円（パズドラーは脳内パズドラができるので大丈夫）',price:1000,max:6,watt:0,attr:0.12,kind:'fake'},
  bench:{name:'休憩ベンチ・テーブル',note:'待ちきれずに帰る客が減る（1台ごとに我慢＋5分・待ち列＋1）',price:30000,max:1,watt:0,attr:0,kind:'bench',w:1700,walls:['backC','left','right','backL','backR']},
  anime:{name:'アニメ上映モニター',note:'「パズドラクロス」アニメ上映中！ 集客アップ',price:120000,max:1,watt:150,attr:0.35,kind:'deco',w:1700,walls:['left','right']},
  vend: {name:'ドリンク自販機',note:'1本150円（仕入30%）',price:50000,max:1,watt:400,attr:0.1,kind:'shop',w:1000,walls:['right','left','backL','backR'],buyP:0.22,spend:[150,150],costRate:0.3,label:'ドリンク',stay:0.5},
@@ -339,7 +339,7 @@ const EVENTS=[
  {m:10,d0:25,d1:31,name:'ハロウィンイベント',mult:1.35,col:'#e67e22'}];
 const WD='日月火水木金土';
 // in-machine character gacha (1回200円). heavy-tailed spend: most pull a little, a few whales up to 50回(1万円)
-const GACHA={p:0.55,pEvent:0.7,xm:2.6,xmEvent:3.6,alpha:1.35,cap:50,mins:0.25},REV_SHARE=0.25;
+const GACHA={p:0.21,pEvent:0.34,xm:1.35,xmEvent:1.9,alpha:1.35,cap:50,mins:0.25},REV_SHARE=0.25;
 function rollPulls(ev){if(Math.random()>(ev?GACHA.pEvent:GACHA.p))return 0;const u=Math.max(1e-6,Math.random());
   return Math.min(GACHA.cap,Math.max(1,Math.floor((ev?GACHA.xmEvent:GACHA.xm)/Math.pow(u,1/GACHA.alpha))));}
 function dateOf(day){const d=new Date(START_DATE);d.setDate(d.getDate()+day-1);return d;}
@@ -364,7 +364,7 @@ function bigBuyer(t,tier){const T=BIG_T[t][Math.floor(Math.random()*2)],c=CHARS[
 const REPAIR_COST=15000;
 const repairCost=t=>Math.round(REPAIR_COST*Math.pow(lvMult(t),2.2)/1000)*1000;
 const brokenCost=()=>machines.filter(m=>m.broken).reduce((a,m)=>a+repairCost(m.type),0);
-const PRICES={'100':{label:'100円',credit:100,dem:1,rep:0},'200':{label:'200円',credit:200,dem:0.7,rep:0},'500':{label:'500円',credit:500,dem:0.38,rep:-1},'1000':{label:'1,000円',credit:1000,dem:0.2,rep:-2}};
+const PRICES={'100':{label:'100円',credit:100,dem:1,rep:0},'200':{label:'200円',credit:200,dem:0.55,rep:0},'500':{label:'500円',credit:500,dem:0.22,rep:-1},'1000':{label:'1,000円',credit:1000,dem:0.1,rep:-2},'10000':{label:'1万円',credit:10000,dem:0.008,rep:-6}};
 const PROMOS={sns:{label:'SNS広告',price:30000,days:5,mult:1.3},cup:{label:'店内イベント開催',price:50000,days:2,mult:1.6,rep:4},nico:{label:'ニコニコ生放送',price:100000,days:7,mult:2.2,rep:2}};
 const WX={sun:{l:'晴れ',i:'☀',m:1.05},cloud:{l:'くもり',i:'☁',m:1},rain:{l:'雨',i:'☂',m:0.8},snow:{l:'雪',i:'❄',m:0.6}};
 function rollWx(day){const mo=dateOf(day).getMonth()+1,winter=[12,1,2].includes(mo),r=Math.random();
@@ -777,7 +777,7 @@ function payAtCounter(c){c.vendPos=c.payPos;buyAt(c);if(STAFF.mode==='home'&&Mat
 // ---- 客が少ないとき：ティンニンが入口で客引き（手書きの旗「大人気ぱずばと！」） ----
 const TOUT_POS=()=>new THREE.Vector3(650,0,ROOM.z1-650);
 const TOUT_POOR=['お願い〜！ 1回だけでも遊んでって〜！','家賃がピンチなの〜！','パズバト２のために〜！','今なら店長のスマイル付き！'];
-const TOUT_LINES=['いらっしゃいませ〜！ パズバトあるよ〜！','今なら待ち時間ゼロだよ〜！','大人気ぱずばと、遊んでって〜！','ちょっとそこのパズドラー！','1回100円だよ〜！','ガチャも回せるよ〜！'];
+const TOUT_LINES=['いらっしゃいませ〜！ パズバトあるよ〜！','今なら待ち時間ゼロだよ〜！','大人気ぱずばと、遊んでって〜！','ちょっとそこのパズドラー！','1回{P}だよ〜！','1回{P}で遊べるよ〜！','ガチャも回せるよ〜！'];
 let toutFlag=null;function makeToutFlag(){const g=new THREE.Group();const pole=cyl(22,2300,mat(0x8b5a2b),10);pole.position.y=1150;g.add(pole);
   const tx=canvasTex(512,300,(c,w,h)=>{c.fillStyle='#fff7e0';c.fillRect(0,0,w,h);c.strokeStyle='#ff4f9a';c.lineWidth=14;c.strokeRect(10,10,w-20,h-20);
     const draw=(t,x,y,size,col,rot)=>{c.font=`900 ${size}px "Hiragino Maru Gothic ProN","Rounded Mplus 1c",sans-serif`;const ch=[...t],ws=ch.map(q=>c.measureText(q).width),W2=ws.reduce((a,b)=>a+b,0);let cx=x-W2/2;ch.forEach((q,i)=>{c.save();c.translate(cx+ws[i]/2,y+(Math.random()-.5)*14+Math.sin(i)*6);c.rotate(rot+(Math.random()-.5)*0.28);const sz=size*(0.9+Math.random()*0.22);c.font=`900 ${sz}px "Hiragino Maru Gothic ProN","Rounded Mplus 1c",sans-serif`;c.textAlign='center';c.textBaseline='middle';c.lineWidth=6;c.strokeStyle='#fff';c.strokeText(q,0,0);c.fillStyle=col;c.fillText(q,0,0);c.restore();cx+=ws[i];});};
@@ -787,7 +787,7 @@ function toutStep(dt,k){const S_=STAFF,u=S_.mesh.userData;if(!toutFlag){toutFlag
   toutFlag.visible=S_.mode==='tout';if(S_.mode!=='tout')return false;
   S_.phase+=dt*k;const sw=Math.sin(S_.phase*5);toutFlag.rotation.z=-0.22-(sw+1)*0.16;u.arms[1].rotation.x=-2.6+sw*0.35;u.arms[0].rotation.x=-0.4-Math.abs(sw)*0.5;S_.mesh.position.y=Math.abs(Math.sin(S_.phase*5))*35;
   const cl=toutFlag.userData.cloth,pa=cl.geometry.attributes.position,b=toutFlag.userData.base;for(let i=0;i<pa.count;i++){const x=b[i*3];pa.array[i*3+2]=Math.sin(x*0.008+S_.phase*7)*40*((x+450)/900);}pa.needsUpdate=true;
-  S_.talkT=(S_.talkT||0)-dt*k;if(S_.talkT<=0){S_.talkT=3.5+Math.random()*2;{const L=S_.toutPoor&&Math.random()<0.6?TOUT_POOR:TOUT_LINES;say(S_,L[Math.floor(Math.random()*L.length)],2.6);}}
+  S_.talkT=(S_.talkT||0)-dt*k;if(S_.talkT<=0){S_.talkT=3.5+Math.random()*2;{const L=S_.toutPoor&&Math.random()<0.6?TOUT_POOR:TOUT_LINES;say(S_,L[Math.floor(Math.random()*L.length)].replace('{P}',PRICES[G.price||'100'].label),2.6);}}
   S_.wait-=dt*k;if(S_.wait<=0||customers.length>=(S_.toutPoor?10:7)||G.min>=CLOSE_MIN-30){toutFlag.visible=false;staffPoseReset();S_.mesh.position.y=0;if(customers.length>=7)say(S_,'お客さん来た〜！',1.8);S_.mode='return';staffRoute(null,true);}
   return true;}
 function staffStep(dt){const S_=STAFF;if(!S_.mesh||!dt)return;bubStep(S_,dt);const u=S_.mesh.userData,k=Math.min(2.5,Math.sqrt(SIM.speed));
@@ -818,8 +818,8 @@ function staffStep(dt){const S_=STAFF;if(!S_.mesh||!dt)return;bubStep(S_,dt);con
 // ---- 客同士のケンカ（1日1回）→ ティンニンが物理で解決（アクション11種） ----
 const FIGHT={on:false};
 const angerTex=canvasTex(128,128,(c,W,H)=>{c.font='96px sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText('💢',W/2,H/2+6);});
-function bigPop(pos,text,col,y=2700){if(SIM.headless)return;seForPop(text);const t=canvasTex(640,140,(c,W,H)=>{c.font='900 92px sans-serif';c.textAlign='center';c.textBaseline='middle';c.lineWidth=16;c.strokeStyle='#fff';c.strokeText(text,W/2,H/2);c.fillStyle=col;c.fillText(text,W/2,H/2);});
-  const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true,depthTest:false}));s.scale.set(1900,415,1);s.position.set(pos.x,y,pos.z);s.userData.life=1.6;fxG.add(s);}
+function bigPop(pos,text,col,y=2700){if(SIM.headless)return;seForPop(text);const mc=document.createElement('canvas').getContext('2d');mc.font='900 92px sans-serif';const BW=Math.max(640,Math.ceil(mc.measureText(text).width)+60);const t=canvasTex(BW,140,(c,W,H)=>{c.font='900 92px sans-serif';c.textAlign='center';c.textBaseline='middle';c.lineWidth=16;c.strokeStyle='#fff';c.strokeText(text,W/2,H/2);c.fillStyle=col;c.fillText(text,W/2,H/2);});
+  const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true,depthTest:false}));s.scale.set(1900*BW/640,415,1);s.position.set(pos.x,y,pos.z);s.userData.life=1.6;fxG.add(s);}
 function fightClear(){if(FIGHT.focus)fightFocus(false);if(FIGHT.ppl)for(const f of FIGHT.ppl)peopleG.remove(f.mesh);if(FIGHT.props)for(const p of FIGHT.props){if(p.parent)p.parent.remove(p);}FIGHT.props=[];FIGHT.on=false;FIGHT.ppl=null;
   if(STAFF.mesh){STAFF.mesh.scale.setScalar(1);STAFF.mesh.rotation.x=0;STAFF.mesh.rotation.z=0;const u=STAFF.mesh.userData;for(const a of u.arms)a.rotation.z=0;}}
 function fightSpot(){return new THREE.Vector3(-1800+Math.random()*3600,0,Math.random()<.75?ZF_LANE:ZB_LANE);}
@@ -1101,10 +1101,10 @@ let cupDeco=null;function cupDecoSync(){const on=!!(SIM.on&&G&&(G.promos||[]).so
     S.add(cupDeco);}
   else if(!on&&cupDeco){S.remove(cupDeco);cupDeco.traverse(o=>{if(o.material){if(o.material.map)o.material.map.dispose();o.material.dispose();}if(o.geometry)o.geometry.dispose();});cupDeco=null;}}
 // ---- SNS：期間中は開店時に宣伝ツイートを数秒表示 ----
-const TWEETS=['本日も元気に開店しました！ 実機のパズバトで遊べるのはここだけ！ #パズバト #おティンニンランド','パズバト1回100円！ ティンニン店長が待ってるよ〜 #パズバト','今日のおティンニンランドは空いてます！ 待ち時間ゼロでパズバト遊べるチャンス！','パズバト２の開発費を稼ぐため、本日も営業中！ 応援よろしくお願いします！','新キャラ入りました！ ガチャ回しに来てね〜 #パズバト'];
+const TWEETS=['本日も元気に開店しました！ 実機のパズバトで遊べるのはここだけ！ #パズバト #おティンニンランド','パズバト1回{P}！ ティンニン店長が待ってるよ〜 #パズバト','今日のおティンニンランドは空いてます！ 待ち時間ゼロでパズバト遊べるチャンス！','パズバト２の開発費を稼ぐため、本日も営業中！ 応援よろしくお願いします！','新キャラ入りました！ ガチャ回しに来てね〜 #パズバト'];
 const TWEETS_BOOST=['【超人気】日本一のパズバト聖地・おティンニンランド！ 来店者全員がスーパーパズドラーに！？ #パズバト','【公式】パズバトの実機、世界にここだけ！（※たぶん） 今日来ないと一生後悔！','芸能人も多数来店！（※ティンニン調べ） 大人気パズバト専門店、本日も開店！'];
 function showTweet(){if(SIM.headless)return;let el=document.getElementById('tweet');if(!el){el=document.createElement('div');el.id='tweet';$('view').appendChild(el);}
-  const p=(G.promos||[]).find(q=>q.k==='sns'),L=p&&p.boost?TWEETS_BOOST:TWEETS,t=L[Math.floor(Math.random()*L.length)],img=portRender('tin'),rt=Math.floor(3+Math.random()*(p&&p.boost?400:40)),lk=rt*3+Math.floor(Math.random()*30);
+  const p=(G.promos||[]).find(q=>q.k==='sns'),L=p&&p.boost?TWEETS_BOOST:TWEETS,t=L[Math.floor(Math.random()*L.length)].replace('{P}',PRICES[G.price||'100'].label),img=portRender('tin'),rt=Math.floor(3+Math.random()*(p&&p.boost?400:40)),lk=rt*3+Math.floor(Math.random()*30);
   el.innerHTML=`<div class="tw-h">${img?`<img src="${img}">`:''}<div><b>おティンニンランド【公式】</b><small>@otinninland・今</small></div><span class="tw-x">𝕏</span></div><p>${t}</p><div class="tw-f">💬 ${Math.floor(rt/3)}　🔁 ${rt}　♡ ${lk}</div>`;
   el.classList.remove('go');void el.offsetWidth;el.classList.add('go');el.style.display='block';se.pop&&se.pop();clearTimeout(el._t);el._t=setTimeout(()=>{el.style.display='none';},5200);}
 function snsTick(){if(!SIM.on||!G||!G.today)return;const on=(G.promos||[]).some(p=>p.k==='sns');if(on&&!G.today.tweeted&&G.min>=OPEN_MIN&&G.min<OPEN_MIN+60){G.today.tweeted=true;showTweet();}}
@@ -1220,8 +1220,8 @@ function coin(big){if(!sfxOn||!AC||SIM.headless||AC.state!=='running')return;con
   const k=0.97+Math.random()*0.06,n=big?4:1;for(let i=0;i<n;i++){const s=t+i*0.09;ping(s,1975*k,0.12,0.18);ping(s+0.055,2637*k,0.13,0.45);ping(s+0.055,5274*k,0.03,0.25);}}
 // ---- popups ----
 const popPool=[];
-function popup(pos,text,col='#1a7f37'){if(SIM.headless)return;if(text.includes('¥'))coin(text.includes('💰'));const t=canvasTex(256,96,(c,W,H)=>{c.font='900 54px sans-serif';c.textAlign='center';c.textBaseline='middle';c.lineWidth=10;c.strokeStyle='#fff';c.strokeText(text,W/2,H/2);c.fillStyle=col;c.fillText(text,W/2,H/2);});
-  const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true,depthTest:false}));s.scale.set(900,340,1);s.position.set(pos.x,2500,pos.z);s.userData.life=1.3;fxG.add(s);popPool.push(s);}
+function popup(pos,text,col='#1a7f37'){if(SIM.headless)return;if(text.includes('¥'))coin(text.includes('💰'));const mc=document.createElement('canvas').getContext('2d');mc.font='900 54px sans-serif';const PW=Math.max(256,Math.ceil(mc.measureText(text).width)+40);const t=canvasTex(PW,96,(c,W,H)=>{c.font='900 54px sans-serif';c.textAlign='center';c.textBaseline='middle';c.lineWidth=10;c.strokeStyle='#fff';c.strokeText(text,W/2,H/2);c.fillStyle=col;c.fillText(text,W/2,H/2);});
+  const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true,depthTest:false}));s.scale.set(900*PW/256,340,1);s.position.set(pos.x,2500,pos.z);s.userData.life=1.3;fxG.add(s);popPool.push(s);}
 // ---- simulation ----
 function demandCurve(h){return h<12?0.55:h<15?0.85:h<19?1.35:h<22?1.05:0.55;}
 function attraction(){return G.items.reduce((a,i)=>a+ITEMS[i.type].attr*lvMult(i.type)*(i.type==='pbt'?freshMult():1),0);}
@@ -1271,7 +1271,7 @@ function arrive(c){c.moving=false;
   if(c.dest==='seat'){c.state='play';c.credits=c.m.T.cr[0]+Math.floor(Math.random()*(c.m.T.cr[1]-c.m.T.cr[0]+1));c.creditLeft=0;c.spent=0;c.pulls=c.vip?c.vipPulls:c.m.T.kind==='game'?rollPulls(eventOf(G.day)||(G.today.bad&&G.today.bad.k==='maint'&&G.today.bad.fired&&G.min>=G.today.bad.end&&G.min<G.today.bad.end+120)):0;gachaBoost(c);if(c.pulls)G.today.payers++;c.batch=0;
     if(c.mesh){pose(c,c.m.T.pose==='sit'?'sit':'stand');faceMachine(c);}}
   else if(c.dest==='queue'){c.state='wait';if(c.mesh&&isLineM(c.m)){pose(c,'stand');const r=lineRank(c);c.mesh.rotation.y=lineFace(Math.max(0,r));lineSign();}else if(c.mesh){pose(c,'stand');faceMachine(c);if(c.m.queue.indexOf(c)>=1){const b=freeBenchSeat();if(b){c.bench=b;b.m.bseats[b.i]=c;c.dest='bench';c.state='walk';routeTo(c,b.pos);}}}}
-  else if(c.dest==='dan'){c.state='wait';c.dest='queue';if(c.mesh&&c.dan){pose(c,'sit');const t=toWorld(c.dan,0,0),p=seatPos(c.dan);c.mesh.position.set(p.x,0,p.z);c.mesh.rotation.y=Math.atan2(t.x-p.x,t.z-p.z);popup(p,'エアプレイ中♪（待ち時間＋）','#a0522d');}}
+  else if(c.dest==='dan'){c.state='wait';c.dest='queue';if(c.mesh&&c.dan){pose(c,'sit');const t=toWorld(c.dan,0,0),p=seatPos(c.dan);c.mesh.position.set(p.x,0,p.z);c.mesh.rotation.y=Math.atan2(t.x-p.x,t.z-p.z);popup(p,'エアパズバト中♪（1プレイ10円）','#a0522d');}}
   else if(c.dest==='bench'){c.state='wait';if(c.mesh&&c.bench){pose(c,'sit');c.mesh.rotation.y=c.bench.face;}}
   else if(c.dest==='vend'){c.state='buy';c.buyLeft=c.vendM.T.stay||0.6;if(c.mesh&&c.vendM.type==='food')pose(c,'sit');}
   else if(c.dest==='pay'){c.state='paying';c.payLeft=0.6;if(c.mesh)c.mesh.rotation.y=Math.PI/2;}
@@ -1305,7 +1305,7 @@ function breakMachine(m){m.broken=true;G.today.breaks++;se.brk();
 function repairAll(pay){if(machines.some(m=>m.broken))se.repair();let n=0,cost=brokenCost();for(const m of machines)if(m.broken){m.broken=false;n++;if(m.bs){fxG.remove(m.bs);m.bs=null;}}if(pay&&n){G.money-=cost;}return n;}
 function stepGame(dm){
   // arrivals
-  const h=G.min/60;const lam=demandCurve(h)*0.05*Math.pow(0.6+attraction(),0.72)*demandMult()*(!SIM.headless&&STAFF.mode==='tout'?1.6:1);
+  const h=G.min/60;const lam=demandCurve(h)*0.05*Math.pow(0.6+attraction(),0.72)*demandMult()*(!SIM.headless&&STAFF.mode==='tout'?2.5:1);
   const bd=G.today.bad;if(bd&&!bd.fired&&G.min>=bd.start)fireBad(bd);
   if(G.caa&&G.day>=G.caa.day&&G.min>=G.caa.min&&!G.today.caa&&!RAID.on&&!FIGHT.on){G.caa=null;startRaid('caa');}
   const RD=G.today.raid;if(RD&&!RD.started&&G.min>=RD.at&&G.min<CLOSE_MIN-90&&!RAID.on&&!FIGHT.on&&!CATCH.on){RD.started=true;startRaid(RD.who||'police');}
@@ -1323,10 +1323,11 @@ function stepGame(dm){
     if(c.state==='play'){c.creditLeft-=dm;
       if(c.creditLeft<=0){if(c.credits>0){c.credits--;c.creditLeft+=c.m.T.mins;const cr=PRICES[G.price||'100'].credit*(c.m.T.cmul||1);G.money+=cr;G.today.credits++;
           G.today.sales.pbt+=cr;c.spent+=cr;popup(seatPos(c.m),'+¥'+cr,'#2b5fd9');}
-        else if(c.pulls>0){const n=c.vip?Math.min(c.pulls,25):1;c.pulls-=n;c.creditLeft+=c.vip?0.12:GACHA.mins;const v=c.m.T.gacha*n;G.money+=v;G.today.sales.pgacha+=v;G.today.pulls+=n;c.spent+=v;c.batch+=v;if(c.vip)G.today.vip.spent+=v;
+        else if(c.pulls>0){const n=c.vip?Math.min(c.pulls,25):1;c.pulls-=n;c.creditLeft+=c.vip?0.12:GACHA.mins;if(!c.gmul)c.gmul=3+Math.floor(Math.random()*8);const v=c.vip?c.m.T.gacha*n:PRICES[G.price||'100'].credit*(c.m.T.cmul||1)*c.gmul*n;G.money+=v;G.today.sales.pgacha+=v;G.today.pulls+=n;c.spent+=v;c.batch+=v;if(c.vip)G.today.vip.spent+=v;
           if(c.batch>=(c.vip?20000:1000)||c.pulls===0){popup(seatPos(c.m),(c.vip?'💰 ':'ガチャ ')+'+¥'+c.batch.toLocaleString(),c.vip?'#b8860b':'#d0349b');c.batch=0;}}
         else{G.today.maxSpend=Math.max(G.today.maxSpend,c.spent||0);if(c.vip&&G.today.vip){G.today.vip.done=true;G.today.vip.doneAt=performance.now();}const m=c.m;freeSeat(m);leave(c,false);}}}
     else if(c.state==='wait'){c.patience-=dm*(c.dan?0.35:1);
+      if(c.dan&&c.dest==='queue'){c.airT=(c.airT==null?0:c.airT)-dm;if(c.airT<=0){c.airT=4;G.money+=10;G.today.sales.dan=(G.today.sales.dan||0)+10;G.today.airPlays=(G.today.airPlays||0)+1;if(c.mesh&&!SIM.headless&&Math.random()<0.5)popup(c.mesh.position,'エアパズバト +¥10','#a0522d');}}
       if(isLineM(c.m)&&!c.dan&&c.patience<10&&c.patience>0&&!c.danTried){c.danTried=true;const dm2=machines.find(x=>x.type==='dan'&&!x.danUser&&!x.reserved);if(dm2&&Math.random()<0.8){c.dan=dm2;dm2.danUser=c;c.patience+=15;G.today.danSit=(G.today.danSit||0)+1;
         if(c.mesh&&!SIM.headless){c.dest='dan';c.state='walk';say(c,['…段ボールのやつで時間つぶすか','エア練習しとこ','待ってる間これで遊ぶ（ふり）'][Math.floor(Math.random()*3)],2.2);const cc=c;setTimeout(()=>{if(cc.bub)cc.bub.visible=false;},2200/Math.max(1,SIM.speed));routeTo(c,seatPos(dm2));lineReflow();}}}
       if(c.patience<=0){const m=c.m;releaseBench(c);m.queue.splice(m.queue.indexOf(c),1);if(c.mesh&&isLineM(m)&&!SIM.headless){say(c,['もう待てねえ！','長すぎ…帰る','また今度にするわ','並んでられるか！'][Math.floor(Math.random()*4)],2.2);const cc=c;setTimeout(()=>{if(cc.bub)cc.bub.visible=false;},2200/Math.max(1,SIM.speed));popup(c.mesh.position,'列離脱…','#7f8c8d');}
@@ -1481,7 +1482,7 @@ function renderUI(){if(!G)return;if(!Number.isFinite(G.money))normalize(G);const
   const mg2=mgHTML+upHTML();{const ch='<h2>裏稼業</h2>'+crimeHTML()+heatHTML();if($('crimeBox')&&ch!==window.__lastCrime){window.__lastCrime=ch;$('crimeBox').innerHTML=ch;}}if(mg2!==lastMg){lastMg=mg2;$('mgmt').innerHTML=mg2;}
   $('sGoal').innerHTML=G.cleared?`クリア済み！ パズバト２ ${count('pbt2')}/18台・パズバト ${count('pbt')}/18台`:`目標：<span style="white-space:nowrap">パズドラバトルトーナメント２</span>の<br>開発費用＆導入費用<br><span style="white-space:nowrap">${GOAL_PRICE.toLocaleString()}円</span>を稼ごう！`;$('sGoalBar').style.width=(G.cleared?100:Math.max(0,Math.min(100,G.money/GOAL_PRICE*100)))+'%';
   const shopHTML=ORDER.map(t=>{const I=ITEMS[t];const r=canBuy(t);const lab=r==='max'?'上限':r==='money'?'資金不足':'購入';
-    const info=`${I.note?'<br>'+I.note:''}${I.kind==='game'?`${t==='pbt2'?'':`<br>キャラガチャ1回${I.gacha}円`}・${I.watt}W`:I.watt?`<br>${I.watt}W`:''}`;
+    const info=`${I.note?'<br>'+I.note:''}${I.kind==='game'?`${t==='pbt2'?'':`<br>キャラガチャ1回＝プレイ料金の3〜10倍（今は${yen(PRICES[G.price||'100'].credit*(I.cmul||1)*3)}〜${yen(PRICES[G.price||'100'].credit*(I.cmul||1)*10)}）`}・${I.watt}W`:I.watt?`<br>${I.watt}W`:''}`;
     if(r==='max'&&I.kind!=='fake'&&t!=='pbt2'){const u=upg(t),m=lvMult(t),lmax=u.lv>=UPG_MAX;
       return `<div class="item up"><div><b>${I.disp||I.name}</b><span><em class="lvb">Lv${u.lv}/${UPG_MAX}</em>　${count(t)}/${maxOf(t)}台・効果×${m.toFixed(2)}${I.kind==='game'?'・修理費'+yen(repairCost(t))+'/台':''}${info}</span></div><div class="upb"><button data-lv="${t}" ${lmax||G.money<lvCost(t)?'disabled':''}>${lmax?'Lv MAX':'Lv↑ '+yen(lvCost(t))}</button></div></div>`;}
     return `<div class="item"><div><b>${I.disp||I.name}</b><span>${yen(I.price)}　${count(t)}/${maxOf(t)}${info}</span></div><button data-buy="${t}" ${r?'disabled':''}>${lab}</button></div>`}).join('');
@@ -1520,9 +1521,9 @@ function upHTML(){const S=soft(),own=ORDER.filter(t=>count(t)>0&&ITEMS[t].kind!=
   window.__upgRows=`<h2>育成（レベル・＋）</h2><div class="ups"><small class="uph">Lv1ごとに+5%、＋1ごとに+0.4%（集客・購入率・ガチャ）</small>${rows}</div>`;return soft1;}
 function showReport(rep){const T=rep.T,c=rep.c;SIM.paused=true;se.bell();
   const prof=rep.sales-c.total,cell=(l,v,st='')=>`<div><small>${l}</small><b style="${st}">${v}</b></div>`;
-  const sales=[[`パズバト（${T.credits}回）`,T.sales.pbt],[`ガチャ（${T.pulls}回）`,T.sales.pgacha]].concat(SHOPS.filter(k=>T.sales[k]||count(k)).map(k=>[ITEMS[k].label,T.sales[k]||0]));
+  const sales=[[`パズバト（${T.credits}回）`,T.sales.pbt],[`ガチャ（${T.pulls}回）`,T.sales.pgacha]].concat(T.sales.dan?[[`エアパズバト（${T.airPlays||0}回）`,T.sales.dan]]:[]).concat(SHOPS.filter(k=>T.sales[k]||count(k)).map(k=>[ITEMS[k].label,T.sales[k]||0]));
   const notes=[T.vip?`<div class="good">✨ ${T.vip.name}が来店、ガチャに ${yen(T.vip.spent)}！</div>`:'',T.bvip&&T.bvip.done?`<div class="good">✨ ${T.bvip.who}が${T.bvip.item}を ${yen(T.bvip.amount)} 分ご購入！</div>`:'',
-   rep.danSit?`<div class="good">待ちきれない客 ${rep.danSit}人がパズバト（段ボール）でエアプレイして待ってくれた</div>`:'',
+   rep.danSit?`<div class="good">待ちきれない客 ${rep.danSit}人がパズバト（段ボール）でエアパズバト（1プレイ10円）して待ってくれた</div>`:'',
    rep.dan?`<div class="${rep.dan.out==='refund'?'good':'warn'}">パズバト（段ボール）に客が¥${rep.dan.amt.toLocaleString()}投入 → ${rep.dan.out==='refund'?'しぶしぶ返金':rep.dan.out==='talk'?'「パズバト２開発費」として押し切った（評判−1）':'もみ合いの末に追い返した（評判−3）'}</div>`:'',
    rep.catch?(rep.catch.ok?`<div class="good">${rep.catch.kind==='thief'?'万引き犯':'ゴト師'}をティンニンが確保！${rep.catch.kind==='goto'?' 感謝状 +¥10,000':''}</div>`:`<div class="warn">${rep.catch.kind==='thief'?'万引き犯':'ゴト師'}に逃げられた… 被害 ${yen(rep.catch.loot)}</div>`):'',
    rep.raid&&rep.raid.who==='pro'?(rep.raid.win?`<div class="good">道場破りの自称プロパズドラーに勝利！ 戦利品「${rep.raid.bet}」＋口コミ宣伝（5日間 来客×1.35・評判UP）</div>`:`<div class="warn">道場破りに敗北… ${rep.raid.lostCab?'パズバト筐体を1台持っていかれた':'筐体は勘弁してもらえた'}</div>`):rep.raid?(rep.raid.win?`<div class="good">${RAID_NAME[rep.raid.who]}のガサ入れ → ${DUELS[rep.raid.method]||'勝負'}で勝利！ 所持金×${rep.raid.mult}（+${yen(rep.raid.gain)}）</div>`:`<div class="warn">${RAID_NAME[rep.raid.who]}のガサ入れ → 敗北… ${rep.raid.who==='police'?'懲役'+rep.raid.hours+'時間（営業停止）＋罰金'+yen(rep.raid.fine):rep.raid.who==='caa'?'課徴金 '+yen(rep.raid.fine):'追徴課税 '+yen(rep.raid.fine)}</div>`):'',
@@ -1654,12 +1655,19 @@ const SEQ_LINES=["石油王～　パズバト２買って～", "ダイケ～", "
 // しゃべりすぎないように：独り言は前回から12秒以上あけ、さらに半分くらいは黙っている
 function vtTalk(dur){const t=performance.now();if(t-(VT.lastTalk||0)<12000||Math.random()<0.45)return;VT.lastTalk=t;say(VT,vtLine(),dur);}
 const vtLine=()=>Math.random()<0.6?SEQ_LINES[Math.floor(Math.random()*SEQ_LINES.length)]:pazLine();
-function bubbleTex(text){const f='900 60px "Hiragino Sans","Noto Sans JP",sans-serif';const m=document.createElement('canvas').getContext('2d');m.font=f;const tw=Math.ceil(m.measureText(text).width);
-  const W=tw+64,H=128;const t=canvasTex(W,H,(c)=>{c.fillStyle='#fff';c.strokeStyle='#ff6fae';c.lineWidth=7;c.beginPath();c.roundRect(5,5,W-10,H-34,30);c.fill();c.stroke();
+function wrap2(text,lim=14){const ch=[...text];if(ch.length<=lim)return [text];const mid=Math.floor(ch.length/2);let best=-1,bd=99;
+  ch.forEach((q,i)=>{if(i>2&&i<ch.length-2&&/[、。！？!?…　 ）」〜ー]/.test(q)){const d=Math.abs(i+1-mid);if(d<bd){bd=d;best=i+1;}}});if(best<0||bd>ch.length*0.3)best=mid;return [ch.slice(0,best).join(''),ch.slice(best).join('')];}
+function bubbleTex(text){const f='900 60px "Hiragino Sans","Noto Sans JP",sans-serif';const m=document.createElement('canvas').getContext('2d');m.font=f;const L=wrap2(text);const tw=Math.ceil(Math.max(...L.map(x=>m.measureText(x).width)));
+  const lh=70,W=tw+64,H=128+(L.length-1)*lh;const t=canvasTex(W,H,(c)=>{c.fillStyle='#fff';c.strokeStyle='#ff6fae';c.lineWidth=7;c.beginPath();c.roundRect(5,5,W-10,H-34,30);c.fill();c.stroke();
     c.beginPath();c.moveTo(W/2-16,H-31);c.lineTo(W/2,H-6);c.lineTo(W/2+16,H-31);c.fill();c.beginPath();c.moveTo(W/2-16,H-30);c.lineTo(W/2,H-6);c.lineTo(W/2+16,H-30);c.stroke();
-    c.font=f;c.fillStyle='#3a1c71';c.textAlign='center';c.textBaseline='middle';c.fillText(text,W/2,(H-28)/2+3);});t.userData={ar:W/H};return t;}
-function say(o,text,dur=2.6){if(!o.mesh||SIM.headless)return;if(o===STAFF||o===VT)se.pop();if(!o.bub){o.bub=new THREE.Sprite(new THREE.SpriteMaterial({transparent:true,depthTest:false}));o.bub.position.y=2420;o.bub.renderOrder=10;o.mesh.add(o.bub);}
-  if(o.bub.material.map)o.bub.material.map.dispose();const t=bubbleTex(text);o.bub.material.map=t;o.bub.material.needsUpdate=true;o.bub.scale.set(400*t.userData.ar,400,1);o.bub.visible=true;o.bubT=dur;}
+    c.font=f;c.fillStyle='#3a1c71';c.textAlign='center';c.textBaseline='middle';const y0=(H-28)/2+3-(L.length-1)*lh/2;L.forEach((x,i)=>c.fillText(x,W/2,y0+i*lh));});t.userData={ar:W/H,lines:L.length};return t;}
+// 吹き出し・ポップアップが画面の左右端で見切れないよう、はみ出す分だけ内側にずらす
+const BUBS=new Set(),_cv=new THREE.Vector3(),_cr=new THREE.Vector3(),_cs=new THREE.Vector3();
+function clampSprite(sp){if(!sp||!sp.visible||!sp.parent)return;sp.center.x=0.5;sp.getWorldPosition(_cv);sp.getWorldScale(_cs);_cr.setFromMatrixColumn(cam.matrixWorld,0).normalize().multiplyScalar(_cs.x/2).add(_cv);
+  const a=_cv.clone().project(cam),b=_cr.project(cam);if(a.z>1)return;const hw=Math.abs(b.x-a.x);if(!(hw>0)||hw>=0.98)return;let sh=0;if(a.x+hw>0.97)sh=a.x+hw-0.97;else if(a.x-hw<-0.97)sh=a.x-hw+0.97;sp.center.x=Math.min(1,Math.max(0,0.5+sh/(2*hw)));}
+function clampAll(){try{for(const b of BUBS){if(!b.parent){BUBS.delete(b);continue;}clampSprite(b);}if(typeof fxG!=='undefined')for(const s of fxG.children)if(s.isSprite)clampSprite(s);}catch(e){}}
+function say(o,text,dur=2.6){if(!o.mesh||SIM.headless)return;if(o===STAFF||o===VT)se.pop();if(!o.bub){o.bub=new THREE.Sprite(new THREE.SpriteMaterial({transparent:true,depthTest:false}));o.bub.position.y=2420;o.bub.renderOrder=10;o.mesh.add(o.bub);BUBS.add(o.bub);}
+  if(o.bub.material.map)o.bub.material.map.dispose();const t=bubbleTex(text);o.bub.material.map=t;o.bub.material.needsUpdate=true;o.bub.scale.set((t.userData.lines>1?560:400)*t.userData.ar,t.userData.lines>1?560:400,1);o.bub.visible=true;o.bubT=dur;}
 function bubStep(o,dt){if(o.bub&&o.bubT>0){o.bubT-=dt;if(o.bubT<=0)o.bub.visible=false;}}
 // ---- 3Dビューア用ティンニン（うろつく・よじ登る・筐体を持ち上げて勝手に移動） ----
 var VT={on:true,mesh:null,mode:'idle',t:0,wait:1.5,path:[],per:null,pt:0,u:null,moved:{}};
@@ -1890,5 +1898,5 @@ window.__simBalance=(days)=>{SIM.headless=true;const g0=G;G=newGame();G.today=fr
     if(window.__balUp){for(const t of [...new Set(G.items.map(i=>i.type))]){const u=upg(t);while(u.lv<UPG_MAX&&(t!=='pbt'||count('pbt')>=6)&&G.money-lvCost(t)-(G.due||0)>=400000){G.money-=lvCost(t);u.lv++;}}if(soft().chara<=0&&soft().fresh<75&&G.money-SOFT.chara.cost()-(G.due||0)>=150000){G.money-=SOFT.chara.cost();soft().chars++;soft().chara=7;soft().fresh+=18;}}
     log.push([r.day,r.ev?r.ev.name.slice(0,4):'',Math.round(G.rep),r.paid||0,r.sales,r.T.sales.pgacha,r.T.maxSpend,r.c.total,r.T.visitors,Math.round(G.money),count('pbt')]);}
   log.push(['END',G.cleared,G.over,G.day]);SIM.headless=false;G=g0;return log;};
-(function loop(){requestAnimationFrame(loop);try{simTick();}catch(e){try{simErr('tick',e);}catch(_){}}try{R.render(S,cam);}catch(e){}try{renderPiP();}catch(e){}})();
+(function loop(){requestAnimationFrame(loop);try{simTick();}catch(e){try{simErr('tick',e);}catch(_){}}try{clampAll();}catch(e){}try{R.render(S,cam);}catch(e){}try{renderPiP();}catch(e){}})();
 </script></body></html>
