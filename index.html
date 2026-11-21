@@ -629,8 +629,10 @@ let lineTail=null;
 function lineSign(){if(SIM.headless)return;const W=lineWaiters();if(!lineTail){lineTail=new THREE.Sprite(new THREE.SpriteMaterial({map:canvasTex(256,96,(g,w,h)=>{g.fillStyle='#ffd54a';g.fillRect(0,0,w,h);g.strokeStyle='#7a5200';g.lineWidth=8;g.strokeRect(4,4,w-8,h-8);g.fillStyle='#3a2600';g.font='900 52px sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText('最後尾',w/2,h/2+2);}),depthTest:false,transparent:true}));lineTail.scale.set(520,195,1);lineTail.renderOrder=9;}
   const last=W[W.length-1];if(W.length>=2&&last&&last.mesh){if(lineTail.parent!==last.mesh){if(lineTail.parent)lineTail.parent.remove(lineTail);last.mesh.add(lineTail);lineTail.position.set(0,2050,0);}lineTail.visible=true;}else if(lineTail.parent){lineTail.parent.remove(lineTail);}}
 function buildLineDeco(){if(SIM.headless||!count('pbt'))return;const g=new THREE.Group();g.name='lineDeco';
-  const sg=new THREE.Sprite(new THREE.SpriteMaterial({map:canvasTex(512,160,(c,w,h)=>{c.fillStyle='#ff4f9a';c.fillRect(0,0,w,h);c.fillStyle='#fff';c.font='900 64px sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText('パズバト 待機列',w/2,62);c.font='700 36px sans-serif';c.fillText('お一人様1列でお並びください',w/2,124);}),transparent:true}));
-  sg.scale.set(1100,345,1);sg.position.set(LINE.x0+250,1650,LINE.z0-260);g.add(sg);const ropes=new THREE.Group();g.add(ropes);g.userData.ropes=ropes;g.userData.key='';machG.add(g);lineDecoG=g;lineDecoSync(true);}
+  const st=canvasTex(512,180,(c,w,h)=>{c.fillStyle='#ff4f9a';c.fillRect(0,0,w,h);c.strokeStyle='#fff';c.lineWidth=8;c.strokeRect(6,6,w-12,h-12);c.fillStyle='#fff';c.textAlign='center';c.textBaseline='middle';
+    const fit=(t,sz,y,wt)=>{let f=sz;c.font=`${wt} ${f}px sans-serif`;while(c.measureText(t).width>w-40&&f>10){f--;c.font=`${wt} ${f}px sans-serif`;}c.fillText(t,w/2,y);};fit('パズバト 待機列',66,68,900);fit('お一人様1列でお並びください',34,138,700);});
+  const sgn=new THREE.Group();const pole=cyl(35,1500,mat(0xb8bcc6));pole.position.y=750;sgn.add(pole);const bd=new THREE.Mesh(new THREE.PlaneGeometry(760,267),new THREE.MeshStandardMaterial({map:st,side:THREE.DoubleSide,roughness:.7,emissive:0xffffff,emissiveMap:st,emissiveIntensity:.25}));bd.position.set(0,1350,0);sgn.add(bd);
+  sgn.position.set(LINE.x0+420,0,LINE.z0+40);g.add(sgn);const ropes=new THREE.Group();g.add(ropes);g.userData.ropes=ropes;g.userData.key='';machG.add(g);lineDecoG=g;lineDecoSync(true);}
 let lineDecoG=null;
 // 並んでいる人数に合わせてロープ（ベルトパーティション）の長さと段数を変える
 function lineDecoSync(force){if(SIM.headless||!lineDecoG||!lineDecoG.parent)return;const W=lineWaiters().length,n=LINE.n;const rows=Math.max(1,Math.min(4,Math.ceil(W/n)));const len0=W>=n?n:Math.max(2,W+1);const key=rows+'_'+len0;
@@ -755,10 +757,10 @@ const MONTH_POSTER=[
  ['ハロウィンパズバト','トリック・オア・コンボ！','#e65100','#2b1b3a','🎃'],['秋のパズバト大会','食欲より勝利欲','#6d4c41','#ffe0b2','🍁'],['クリスマスフェス','サンタはガチャで来る','#2e7d32','#ffebee','🎄']];
 function posterTex(mo){const P=MONTH_POSTER[mo];return canvasTex(512,720,(c,w,h)=>{const g=c.createLinearGradient(0,0,0,h);g.addColorStop(0,P[3]);g.addColorStop(1,P[2]);c.fillStyle=g;c.fillRect(0,0,w,h);
   const cols=['#e53935','#1e88e5','#43a047','#fdd835','#8e24aa','#f06292'];for(let i=0;i<22;i++){c.globalAlpha=.55;c.fillStyle=cols[i%6];c.beginPath();c.arc((i*97)%w,((i*173)%h),18+(i%4)*10,0,7);c.fill();}c.globalAlpha=1;
-  c.fillStyle='rgba(0,0,0,.55)';c.fillRect(0,30,w,110);c.fillStyle='#fff';c.font='900 40px sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText('パズドラバトルトーナメント',w/2,62);c.fillStyle='#ffd54a';c.font='900 30px sans-serif';c.fillText((mo+1)+'月のイベント',w/2,112);
+  const fitT=(t,sz,wt)=>{let f=sz;c.font=`${wt} ${f}px sans-serif`;while(c.measureText(t).width>w-44&&f>10){f--;c.font=`${wt} ${f}px sans-serif`;}};c.fillStyle='rgba(0,0,0,.55)';c.fillRect(0,30,w,110);c.fillStyle='#fff';fitT('パズドラバトルトーナメント',40,900);c.textAlign='center';c.textBaseline='middle';c.fillText('パズドラバトルトーナメント',w/2,62);c.fillStyle='#ffd54a';c.font='900 30px sans-serif';c.fillText((mo+1)+'月のイベント',w/2,112);
   c.font='160px sans-serif';c.fillText(P[4],w/2,320);
-  c.lineWidth=12;c.strokeStyle='#fff';c.font='900 58px sans-serif';c.strokeText(P[0],w/2,480);c.fillStyle=P[2];c.fillText(P[0],w/2,480);
-  c.fillStyle='#fff';c.fillRect(30,540,w-60,70);c.fillStyle='#222';c.font='700 30px sans-serif';c.fillText(P[1],w/2,576);
+  c.lineWidth=12;c.strokeStyle='#fff';fitT(P[0],58,900);c.strokeText(P[0],w/2,480);c.fillStyle=P[2];c.fillText(P[0],w/2,480);
+  c.fillStyle='#fff';c.fillRect(30,540,w-60,70);c.fillStyle='#222';fitT(P[1],30,700);c.fillText(P[1],w/2,576);
   c.fillStyle='rgba(255,255,255,.85)';c.font='700 24px sans-serif';c.fillText('おティンニンランドで開催中！',w/2,665);c.strokeStyle='#fff';c.lineWidth=10;c.strokeRect(5,5,w-10,h-10);});}
 let posterMesh=null,posterMo=-1;
 function posterSync(){if(SIM.headless||!G||!roomG)return;const mo=dateOf(G.day).getMonth();
