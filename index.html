@@ -208,7 +208,7 @@ try{const s=localStorage.getItem('cab2Layout');if(s&&LAY[s])cur=s}catch(e){}
 // ---------- camera rig (custom orbit so it works in the rotated layout) ----------
 const tgt=new THREE.Vector3(0,1000,421);let rad=6000,th=-0.65,ph=1.2;
 const DIRV={iso:[-0.65,1.2],front:[0,1.52],side:[-Math.PI/2,1.52],top:[0,0.0001],back:[Math.PI,1.52]};
-function place(){const sp=Math.sin(ph);cam.position.set(tgt.x+rad*sp*Math.sin(th),tgt.y+rad*Math.cos(ph),tgt.z+rad*sp*Math.cos(th));
+function place(){const nn=Math.max(10,Math.min(400,rad*0.02));if(Math.abs(cam.near-nn)>1){cam.near=nn;cam.far=Math.max(200000,rad*30);cam.updateProjectionMatrix();}const sp=Math.sin(ph);cam.position.set(tgt.x+rad*sp*Math.sin(th),tgt.y+rad*Math.cos(ph),tgt.z+rad*sp*Math.cos(th));
   cam.up.set(0,1,0);if(ph<0.01)cam.up.set(-Math.sin(th),0,-Math.cos(th));cam.lookAt(tgt);cam.updateMatrixWorld();}
 function size(){return {W:viewEl.clientWidth,H:viewEl.clientHeight}}
 function fit(){
@@ -586,7 +586,7 @@ function buildRoom(){const z1=roomZ1(),x1=roomX1(),key=z1+'_'+x1;if(key===roomIs
   // walls: tall back wall with banner, low side walls with neon stripe
   roomG.add(box(FW+200,2700,160,mat(0xf4f1fa),0,1350,ROOM.z0-80));
   roomG.add(box(FW+200,120,190,mat(0xd63fa3,{emissive:0xd63fa3,emissiveIntensity:.5}),0,2660,ROOM.z0-70));
-  const bn=new THREE.Mesh(new THREE.PlaneGeometry(5800,1500),new THREE.MeshStandardMaterial({map:bannerTex,emissive:0xffffff,emissiveMap:bannerTex,emissiveIntensity:.35}));bn.position.set(0,1820,ROOM.z0+2);roomG.add(bn);
+  const bn=new THREE.Mesh(new THREE.PlaneGeometry(5800,1500),new THREE.MeshStandardMaterial({map:bannerTex,emissive:0xffffff,emissiveMap:bannerTex,emissiveIntensity:.35,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-4}));bn.position.set(0,1820,ROOM.z0+30);bn.renderOrder=1;roomG.add(bn);
   for(const sx of [ROOM.x0-50,ROOM.x1+50]){roomG.add(box(100,700,FD,mat(0xe9e4f5),sx,350,(ROOM.z0+ROOM.z1)/2));roomG.add(box(120,60,FD,mat(0x6c5bd6,{emissive:0x6c5bd6,emissiveIntensity:.6}),sx,720,(ROOM.z0+ROOM.z1)/2));}
   roomG.add(buildCounter());
   const en=new THREE.Mesh(new THREE.PlaneGeometry(1600,500),new THREE.MeshStandardMaterial({map:entrTex}));en.rotation.x=-Math.PI/2;en.position.set(0,3,ROOM.z1-250);roomG.add(en);
@@ -1141,7 +1141,7 @@ let cupDeco=null;function cupDecoSync(){const on=!!(SIM.on&&G&&(G.promos||[]).so
       c.fillStyle='#ffd54a';c.beginPath();c.arc(w/2,330,120,0,7);c.fill();hand('パズバト',w/2,305,58,'#7a1c00',0);hand('大会',w/2,365,58,'#7a1c00',0);
       hand(boost&&boost.boost?'賞金総額100万円！？':'参加無料！',w/2,500,48,'#d4001a',-0.03);hand('飛び入り大歓迎',w/2,575,42,'#333',0.02);hand('てぃんにん',w-120,670,30,'#ff4f9a',-0.1);});
     const pm=new THREE.MeshStandardMaterial({map:poster,roughness:.9,emissive:0xffffff,emissiveMap:poster,emissiveIntensity:.25});
-    const free=(ROOM.x1-ROOM.x0)/2-2900;if(free>=1000){for(const sx of [-1,1]){const p=new THREE.Mesh(new THREE.PlaneGeometry(900,1265),pm);p.position.set(sx*(2900+free/2),1500,ROOM.z0+16);p.rotation.z=sx*0.03;cupDeco.add(p);}}
+    const free=(ROOM.x1-ROOM.x0)/2-2900;if(free>=1000){for(const sx of [-1,1]){const p=new THREE.Mesh(new THREE.PlaneGeometry(900,1265),pm);p.position.set(sx*(2900+free/2),1500,ROOM.z0+34);p.rotation.z=sx*0.03;cupDeco.add(p);}}
     // 入口近くの立て看板（A型スタンド）にも張り紙
     if(free<1000){const st=new THREE.Group();const fr=mat(0x5d4037);st.add(box(60,1500,60,fr,-420,750,0),box(60,1500,60,fr,420,750,0));const pp=new THREE.Mesh(new THREE.PlaneGeometry(800,1125),pm);pp.position.set(0,880,40);st.add(pp);st.add(box(860,40,40,fr,0,1460,20));
     st.position.set(2200,0,ROOM.z1-1700);st.rotation.y=-0.4;cupDeco.add(st);}
