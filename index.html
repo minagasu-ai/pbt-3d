@@ -326,7 +326,7 @@ const ITEMS={
  gacha:{name:'パズドラガチャガチャ',note:'1回300円×1〜3回（原価30%）',price:80000,max:1,watt:20,attr:0.2,kind:'shop',w:950,walls:['left','backL','backR','right'],buyP:0.15,spend:[300,900],step:300,costRate:0.3,label:'ガチャガチャ',stay:1},
  doujin:{name:'パズドラ同人誌コーナー',note:'1冊500円×1〜2冊（委託40%）・置いておくと、いいことがあるかも…？',price:100000,max:1,watt:30,attr:0.25,kind:'shop',w:1800,walls:['left','backL','backR','right'],buyP:0.035,spend:[500,1000],step:500,costRate:0.4,label:'同人誌',stay:3},
  crane:{name:'クレーンゲーム',note:'1回100円・数回遊ぶ（景品原価25%）',price:200000,max:1,watt:200,attr:0.4,kind:'shop',w:1100,walls:['left','backL','backR','right'],buyP:0.15,spend:[200,1500],step:100,costRate:0.25,label:'クレーンゲーム',stay:4},
- ice:  {name:'31アイス',note:'シングル〜トリプル 400〜1,100円（原価30%）',price:250000,max:1,watt:800,attr:0.35,kind:'shop',w:1800,walls:['left','right'],buyP:0.12,spend:[400,1100],step:10,costRate:0.3,label:'31アイス',stay:2}
+ ice:  {name:'三十一アイス',note:'シングル〜トリプル 400〜1,100円（原価30%）・毎月31日は「三十一の日」で集客大幅アップ',price:250000,max:1,watt:800,attr:0.35,kind:'shop',w:1800,walls:['left','right'],buyP:0.12,spend:[400,1100],step:10,costRate:0.3,label:'三十一アイス',stay:2}
 };
 const SHOPS=['vend','goods','gacha','doujin','crane','ice'];
 // ---- calendar & seasonal bonus weeks (パズドラ季節イベント連動) ----
@@ -358,7 +358,7 @@ const RED_T=['{c}大好き兄貴','{c}すこすこ勢','{c}推しの富豪','{c}
 const VIPS=Array.from({length:100},(_,i)=>RED_T[(Math.floor(i/50)*4+i%4)%RED_T.length].replace('{c}',CHARS[i%50]));
 const BIG_T={doujin:[['{c}本の買い占め勢','{c}本'],['{c}カプ厨の同人ハンター','{c}合同誌']],goods:[['{c}推しのコレクター','{c}グッズ一式'],['{c}祭壇職人','{c}アクスタ全種']],
  gacha:[['{c}シークレット狙いの職人','ガチャガチャ'],['{c}コンプ勢','カプセルトイ']],crane:[['{c}ぬいぐるみハンター','クレーンゲーム'],['{c}フィギュア救出隊','クレーンゲーム']],
- vend:[['{c}コスプレの大所帯','ドリンク'],['{c}オフ会の幹事','差し入れドリンク']],ice:[['{c}ファンの大家族','31アイス'],['{c}推し活オフ会','トリプルアイス']]};
+ vend:[['{c}コスプレの大所帯','ドリンク'],['{c}オフ会の幹事','差し入れドリンク']],ice:[['{c}ファンの大家族','三十一アイス'],['{c}推し活オフ会','トリプルアイス']]};
 // 大口客の呼び名：後ろほど大口（キッズ→すこすこ勢→ニキ→ガール→石油王）
 const TIER_T=['{c}大好きキッズ','{c}すこすこ勢','{c}大好きニキ','{c}大好きガール','{c}推しの石油王'];
 const tierName=(tier,c)=>TIER_T[Math.max(0,Math.min(4,tier))].replace('{c}',c||CHARS[Math.floor(Math.random()*CHARS.length)]);
@@ -397,7 +397,7 @@ const SOFT={ver:{label:'バージョンアップ',fresh:45,cost:()=>300000+10000
  chara:{label:'新キャラ追加',fresh:18,cost:()=>150000+20000*soft().chars,days:7,eff:'鮮度+18・7日間ガチャ×1.4'},
  collab:{label:'コラボガチャ開催',fresh:10,cost:()=>250000,days:10,eff:'10日間ガチャ×1.8・来客×1.15<br>（ガチャ渋いと評判−）'}};
 function freshMult(){return 0.5+0.5*soft().fresh/100;}
-function gachaMult(){const s=soft();return (1+0.04*(s.ver-1))*(s.chara>0?1.4:1)*(s.collab>0?1.8:1);}
+function gachaMult(){const s=soft();return (is31()?1.3:1)*(1+0.04*(s.ver-1))*(s.chara>0?1.4:1)*(s.collab>0?1.8:1);}
 function heat(){return G.heat||(G.heat={police:0,tax:0,caa:0});}
 function addHeat(who,v,why){const H=heat();H[who]=Math.min(100,(H[who]||0)+v);G.heatWhy=G.heatWhy||{};if(why)G.heatWhy[who]=why;}
 const RAID_WINS={police:0.28,tax:0.33,caa:0.35};const raidWin=w=>w==='pro'?proWin():RAID_WINS[w]||0.3;
@@ -435,7 +435,8 @@ function fireBad(b){b.fired=true;b.at=performance.now();
   popup(ENTRANCE.clone().setZ(ROOM.z1-1500),b.name+'…','#34495e');}
 function badMult(){let m=1;const b=G.today.bad;if(b&&b.fired){if(b.k==='typhoon')m*=0.4;if((b.k==='maint'||b.k==='blackout')&&G.min<b.end)m*=0;
   if(b.k==='maint'&&G.min>=b.end&&G.min<b.end+120)m*=1.5;}if(G.enjo>0)m*=0.8;return m;}
-function demandMult(){return (soft().collab>0?1.15:1)*(G.fuei?1.45:1)*dayMult(G.day)*repMult()*WX[G.wx||'cloud'].m*promoMult()*rivalMult()*PRICES[G.price||'100'].dem*badMult();}
+const is31=()=>!!(G&&count('ice')&&dateOf(G.day).getDate()===31);
+function demandMult(){return (is31()?1.8:1)*(soft().collab>0?1.15:1)*(G.fuei?1.45:1)*dayMult(G.day)*repMult()*WX[G.wx||'cloud'].m*promoMult()*rivalMult()*PRICES[G.price||'100'].dem*badMult();}
 const ORDER=['pbt','dan','pbt2','vend','goods','gacha','doujin','crane','ice','bench','anime'];
 // ---- floor plan (mm). machine local frame: rear z=0, player side +z ----
 const ROOM={x0:-4900,x1:4900,z0:-4200,z1:3800};
@@ -534,7 +535,7 @@ const BUILD={
   const cols=[0xf6a5c0,0x9fd6f5,0xfff1a8,0xc7a6ff,0xa8e6b8,0x8b5a3c,0xffffff,0xff8f6b];for(let i=0;i<8;i++){const sc=new THREE.Mesh(new THREE.SphereGeometry(80,12,8),mat(cols[i]));sc.position.set(-700+i*200,1110,380);g.add(sc);}
   g.add(box(1800,1500,60,mat(0x1f4fa0),0,1850,30));
   const t=canvasTex(512,256,(c,W,H)=>{c.fillStyle='#1f4fa0';c.fillRect(0,0,W,H);for(let i=0;i<40;i++){c.fillStyle=['#f6a5c0','#ffffff','#9fd6f5'][i%3];c.beginPath();c.arc((i*53)%W,(i*97)%H,10,0,7);c.fill();}
-    c.fillStyle='#ff5a8a';c.beginPath();c.arc(W/2,H/2,92,0,7);c.fill();c.fillStyle='#fff';c.font='900 96px sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText('31',W/2,H/2-6);c.font='900 30px sans-serif';c.fillText('ICE CREAM',W/2,H/2+60);});
+    c.fillStyle='#ff5a8a';c.beginPath();c.arc(W/2,H/2,92,0,7);c.fill();c.fillStyle='#fff';c.font='900 54px sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText('三十一',W/2,H/2-14);c.font='900 34px sans-serif';c.fillText('アイス',W/2,H/2+44);});
   g.add(plane(1700,850,t,0,1950,62));return {g,depth:860,seat:[0,1250]};},
  vend(){const g=new THREE.Group();
   g.add(box(1000,1830,750,mat(0xd7262e),0,915,375));
@@ -1156,7 +1157,8 @@ function showTweet(){if(SIM.headless)return;let el=document.getElementById('twee
   const p=(G.promos||[]).find(q=>q.k==='sns'),L=p&&p.boost?TWEETS_BOOST:TWEETS,t=L[Math.floor(Math.random()*L.length)].replace('{P}',PRICES[G.price||'100'].label),img=portRender('tin'),rt=Math.floor(3+Math.random()*(p&&p.boost?400:40)),lk=rt*3+Math.floor(Math.random()*30);
   el.innerHTML=`<div class="tw-h">${img?`<img src="${img}">`:''}<div><b>おティンニンランド【公式】</b><small>@otinninland・今</small></div><span class="tw-x">𝕏</span></div><p>${t}</p><div class="tw-f">💬 ${Math.floor(rt/3)}　🔁 ${rt}　♡ ${lk}</div>`;
   el.classList.remove('go');void el.offsetWidth;el.classList.add('go');el.style.display='block';se.pop&&se.pop();clearTimeout(el._t);el._t=setTimeout(()=>{el.style.display='none';},5200);}
-function snsTick(){if(!SIM.on||!G||!G.today)return;const on=(G.promos||[]).some(p=>p.k==='sns');if(on&&!G.today.tweeted&&G.min>=OPEN_MIN&&G.min<OPEN_MIN+60){G.today.tweeted=true;showTweet();}}
+function ann31(){if(!SIM.on||!G||!G.today||G.today.ann31||!is31()||G.min<OPEN_MIN)return;G.today.ann31=true;toast('🍨 今日は三十一の日！ スペシャルダンジョン開催＆三十一アイス31%OFF');try{bigPop(ENTRANCE.clone().setZ(ROOM.z1-900),'三十一の日！','#ff5a8a');say(STAFF,'今日は三十一の日！ アイス31%オフだよ〜！',2.8);se.promo&&se.promo();}catch(e){}}
+function snsTick(){ann31();if(!SIM.on||!G||!G.today)return;const on=(G.promos||[]).some(p=>p.k==='sns');if(on&&!G.today.tweeted&&G.min>=OPEN_MIN&&G.min<OPEN_MIN+60){G.today.tweeted=true;showTweet();}}
 function pipEl(k,i){let el=document.getElementById('pip_'+k);if(!el){el=document.createElement('div');el.id='pip_'+k;el.className='pipw';el.innerHTML=`<b class="pl"></b><div class="cm"></div>`;$('view').appendChild(el);}
   el.style.right='6px';el.style.left='auto';el.style.top='auto';el.style.bottom='6px';el.style.width=PIP.W+'px';el.style.height=PIP.H+'px';el.style.display='block';return el;}
 function renderPiP(){try{cupDecoSync();snsTick();}catch(e){}const act=SIM.on&&G?['nico'].filter(k=>(G.promos||[]).some(p=>p.k===k)):[];
@@ -1337,14 +1339,14 @@ function freeBenchSeat(){for(const m of machines){if(m.type!=='bench')continue;i
 function releaseBench(c){if(c.dan){c.dan.danUser=null;c.dan=null;if(c.mesh&&c.pose==='sit')pose(c,'stand');}if(c.bench){if(c.bench.m.bseats)c.bench.m.bseats[c.bench.i]=null;c.bench=null;if(c.mesh&&c.pose==='sit')pose(c,'stand');}}
 function faceMachine(c){const p=seatPos(c.m);const t=toWorld(c.m,0,0);c.mesh.rotation.y=Math.atan2(t.x-p.x,t.z-p.z);}
 function leave(c,lost){if(lost)G.today.lost++;else G.today.served++;
-  c.stops=[];if(!lost&&!badActive('blackout')){for(const t of SHOPS){if(t==='food'&&G.foodClosed>0)continue;const ms=machines.filter(m=>m.type===t);if(!ms.length)continue;const p=Math.min(0.6,ITEMS[t].buyP*shopBuyM(t)*((G.promos||[]).some(p=>p.k==='cup')?1.5:1)*(1+0.25*(ms.length-1)))*(shortage()?0.7:1);
+  c.stops=[];if(!lost&&!badActive('blackout')){for(const t of SHOPS){if(t==='food'&&G.foodClosed>0)continue;const ms=machines.filter(m=>m.type===t);if(!ms.length)continue;const p=Math.min(0.75,ITEMS[t].buyP*(t==='ice'&&is31()?2.2:1)*shopBuyM(t)*((G.promos||[]).some(p=>p.k==='cup')?1.5:1)*(1+0.25*(ms.length-1)))*(shortage()?0.7:1);
     if(Math.random()<p)c.stops.push(ms[Math.floor(Math.random()*ms.length)]);}}
   if(!lost&&Math.random()<0.15){const v=machines.filter(m=>m.type==='vend');if(v.length&&!c.stops.includes(v[0]))c.stops.push(v[0]);}
   nextStop(c);}
 function nextStop(c){if(c.mesh)pose(c,'stand');const s=c.stops.shift();
   if(s){c.dest='vend';c.vendM=s;c.vendPos=s.type==='food'?toWorld(s,(Math.floor(Math.random()*3)-1)*1100+(Math.random()<.5?-560:560),1700):toWorld(s,0,s.depth+350);c.state='walk';if(SIM.headless){buyAt(c);nextStop(c);return;}routeTo(c,c.vendPos);return;}
   c.dest='exit';c.state='walk';if(SIM.headless){c.state='gone';return;}routeTo(c,ENTRANCE.clone());}
-function buyAt(c){const t=c.vendM.type,T=ITEMS[t];let v=T.spend[0]+Math.random()*(T.spend[1]-T.spend[0]);v=T.step?Math.ceil(v/T.step)*T.step:Math.round(v/100)*100;if(t==='vend')v=150;else if(!c.bamount)v=Math.round(v*shopSpendM(t)*((G.promos||[]).some(p=>p.k==='cup')?1.2:1)/10)*10;
+function buyAt(c){const t=c.vendM.type,T=ITEMS[t];let v=T.spend[0]+Math.random()*(T.spend[1]-T.spend[0]);v=T.step?Math.ceil(v/T.step)*T.step:Math.round(v/100)*100;if(t==='vend')v=150;else if(!c.bamount)v=Math.round(v*shopSpendM(t)*(t==='ice'&&is31()?0.69:1)*((G.promos||[]).some(p=>p.k==='cup')?1.2:1)/10)*10;
   if(c.bamount){v=c.bamount;c.bamount=0;if(G.today.bvip){G.today.bvip.done=true;G.today.bvip.doneAt=performance.now();}}
   G.today.sales[t]=(G.today.sales[t]||0)+v;if(!c.noCost)G.today.cost[t]=(G.today.cost[t]||0)+v*T.costRate;c.noCost=false;G.today.buyers++;G.money+=v;popup(c.vendPos,(v>=50000?'💰 ':'')+'+¥'+v.toLocaleString(),{vend:'#c0392b',foodv:'#1f6fd1',goods:'#d6336c',gacha:'#e67e22',doujin:'#2b5fd9',crane:'#c52d84',food:'#8e2318'}[t]||'#333');}
 function freeSeat(m){m.busy=null;
@@ -1525,7 +1527,7 @@ function renderTelop(){const el=$('telop');if(!el)return;el.classList.remove('wa
   if(t!==lastTelop){lastTelop=t;$('telopTxt').textContent=t;}}
 function renderUI(){if(!G)return;if(!Number.isFinite(G.money))normalize(G);const T=G.today;const hh=Math.floor(G.min/60),mm=Math.floor(G.min%60);
   $('sDay').textContent=`${G.day}日目 ${dateLabel(G.day)}`;const ev=eventOf(G.day),nx=nextEvent(G.day);const wk=[0,6].includes(dateOf(G.day).getDay());
-  $('sEvent').innerHTML=ev?`<div class="ev" style="background:${ev.col}">${ev.name} 開催中！ 来客×${ev.mult}＆ガチャイベント${wk?'（週末×1.25）':''}</div>`:(wk?'<div class="ev" style="background:#5c6bc0">週末 来客×1.25</div>':'')+(nx?`<div class="evn">${nx.k}日後から ${nx.e.name}（来客×${nx.e.mult}）</div>`:'');$('sTime').textContent=`${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;
+  $('sEvent').innerHTML=(is31()?'<div class="ev" style="background:linear-gradient(90deg,#ff5a8a,#7b4dff)">🍨 三十一の日！ スペシャルダンジョン＆アイス31%OFF 来客×1.8</div>':'')+(ev?`<div class="ev" style="background:${ev.col}">${ev.name} 開催中！ 来客×${ev.mult}＆ガチャイベント${wk?'（週末×1.25）':''}</div>`:(wk?'<div class="ev" style="background:#5c6bc0">週末 来客×1.25</div>':'')+(nx?`<div class="evn">${nx.k}日後から ${nx.e.name}（来客×${nx.e.mult}）</div>`:''));$('sTime').textContent=`${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;
   $('sBar').style.width=((G.min-OPEN_MIN)/DAY_MIN*100)+'%';$('sMoney').textContent=yen(G.money);$('sMoney').style.color=G.money<0?'#c0392b':'#1b2a4a';
   $('sToday').innerHTML=`本日売上 <b>${yen(Object.values(T.sales).reduce((a,b)=>a+b,0))}</b>　来客 <b>${T.visitors}</b>人`;
   const fr=Math.max(0,(G.min-OPEN_MIN)/DAY_MIN),cc=costs(fr),MB=monthBill();
