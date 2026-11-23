@@ -1153,7 +1153,7 @@ function raidStep(dt,k){if(!RAID.on)return;const Rd=RAID,S_=STAFF,u=S_.mesh.user
     else{const r=Math.floor(Rd.t/2.2),ph=Rd.t-r*2.2;const up=ph<1.2;u.arms[1].rotation.x=up?-2.4+Math.abs(Math.sin(ph*8))*1.2:-1.6;o.mesh.position.y=up?Math.abs(Math.sin(ph*8))*40:0;
       if(Rd.nx!==r&&ph>1.2&&r<3){Rd.nx=r;const H=['✊','✌','✋'];let a=Math.floor(Math.random()*3),b=Math.floor(Math.random()*3);if(r<2)b=a;else b=Rd.win?(a+1)%3:(a+2)%3;
         bigPop(S_.mesh.position,H[a],'#ff4f9a',2300);bigPop(o.mesh.position,H[b],'#34495e',2300);if(r<2)popup(Rd.spot,'あいこで…','#555');}}
-    if(Rd.t>(D==='janken'?7:7)){const win=Rd.win,res=raidResolve(Rd.who,win,D);win?se.win():se.lose();if(Rd.who!=='pro')hpbEnd(win);Rd.phase='result';Rd.t=0;S_.mesh.rotation.z=0;o.mesh.rotation.z=0;
+    if(Rd.t>(D==='janken'?7:7)){const win=Rd.win,res=raidResolve(Rd.who,win,D);if(Rd.who!=='pro'){hpbEnd(win);win?se.fanfare():se.sadjingle();}else win?se.win():se.lose();Rd.phase='result';Rd.t=0;S_.mesh.rotation.z=0;o.mesh.rotation.z=0;
       if(Rd.who==='pro'){if(win){say(S_,'パズバトなめんな！ 一昨日来やがれ！',3);say(o,'くっ…「'+res.bet+'」は置いていくぜ…',3);popup(S_.mesh.position,'🏆 '+res.bet+' ゲット！','#b8860b');setTimeout(()=>{if(RAID.o===o){say(o,'…いい店だな。おれのフォロワー（12人）に宣伝しといてやるよ',3.4);setTimeout(()=>{say(STAFF,'（実はいいやつ…？）',2.6);popup(STAFF.mesh.position,'📣 口コミ宣伝 5日間 来客×1.35・評判UP','#e67e22');},1800);}},2600);}
         else{say(S_,'うわぁぁん！',3);say(o,res.lostCab?'この筐体はいただいていくぜ！':'たった'+count('pbt')+'台か…筐体は勘弁してやるよ',3);popup(o.mesh.position,res.lostCab?'パズバト筐体を1台持っていかれた…':'情けをかけられた…','#c0392b');}}
       else if(win){say(S_,'勝った！出直してきな！',3);say(o,'…今日のところは引き上げる',3);popup(S_.mesh.position,res.rescue?'💰 今月の経費分ゲット +¥'+res.gain.toLocaleString():'💰 ×'+res.mult+' +¥'+res.gain.toLocaleString(),'#b8860b');if(D==='fist')fLie({mesh:o.mesh,s:-1},-1);}
@@ -1297,6 +1297,15 @@ const se={
   alarm(){if(!seOK('siren',1))return;const t=AC.currentTime;for(let i=0;i<3;i++)seTone(t+i*0.3,660,990,0.25,'sawtooth',0.04);},
   win(){if(!seOK('win',0.5))return;const t=AC.currentTime;[523,659,784,1047,784,1047,1319].forEach((f,i)=>seTone(t+i*0.11,f,0,i===6?0.7:0.16,'square',0.05));},
   lose(){if(!seOK('lose',0.5))return;const t=AC.currentTime;[494,466,440,415].forEach((f,i)=>seTone(t+i*0.28,f,f*0.97,0.32,'triangle',0.09));},
+  fanfare(){if(!seOK('fanfare',2))return;const t=AC.currentTime,N=n=>440*Math.pow(2,(n-69)/12);
+    const mel=[[67,0,.11],[72,.12,.11],[76,.24,.11],[79,.36,.34],[76,.72,.11],[79,.84,.11],[81,.96,.22],[79,1.2,.22],[84,1.44,1.1]];
+    for(const [n,d,l] of mel){seTone(t+d,N(n),0,l,'square',0.055);seTone(t+d,N(n)*1.003,0,l,'sawtooth',0.025);}
+    for(const [ch,d,l] of [[[48,55,60],0,.7],[[53,57,60],.72,.46],[[55,59,62],1.2,.24],[[48,52,55,60],1.44,1.2]])for(const n of ch)seTone(t+d,N(n),0,l,'triangle',0.05);
+    for(let i=0;i<8;i++)seNoise(t+1.44+i*0.06,0.05,'highpass',6000,0,0.04);},
+  sadjingle(){if(!seOK('sadjingle',2))return;const t=AC.currentTime,N=n=>440*Math.pow(2,(n-69)/12);
+    const mel=[[76,0,.38],[74,.42,.38],[72,.84,.38],[71,1.26,.38],[69,1.68,1.3]];
+    for(const [n,d,l] of mel)seTone(t+d,N(n),N(n)*0.985,l,'triangle',0.1);
+    for(const [ch,d,l] of [[[45,52,57],0,.8],[[41,48,53],.84,.8],[[40,47,52],1.68,.3],[[45,48,52],1.98,1.1]])for(const n of ch)seTone(t+d,N(n),0,l,'sine',0.06);},
   jail(){if(!seOK('jail',0.5))return;const t=AC.currentTime;seTone(t,140,120,0.5,'square',0.1);seNoise(t,0.4,'bandpass',800,400,0.25);seTone(t+0.02,1300,1250,0.6,'triangle',0.05);},
   bell(){if(!seOK('bell',1))return;const t=AC.currentTime;[784,659,523].forEach((f,i)=>{seTone(t+i*0.35,f,0,0.9,'sine',0.12);seTone(t+i*0.35,f*2,0,0.5,'sine',0.03);});},
   warn(){if(!seOK('warn',2))return;const t=AC.currentTime;for(let i=0;i<3;i++)seTone(t+i*0.2,1200,1200,0.12,'square',0.05);},
