@@ -1099,7 +1099,7 @@ function hpbInit(){if(HPB.el)return;const st=document.createElement('style');st.
 @media (max-height:420px){#hpb .big{font-size:48px}#hpb .dmg{font-size:22px}}`;document.head.appendChild(st);
   const el=document.createElement('div');el.id='hpb';el.innerHTML='<div class="en"><div class="nm"></div><div class="cd">あと<b>1</b>ターン</div><div class="bar"><u></u><i></i></div><div class="hp"></div></div><div class="me"><div class="nm">❤ ティンニン</div><div class="bar"><u></u><i></i></div><div class="hp"></div></div><div class="big"></div>';$('view').appendChild(el);HPB.el=el;}
 function hpbSplit(n,total,lastMin){const w=[];for(let i=0;i<n;i++)w.push(0.6+Math.random());let last=lastMin?total*(lastMin+Math.random()*0.15):null;const rest=last==null?total:total-last;const sum=w.slice(0,last==null?n:n-1).reduce((a,b)=>a+b,0);const out=w.map(x=>x/sum*rest);if(last!=null)out[n-1]=last;return out;}
-function hpbStart(who,win){if(SIM.headless)return;try{hpbInit();const I=RAID_INFO[who],el=HPB.el;const ehp={police:3000000,tax:5000000,caa:4000000}[who]||3000000,mhp=(18+Math.floor(Math.random()*8))*1000+Math.floor(Math.random()*10)*111;
+function hpbStart(who,win){if(SIM.headless)return;try{hpbInit();const I=RAID_INFO[who],el=HPB.el;const ehp={police:3000000,tax:5000000,caa:4000000,pro:9999999}[who]||3000000,mhp=(18+Math.floor(Math.random()*8))*1000+Math.floor(Math.random()*10)*111;
   const K=['P','E','P','P','E','P','E','P',win?'P':'E'],T=[0.7,1.4,2.1,2.8,3.5,4.2,4.9,5.6,6.3];const nP=K.filter(k=>k==='P').length,nE=K.length-nP;
   const dP=win?hpbSplit(nP,1,0.3):hpbSplit(nP,0.5+Math.random()*0.4),dE=win?hpbSplit(nE,0.3+Math.random()*0.45):hpbSplit(nE,1,0.35);let ip=0,ie=0;
   const ev=K.map((k,i)=>({t:T[i],k,f:k==='P'?dP[ip++]:dE[ie++],last:i===K.length-1}));
@@ -1116,7 +1116,7 @@ function hpbStep(t){const S=HPB.s;if(!S||!HPB.el)return;const AT=[['#ff5a3c','�
     if(v.k==='P'){const dmg=v.last?S.e:Math.round(v.f*S.ehp);S.e=v.last?0:Math.max(1,S.e-dmg);const a=AT[Math.floor(Math.random()*5)],cb=3+Math.floor(Math.random()*(v.last?8:5));hpbFx('.en',dmg.toLocaleString()+`<small>${cb}コンボ</small>`,a[0],v.last);S.turn=S.turn<=1?2:S.turn-1;}
     else{const dmg=v.last?S.m:Math.round(v.f*S.mhp);S.m=v.last?0:Math.max(1,S.m-dmg);hpbFx('.me','-'+dmg.toLocaleString(),'#ff4d4d');S.turn=2;}
     hpbDraw();}}
-function hpbEnd(win){const S=HPB.s,el=HPB.el;if(!S||!el)return;if(S.i<S.ev.length)hpbStep(99);const b=el.querySelector('.big');b.className='big '+(win?'clr':'go');b.innerHTML=win?'CLEAR!!<small>'+RAID_INFO[S.who].name+'を撃退！</small>':'GAME OVER<small>'+(S.who==='police'?'逮捕・営業停止…':S.who==='tax'?'追徴課税…':'課徴金…')+'</small>';if(!win)el.className='on go';}
+function hpbEnd(win,res){const S=HPB.s,el=HPB.el;if(!S||!el)return;if(S.i<S.ev.length)hpbStep(99);const b=el.querySelector('.big');b.className='big '+(win?'clr':'go');b.innerHTML=win?'CLEAR!!<small>'+RAID_INFO[S.who].name+'を撃退！</small>':'GAME OVER<small>'+(S.who==='pro'?(res&&res.lostCab?'パズバト筐体を1台持っていかれた…':'情けをかけられた…'):S.who==='police'?'逮捕・営業停止…':S.who==='tax'?'追徴課税…':'課徴金…')+'</small>';if(!win)el.className='on go';}
 function hpbHide(){if(HPB.el)HPB.el.className='';HPB.s=null;}
 function startRaid(who){const I=RAID_INFO[who],bet=who==='pro'?PRO_BETS[Math.floor(Math.random()*PRO_BETS.length)]:null,crime=bet||(G.heatWhy&&G.heatWhy[who])||I.crimes[Math.floor(Math.random()*I.crimes.length)];
   const games=machines.filter(m=>m.T.kind==='game'&&!m.broken);if(who==='pro'&&!games.length)return;const methods=Object.keys(DUELS).filter(k=>k!=='pbt'||games.length);const method=who==='pro'?'pbt':methods[Math.floor(Math.random()*methods.length)];
@@ -1142,8 +1142,8 @@ function raidStep(dt,k){if(!RAID.on)return;const Rd=RAID,S_=STAFF,u=S_.mesh.user
         if(Rd.method!=='pbt'){S_.mesh.rotation.y=-Math.PI/2;Rd.tSeat=true;}
         else{const m=Rd.m2;if(!m){const t=toWorld(Rd.m,0,0);S_.mesh.rotation.y=Math.atan2(t.x-S_.mesh.position.x,t.z-S_.mesh.position.z);Rd.tSeat=true;}
           else if(!m.busy){const sp=toWorld(m,0,m.seatL[1]+60);S_.mesh.position.set(sp.x,60,sp.z);const t=toWorld(m,0,0);S_.mesh.rotation.y=Math.atan2(t.x-sp.x,t.z-sp.z);for(const l of u.legs)l.rotation.x=-1.5;Rd.tSeat=true;}}}}
-    if(Rd.oSeat&&Rd.tSeat){Rd.phase='duel';Rd.t=0;raidFocus(true);Rd.nx=1.2;Rd.win=Math.random()<raidWin(Rd.who);say(S_,DUELS[Rd.method]+'だ！',2.4);if(Rd.who!=='pro')hpbStart(Rd.who,Rd.win);G.today.raidNow.duel=true;}}
-  else if(Rd.phase==='duel'){const D=Rd.method;if(Rd.who!=='pro')hpbStep(Rd.t);
+    if(Rd.oSeat&&Rd.tSeat){Rd.phase='duel';Rd.t=0;raidFocus(true);Rd.nx=1.2;Rd.win=Math.random()<raidWin(Rd.who);say(S_,DUELS[Rd.method]+'だ！',2.4);hpbStart(Rd.who,Rd.win);G.today.raidNow.duel=true;}}
+  else if(Rd.phase==='duel'){const D=Rd.method;hpbStep(Rd.t);
     if(D==='pbt'){const a=Math.sin(Rd.t*18);u.arms[0].rotation.x=-1.15+a*0.2;u.arms[1].rotation.x=-1.15-a*0.2;o.mesh.position.y=Math.abs(Math.sin(Rd.t*9))*15;
       if(Rd.t>Rd.nx){Rd.nx=Rd.t+1.3;const w=Math.random()<.5;popup(w?S_.mesh.position:o.mesh.position,['コンボ！','8コンボ！','落ちコン！','根性！','ワンパン！'][Math.floor(Math.random()*5)],w?'#ff4f9a':'#34495e');}}
     else if(D==='fist'){punchArms(u,Rd.t,14);o.mesh.position.x=Rd.spot.x-450+Math.sin(Rd.t*14)*60;S_.mesh.position.x=Rd.spot.x+450+Math.sin(Rd.t*14+1)*60;
@@ -1153,7 +1153,7 @@ function raidStep(dt,k){if(!RAID.on)return;const Rd=RAID,S_=STAFF,u=S_.mesh.user
     else{const r=Math.floor(Rd.t/2.2),ph=Rd.t-r*2.2;const up=ph<1.2;u.arms[1].rotation.x=up?-2.4+Math.abs(Math.sin(ph*8))*1.2:-1.6;o.mesh.position.y=up?Math.abs(Math.sin(ph*8))*40:0;
       if(Rd.nx!==r&&ph>1.2&&r<3){Rd.nx=r;const H=['✊','✌','✋'];let a=Math.floor(Math.random()*3),b=Math.floor(Math.random()*3);if(r<2)b=a;else b=Rd.win?(a+1)%3:(a+2)%3;
         bigPop(S_.mesh.position,H[a],'#ff4f9a',2300);bigPop(o.mesh.position,H[b],'#34495e',2300);if(r<2)popup(Rd.spot,'あいこで…','#555');}}
-    if(Rd.t>(D==='janken'?7:7)){const win=Rd.win,res=raidResolve(Rd.who,win,D);if(Rd.who!=='pro'){hpbEnd(win);win?se.fanfare():se.sadjingle();}else win?se.win():se.lose();Rd.phase='result';Rd.t=0;S_.mesh.rotation.z=0;o.mesh.rotation.z=0;
+    if(Rd.t>(D==='janken'?7:7)){const win=Rd.win,res=raidResolve(Rd.who,win,D);hpbEnd(win,res);win?se.fanfare():se.sadjingle();Rd.phase='result';Rd.t=0;S_.mesh.rotation.z=0;o.mesh.rotation.z=0;
       if(Rd.who==='pro'){if(win){say(S_,'パズバトなめんな！ 一昨日来やがれ！',3);say(o,'くっ…「'+res.bet+'」は置いていくぜ…',3);popup(S_.mesh.position,'🏆 '+res.bet+' ゲット！','#b8860b');setTimeout(()=>{if(RAID.o===o){say(o,'…いい店だな。おれのフォロワー（12人）に宣伝しといてやるよ',3.4);setTimeout(()=>{say(STAFF,'（実はいいやつ…？）',2.6);popup(STAFF.mesh.position,'📣 口コミ宣伝 5日間 来客×1.35・評判UP','#e67e22');},1800);}},2600);}
         else{say(S_,'うわぁぁん！',3);say(o,res.lostCab?'この筐体はいただいていくぜ！':'たった'+count('pbt')+'台か…筐体は勘弁してやるよ',3);popup(o.mesh.position,res.lostCab?'パズバト筐体を1台持っていかれた…':'情けをかけられた…','#c0392b');}}
       else if(win){say(S_,'勝った！出直してきな！',3);say(o,'…今日のところは引き上げる',3);popup(S_.mesh.position,res.rescue?'💰 今月の経費分ゲット +¥'+res.gain.toLocaleString():'💰 ×'+res.mult+' +¥'+res.gain.toLocaleString(),'#b8860b');if(D==='fist')fLie({mesh:o.mesh,s:-1},-1);}
