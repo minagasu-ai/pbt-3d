@@ -1247,15 +1247,23 @@ const CNT={base:'https://countapi.mileshilliard.com/api/v1',ns:'minagasu-pbt-3d'
 const cJst=()=>new Date(Date.now()+9*3600e3).toISOString().slice(0,10).replace(/-/g,'');
 const cLog=[];async function cApi(op,key){try{const r=await fetch(`${CNT.base}/${op}/${CNT.ns}-${key}`,{cache:'no-store'});cLog.push(op+' '+r.status);if(r.status===404&&op==='get')return 0;if(!r.ok)return null;const j=await r.json();return Number.isFinite(+j.value)?+j.value:null;}catch(e){cLog.push(op+' '+(e&&e.message||'error'));return null;}}
 const cOnceP={};
-function cOnce(kind){if(cOnceP[kind])return cOnceP[kind];let ok=false;const day=cJst();
-  try{if(/[?&]nocount\b/.test(location.search))localStorage.setItem('cnt-off','1');ok=!localStorage.getItem('cnt-off')&&localStorage.getItem('cnt-'+kind)!==day;if(ok)localStorage.setItem('cnt-'+kind,day);}catch(e){ok=false;}
-  return cOnceP[kind]=ok?Promise.all([cApi('hit',`${kind}-d-${day}`),cApi('hit',`${kind}-all`)]).then(r=>{if(r.some(v=>v===null)){try{localStorage.removeItem('cnt-'+kind);}catch(e){}}return r;}):Promise.resolve();}
+function cOnce(kind){if(cOnceP[kind])return cOnceP[kind];const day=cJst();let off=true;
+  try{if(/[?&]nocount\b/.test(location.search))localStorage.setItem('cnt-off','1');off=!!localStorage.getItem('cnt-off');}catch(e){}
+  if(off)return cOnceP[kind]=Promise.resolve();
+  // 本日分と累計を別々に記録：片方だけ失敗しても、失敗した方だけを次回やり直す（本日分の二重カウント防止）
+  const one=(mk,key)=>{let need=false;try{need=localStorage.getItem(mk)!==day;if(need)localStorage.setItem(mk,day);}catch(e){return Promise.resolve();}
+    return need?cApi('hit',key).then(v=>{if(v===null){try{localStorage.removeItem(mk);}catch(e){}}return v;}):Promise.resolve();};
+  try{if(localStorage.getItem('cnt-'+kind)===day){localStorage.setItem('cnt-'+kind+'-d',day);localStorage.setItem('cnt-'+kind+'-a',day);}localStorage.removeItem('cnt-'+kind);}catch(e){}
+  return cOnceP[kind]=one('cnt-'+kind+'-a',`${kind}-all`).then(a=>new Promise(r=>setTimeout(r,400)).then(()=>one('cnt-'+kind+'-d',`${kind}-d-${day}`)).then(d=>[d,a]));}
 async function cntShow(){let el=document.getElementById('cntPanel');if(!el){el=document.createElement('div');el.id='cntPanel';el.onclick=()=>{el.style.display='none';};document.body.appendChild(el);}
   el.style.display='block';el.innerHTML='集計中…';await Promise.all([cOnceP.view,cOnceP.sim].filter(Boolean));const day=cJst();
   const [vd,va,sd,sa]=await Promise.all([cApi('get',`view-d-${day}`),cApi('get','view-all'),cApi('get',`sim-d-${day}`),cApi('get','sim-all')]);
   if([vd,va,sd,sa].every(v=>v===null)){el.innerHTML=`カウンターにつながりませんでした<br><small>${location.host||'(file)'}／${[...new Set(cLog)].slice(0,4).join(' / ')||'応答なし'}${/claude|anthropic|usercontent/.test(location.host)?'<br>※Claudeのアプリ内表示では外部への通信が制限されます。GitHub Pages版で確認してください':''}</small>`;return;}
+  // 累計が本日分より少ない（過去のズレ）場合は累計を本日分まで補正
+  let va2=va,sa2=sa;const fix=async(k,d,a)=>{if(d!==null&&a!==null&&a<d){try{const r=await fetch(`${CNT.base}/set/${CNT.ns}-${k}?value=${d}`,{cache:'no-store'});if(r.ok)return d;}catch(e){}return d;}return a;};
+  [va2,sa2]=await Promise.all([fix('view-all',vd,va),fix('sim-all',sd,sa)]);
   const f=v=>v===null?'―':v.toLocaleString('ja-JP');let off=false;try{off=!!localStorage.getItem('cnt-off');}catch(e){}
-  el.innerHTML=`ビューアに来た人　本日 <b>${f(vd)}</b>／累計 <b>${f(va)}</b><br>シミュを遊んだ人　本日 <b>${f(sd)}</b>／累計 <b>${f(sa)}</b><br><small>※${CNT.since}から集計・同じ端末は1日1回${off?'・この端末は数えていません':''}（タップで閉じる）</small>`;}
+  el.innerHTML=`ビューアに来た人　本日 <b>${f(vd)}</b>／累計 <b>${f(va2)}</b><br>シミュを遊んだ人　本日 <b>${f(sd)}</b>／累計 <b>${f(sa2)}</b><br><small>※${CNT.since}から集計・同じ端末は1日1回${off?'・この端末は数えていません':''}（タップで閉じる）</small>`;}
 cOnce('view');
 (function(){const a=document.getElementById('annivCnt');let taps=[];if(a){a.style.pointerEvents='auto';a.style.touchAction='manipulation';a.addEventListener('pointerup',()=>{const t=performance.now();taps=taps.filter(x=>t-x<2500);taps.push(t);if(taps.length>=5){taps=[];cntShow();}});}
   if(/#cnt\b/.test(location.hash))setTimeout(cntShow,800);})();
