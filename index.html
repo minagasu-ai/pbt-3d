@@ -102,6 +102,7 @@ button.wide{grid-column:span 2}
 #telop.warn{background:linear-gradient(180deg,#ff9f1a,#d35400)}#telop.warn #telopLab{background:#7a2e00;color:#fff}
 #telop b{position:absolute;left:0;top:0;bottom:0;z-index:2;background:#ffd54a;color:#9e0012;font-size:15px;line-height:32px;padding:0 10px;font-weight:900;letter-spacing:.1em}
 #telop .tl{position:absolute;top:0;left:100%;white-space:nowrap;color:#fff;font-size:17px;font-weight:900;line-height:32px;text-shadow:0 2px 0 #5a0008;animation:telop 13s linear infinite}
+#telop .tl em{font-style:normal;display:inline-block;color:#ffe14a;font-size:30px;line-height:28px;margin:0 3px;text-shadow:-2px 0 #7a0010,2px 0 #7a0010,0 -2px #7a0010,0 2px #7a0010,0 0 12px #fff6a0;animation:em2 .6s ease-in-out infinite alternate;vertical-align:-3px}@keyframes em2{from{transform:scale(1)}to{transform:scale(1.25) rotate(-6deg)}}
 #telop.bad{background:linear-gradient(180deg,#2c3e50,#141c26);border-color:#8fa3b8}#telop.bad b{background:#8fa3b8;color:#141c26}#telop.bad .tl{text-shadow:0 2px 0 #000}
 @keyframes telop{to{left:0;transform:translateX(-100%)}}
 #contract{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(20,10,10,.55);z-index:6}
@@ -972,7 +973,7 @@ function raidFocus(on){RAID.focus=on;if(on){const a=RAID.o.mesh.position,b=STAFF
   else{if(!FIGHT.focus){for(const cu of customers)if(cu.mesh)setGhost(cu.mesh,false);if(SIM.on)camTo(ROOMBOX);}}}
 function fightFocus(on){if(SIM.headless)return;FIGHT.focus=on;if(on){const c=FIGHT.spot,r=1600;camTo(new THREE.Box3(new THREE.Vector3(c.x-r,0,c.z-r),new THREE.Vector3(c.x+r,1900,c.z+r)));}
   else if(!RAID.focus){for(const cu of customers)if(cu.mesh)setGhost(cu.mesh,false);if(SIM.on)camTo(ROOMBOX);}}
-function raidClear(){if(RAID.focus)raidFocus(false);if(RAID.o&&RAID.o.mesh)peopleG.remove(RAID.o.mesh);if(RAID.prop&&RAID.prop.parent)RAID.prop.parent.remove(RAID.prop);for(const m of [RAID.m,RAID.m2])if(m)m.reserved=false;RAID.on=false;RAID.o=null;RAID.m=RAID.m2=null;RAID.prop=null;}
+function raidClear(){hpbHide();if(RAID.focus)raidFocus(false);if(RAID.o&&RAID.o.mesh)peopleG.remove(RAID.o.mesh);if(RAID.prop&&RAID.prop.parent)RAID.prop.parent.remove(RAID.prop);for(const m of [RAID.m,RAID.m2])if(m)m.reserved=false;RAID.on=false;RAID.o=null;RAID.m=RAID.m2=null;RAID.prop=null;}
 function makeOfficer(who){const p=makePerson();const col=RAID_INFO[who].col;p.traverse(o=>{if(o.isMesh){o.material=o.material.clone();o.material.color.set(col);o.material.metalness=0;o.material.roughness=.8;}});
   const hp=p.userData.head.parent;
   if(who==='police'){[box(300,90,320,mat(0x15265a),0,1755,10),box(300,25,180,mat(0x111111),0,1712,150),box(70,60,10,mat(0xf2c230,{metalness:.6}),0,1770,172)].forEach(x=>hp.add(x));}
@@ -1072,6 +1073,51 @@ function danStep(dt,k){if(!DANEV.on)return;const D=DANEV,o=D.o,S_=STAFF,u=S_.mes
       D.phase='leave';D.t=0;if(D.out==='sumoLose')D.out='refund';routeTo(o,ENTRANCE.clone());S_.mode='return';S_.run=false;staffRoute(null,true);}return;}
   if(D.phase==='leave'){o.mesh.position.y=Math.abs(Math.sin(D.t*12))*30;if(moveAlong(o,(D.out==='brawl'?2400:1200)*k*dt)||D.t>20)danClear();}}
 function danClear(){if(DANEV.o)peopleG.remove(DANEV.o.mesh);DANEV.on=false;DANEV.o=null;}
+// ---- 公的機関バトル：パズドラ風HPゲージ（勝てばCLEAR／負ければGAME OVER） ----
+const HPB={el:null,s:null};
+function hpbInit(){if(HPB.el)return;const st=document.createElement('style');st.textContent=`
+#hpb{position:absolute;inset:0;pointer-events:none;z-index:30;display:none;font-family:sans-serif}#hpb.on{display:block}#hpb.go{background:rgba(0,0,0,.35)}
+#hpb .en,#hpb .me{position:absolute;left:50%;transform:translateX(-50%);border-radius:10px;padding:4px 10px 6px;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.55)}
+#hpb .en{top:8px;width:min(62%,560px);background:linear-gradient(rgba(34,16,60,.92),rgba(52,26,92,.86));border:2px solid #d4ad52}
+#hpb .me{bottom:58px;width:min(58%,520px);display:flex;align-items:center;gap:8px;padding:3px 10px;background:linear-gradient(rgba(14,52,34,.92),rgba(8,34,24,.86));border:2px solid #7fd6a0}
+#hpb .nm{font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:64px}#hpb .nm small{font-size:10px;color:#cbb8ff;margin-right:6px;font-weight:400}#hpb .nm b{font-size:14px}
+#hpb .me .nm{padding-right:0;flex:none}#hpb .me .bar{flex:1;margin-top:0}#hpb .me .hp{flex:none;margin-top:0;min-width:96px}#hpb .cd{position:absolute;right:10px;top:3px;font-size:11px;color:#ffd54a;font-weight:700}#hpb .cd b{font-size:16px;margin:0 2px}
+#hpb .bar{position:relative;height:12px;background:#111;border:1px solid rgba(255,255,255,.45);border-radius:6px;overflow:hidden;margin-top:3px}
+#hpb .bar i,#hpb .bar u{position:absolute;left:0;top:0;bottom:0;width:100%}#hpb .bar u{background:#fff59d;transition:width .7s .35s}#hpb .bar i{z-index:1;transition:width .18s}
+#hpb .en .bar i{background:linear-gradient(#ff9a7a,#e53935 55%,#a31414)}#hpb .me .bar i{background:linear-gradient(#c8ffd8,#2ecc71 55%,#16803f)}
+#hpb .me.low .bar i{background:linear-gradient(#ffe08a,#f39c12 55%,#b9610a)}#hpb .me.crit .bar i{background:linear-gradient(#ffb3b3,#e53935 55%,#8e0000)}
+#hpb .hp{font-size:11px;text-align:right;font-weight:700;text-shadow:0 1px 2px #000;margin-top:1px}
+#hpb .hit{animation:hpshk .35s}@keyframes hpshk{0%,100%{transform:translateX(-50%)}25%{transform:translateX(calc(-50% - 9px))}75%{transform:translateX(calc(-50% + 9px))}}
+#hpb .me.hit{box-shadow:0 0 22px #ff1744}
+#hpb .dmg{position:absolute;left:50%;font:900 26px sans-serif;-webkit-text-stroke:1.5px #000;paint-order:stroke fill;white-space:nowrap;animation:hpdmg 1.1s forwards}#hpb .dmg small{font-size:14px;margin-left:4px}
+@keyframes hpdmg{0%{transform:translate(-50%,8px) scale(1.7);opacity:0}15%{transform:translate(-50%,0) scale(1);opacity:1}75%{opacity:1}100%{transform:translate(-50%,-24px);opacity:0}}
+#hpb .big{position:absolute;left:0;right:0;top:36%;text-align:center;font:900 64px sans-serif;letter-spacing:4px;display:none;paint-order:stroke fill}
+#hpb .big.clr{display:block;color:#ffe066;-webkit-text-stroke:4px #8a4b00;text-shadow:0 0 22px #fff,0 5px 0 #5a2d00;animation:hpbig .7s}
+#hpb .big.go{display:block;color:#e6e6e6;-webkit-text-stroke:4px #2a0000;text-shadow:0 0 24px #ff1744,0 5px 0 #000;animation:hpbig .7s}
+#hpb .big small{display:block;font-size:16px;letter-spacing:1px;-webkit-text-stroke:0;color:#fff;text-shadow:0 1px 3px #000}
+@keyframes hpbig{0%{transform:scale(3);opacity:0}60%{transform:scale(.92);opacity:1}100%{transform:scale(1)}}
+@media (max-height:420px){#hpb .big{font-size:48px}#hpb .dmg{font-size:22px}}`;document.head.appendChild(st);
+  const el=document.createElement('div');el.id='hpb';el.innerHTML='<div class="en"><div class="nm"></div><div class="cd">あと<b>1</b>ターン</div><div class="bar"><u></u><i></i></div><div class="hp"></div></div><div class="me"><div class="nm">❤ ティンニン</div><div class="bar"><u></u><i></i></div><div class="hp"></div></div><div class="big"></div>';$('view').appendChild(el);HPB.el=el;}
+function hpbSplit(n,total,lastMin){const w=[];for(let i=0;i<n;i++)w.push(0.6+Math.random());let last=lastMin?total*(lastMin+Math.random()*0.15):null;const rest=last==null?total:total-last;const sum=w.slice(0,last==null?n:n-1).reduce((a,b)=>a+b,0);const out=w.map(x=>x/sum*rest);if(last!=null)out[n-1]=last;return out;}
+function hpbStart(who,win){if(SIM.headless)return;try{hpbInit();const I=RAID_INFO[who],el=HPB.el;const ehp={police:3000000,tax:5000000,caa:4000000}[who]||3000000,mhp=(18+Math.floor(Math.random()*8))*1000+Math.floor(Math.random()*10)*111;
+  const K=['P','E','P','P','E','P','E','P',win?'P':'E'],T=[0.7,1.4,2.1,2.8,3.5,4.2,4.9,5.6,6.3];const nP=K.filter(k=>k==='P').length,nE=K.length-nP;
+  const dP=win?hpbSplit(nP,1,0.3):hpbSplit(nP,0.5+Math.random()*0.4),dE=win?hpbSplit(nE,0.3+Math.random()*0.45):hpbSplit(nE,1,0.35);let ip=0,ie=0;
+  const ev=K.map((k,i)=>({t:T[i],k,f:k==='P'?dP[ip++]:dE[ie++],last:i===K.length-1}));
+  HPB.s={who,win,ehp,mhp,e:ehp,m:mhp,ev,i:0,turn:1};el.querySelector('.en .nm').innerHTML=`<small>${I.org}</small><b>${I.name}</b>`;el.querySelector('.big').className='big';el.className='on';hpbDraw(true);}catch(e){simErr&&simErr('hpb',e);}}
+function hpbDraw(inst){const S=HPB.s,el=HPB.el;if(!S||!el)return;const pe=Math.max(0,S.e/S.ehp*100),pm=Math.max(0,S.m/S.mhp*100);
+  for(const [sel,p] of [['.en',pe],['.me',pm]]){const b=el.querySelector(sel+' .bar');for(const x of b.children){if(inst){x.style.transition='none';}x.style.width=p+'%';if(inst){void x.offsetWidth;x.style.transition='';}}}
+  el.querySelector('.en .hp').textContent='HP '+Math.max(0,Math.round(S.e)).toLocaleString()+' / '+S.ehp.toLocaleString();
+  el.querySelector('.me .hp').textContent='HP '+Math.max(0,Math.round(S.m)).toLocaleString()+' / '+S.mhp.toLocaleString();
+  const me=el.querySelector('.me');me.classList.toggle('low',pm<50&&pm>=20);me.classList.toggle('crit',pm<20);el.querySelector('.cd b').textContent=S.turn;}
+function hpbFx(sel,html,col,top){const el=HPB.el,box=el.querySelector(sel);box.classList.remove('hit');void box.offsetWidth;if(sel==='.me'||top)box.classList.add('hit');
+  const d=document.createElement('div');d.className='dmg';d.style.color=col;d.innerHTML=html;const r=box.getBoundingClientRect(),v=el.getBoundingClientRect();d.style.top=(sel==='.en'?(r.bottom-v.top+2):(r.top-v.top-36))+'px';el.appendChild(d);setTimeout(()=>d.remove(),1200);}
+function hpbStep(t){const S=HPB.s;if(!S||!HPB.el)return;const AT=[['#ff5a3c','火'],['#3ca0ff','水'],['#3fd16b','木'],['#ffd84a','光'],['#b45cff','闇']];
+  while(S.i<S.ev.length&&S.ev[S.i].t<=t){const v=S.ev[S.i++];
+    if(v.k==='P'){const dmg=v.last?S.e:Math.round(v.f*S.ehp);S.e=v.last?0:Math.max(1,S.e-dmg);const a=AT[Math.floor(Math.random()*5)],cb=3+Math.floor(Math.random()*(v.last?8:5));hpbFx('.en',dmg.toLocaleString()+`<small>${cb}コンボ</small>`,a[0],v.last);S.turn=S.turn<=1?2:S.turn-1;}
+    else{const dmg=v.last?S.m:Math.round(v.f*S.mhp);S.m=v.last?0:Math.max(1,S.m-dmg);hpbFx('.me','-'+dmg.toLocaleString(),'#ff4d4d');S.turn=2;}
+    hpbDraw();}}
+function hpbEnd(win){const S=HPB.s,el=HPB.el;if(!S||!el)return;if(S.i<S.ev.length)hpbStep(99);const b=el.querySelector('.big');b.className='big '+(win?'clr':'go');b.innerHTML=win?'CLEAR!!<small>'+RAID_INFO[S.who].name+'を撃退！</small>':'GAME OVER<small>'+(S.who==='police'?'逮捕・営業停止…':S.who==='tax'?'追徴課税…':'課徴金…')+'</small>';if(!win)el.className='on go';}
+function hpbHide(){if(HPB.el)HPB.el.className='';HPB.s=null;}
 function startRaid(who){const I=RAID_INFO[who],bet=who==='pro'?PRO_BETS[Math.floor(Math.random()*PRO_BETS.length)]:null,crime=bet||(G.heatWhy&&G.heatWhy[who])||I.crimes[Math.floor(Math.random()*I.crimes.length)];
   const games=machines.filter(m=>m.T.kind==='game'&&!m.broken);if(who==='pro'&&!games.length)return;const methods=Object.keys(DUELS).filter(k=>k!=='pbt'||games.length);const method=who==='pro'?'pbt':methods[Math.floor(Math.random()*methods.length)];
   if(SIM.headless){raidResolve(who,Math.random()<raidWin(who),method,bet);return;}
@@ -1096,8 +1142,8 @@ function raidStep(dt,k){if(!RAID.on)return;const Rd=RAID,S_=STAFF,u=S_.mesh.user
         if(Rd.method!=='pbt'){S_.mesh.rotation.y=-Math.PI/2;Rd.tSeat=true;}
         else{const m=Rd.m2;if(!m){const t=toWorld(Rd.m,0,0);S_.mesh.rotation.y=Math.atan2(t.x-S_.mesh.position.x,t.z-S_.mesh.position.z);Rd.tSeat=true;}
           else if(!m.busy){const sp=toWorld(m,0,m.seatL[1]+60);S_.mesh.position.set(sp.x,60,sp.z);const t=toWorld(m,0,0);S_.mesh.rotation.y=Math.atan2(t.x-sp.x,t.z-sp.z);for(const l of u.legs)l.rotation.x=-1.5;Rd.tSeat=true;}}}}
-    if(Rd.oSeat&&Rd.tSeat){Rd.phase='duel';Rd.t=0;raidFocus(true);Rd.nx=1.2;Rd.win=Math.random()<raidWin(Rd.who);say(S_,DUELS[Rd.method]+'だ！',2.4);G.today.raidNow.duel=true;}}
-  else if(Rd.phase==='duel'){const D=Rd.method;
+    if(Rd.oSeat&&Rd.tSeat){Rd.phase='duel';Rd.t=0;raidFocus(true);Rd.nx=1.2;Rd.win=Math.random()<raidWin(Rd.who);say(S_,DUELS[Rd.method]+'だ！',2.4);if(Rd.who!=='pro')hpbStart(Rd.who,Rd.win);G.today.raidNow.duel=true;}}
+  else if(Rd.phase==='duel'){const D=Rd.method;if(Rd.who!=='pro')hpbStep(Rd.t);
     if(D==='pbt'){const a=Math.sin(Rd.t*18);u.arms[0].rotation.x=-1.15+a*0.2;u.arms[1].rotation.x=-1.15-a*0.2;o.mesh.position.y=Math.abs(Math.sin(Rd.t*9))*15;
       if(Rd.t>Rd.nx){Rd.nx=Rd.t+1.3;const w=Math.random()<.5;popup(w?S_.mesh.position:o.mesh.position,['コンボ！','8コンボ！','落ちコン！','根性！','ワンパン！'][Math.floor(Math.random()*5)],w?'#ff4f9a':'#34495e');}}
     else if(D==='fist'){punchArms(u,Rd.t,14);o.mesh.position.x=Rd.spot.x-450+Math.sin(Rd.t*14)*60;S_.mesh.position.x=Rd.spot.x+450+Math.sin(Rd.t*14+1)*60;
@@ -1107,12 +1153,12 @@ function raidStep(dt,k){if(!RAID.on)return;const Rd=RAID,S_=STAFF,u=S_.mesh.user
     else{const r=Math.floor(Rd.t/2.2),ph=Rd.t-r*2.2;const up=ph<1.2;u.arms[1].rotation.x=up?-2.4+Math.abs(Math.sin(ph*8))*1.2:-1.6;o.mesh.position.y=up?Math.abs(Math.sin(ph*8))*40:0;
       if(Rd.nx!==r&&ph>1.2&&r<3){Rd.nx=r;const H=['✊','✌','✋'];let a=Math.floor(Math.random()*3),b=Math.floor(Math.random()*3);if(r<2)b=a;else b=Rd.win?(a+1)%3:(a+2)%3;
         bigPop(S_.mesh.position,H[a],'#ff4f9a',2300);bigPop(o.mesh.position,H[b],'#34495e',2300);if(r<2)popup(Rd.spot,'あいこで…','#555');}}
-    if(Rd.t>(D==='janken'?7:7)){const win=Rd.win,res=raidResolve(Rd.who,win,D);win?se.win():se.lose();Rd.phase='result';Rd.t=0;S_.mesh.rotation.z=0;o.mesh.rotation.z=0;
+    if(Rd.t>(D==='janken'?7:7)){const win=Rd.win,res=raidResolve(Rd.who,win,D);win?se.win():se.lose();if(Rd.who!=='pro')hpbEnd(win);Rd.phase='result';Rd.t=0;S_.mesh.rotation.z=0;o.mesh.rotation.z=0;
       if(Rd.who==='pro'){if(win){say(S_,'パズバトなめんな！ 一昨日来やがれ！',3);say(o,'くっ…「'+res.bet+'」は置いていくぜ…',3);popup(S_.mesh.position,'🏆 '+res.bet+' ゲット！','#b8860b');setTimeout(()=>{if(RAID.o===o){say(o,'…いい店だな。おれのフォロワー（12人）に宣伝しといてやるよ',3.4);setTimeout(()=>{say(STAFF,'（実はいいやつ…？）',2.6);popup(STAFF.mesh.position,'📣 口コミ宣伝 5日間 来客×1.35・評判UP','#e67e22');},1800);}},2600);}
         else{say(S_,'うわぁぁん！',3);say(o,res.lostCab?'この筐体はいただいていくぜ！':'たった'+count('pbt')+'台か…筐体は勘弁してやるよ',3);popup(o.mesh.position,res.lostCab?'パズバト筐体を1台持っていかれた…':'情けをかけられた…','#c0392b');}}
       else if(win){say(S_,'勝った！出直してきな！',3);say(o,'…今日のところは引き上げる',3);popup(S_.mesh.position,res.rescue?'💰 今月の経費分ゲット +¥'+res.gain.toLocaleString():'💰 ×'+res.mult+' +¥'+res.gain.toLocaleString(),'#b8860b');if(D==='fist')fLie({mesh:o.mesh,s:-1},-1);}
       else{say(S_,'ぐぬぬ…',3);say(o,Rd.who==='police'?'逮捕する！ 深夜営業の儲けは没収だ！':Rd.who==='caa'?'課徴金を納付しなさい！':'追徴課税です！',3);if(D==='fist')fLie({mesh:S_.mesh,s:1},1);}}}
-  else if(Rd.phase==='result'){for(const a of u.arms)a.rotation.x*=0.9;if(Rd.t>3){Rd.phase='leave';raidFocus(false);pose(o,'stand');o.mesh.rotation.set(0,0,0);o.mesh.position.y=0;
+  else if(Rd.phase==='result'){for(const a of u.arms)a.rotation.x*=0.9;if(Rd.t>3){Rd.phase='leave';hpbHide();raidFocus(false);pose(o,'stand');o.mesh.rotation.set(0,0,0);o.mesh.position.y=0;
       const jail=Rd.who==='police'&&!Rd.win;if(jail){se.jail();S_.mode='jail';S_.mesh.visible=false;routeTo(o,ENTRANCE.clone());}
       else{routeTo(o,ENTRANCE.clone());staffPoseReset();S_.mesh.rotation.set(0,0,0);if(Rd.method==='pbt'){const m=Rd.m2||Rd.m;const p=toWorld(m,560,m.seatL[1]);S_.mesh.position.set(p.x,0,p.z);}S_.mode='return';S_.run=false;staffRoute(null,true);}
       for(const x of [Rd.m,Rd.m2])if(x)x.reserved=false;if(Rd.prop){fxG.remove(Rd.prop);Rd.prop=null;}}}
@@ -1518,6 +1564,7 @@ function drawChart(){const cv=$('chart');if(!cv||!SIM.on||!G)return;const dpr=Ma
   const w2=g.measureText('本日経費 '+yen(nowC)).width;g.fillStyle='#9aa1ad';g.font='10px sans-serif';g.fillText('┅ 前日売上'+(Y.length?' '+yen(Y[Y.length-1][1]):''),L+w1+w2+24,11);}
 function renderTelop(){const el=$('telop');if(!el)return;el.classList.remove('warn');
   if(SIM.on&&G&&G.today&&daysToMonthEnd(G.day)===5&&G.min>=CLOSE_MIN-180){const MB=monthBill();if(MB.total>G.money){if(G.today.warnSE!==G.day){G.today.warnSE=G.day;se.warn();}const t=`【注意】月末決算まであと5日！　月末請求予定 ${yen(MB.total)} に対して所持金 ${yen(G.money)}…このままだと支払えません！`;el.style.display='block';el.classList.remove('bad');el.classList.add('warn');$('telopLab').textContent='注意';if(t.slice(0,40)!==lastTelop.slice(0,40)){lastTelop=t;$('telopTxt').textContent=t;}return;}}
+  if(SIM.on&&G&&G.day===1&&G.min<OPEN_MIN+300&&!RAID.on&&!CATCH.on){const t='INTRO';el.style.display='block';el.classList.remove('bad');$('telopLab').textContent='ようこそ';if(t!==lastTelop){lastTelop=t;$('telopTxt').innerHTML='パズバト専門店『おティンニンランド』を経営して、パズ◯ラバトルトーナメント<em>２</em>を手に入れよう！';}return;}
   const rn=G&&G.today&&G.today.raidNow,rr=G&&G.today&&G.today.raidRes;
   if(SIM.on&&rn&&(RAID.on||(rr&&performance.now()-rr.at<10000))){const I=RAID_INFO[rn.who];let t,lab='ガサ入れ',bad=false;
     if(rr&&(!RAID.on||RAID.phase==='result'||RAID.phase==='leave')){if(rr.who==='pro'){bad=!rr.win;lab=rr.win?'勝利':'敗北';t=rr.win?`ティンニン、自称プロパズドラーを撃破！ 「${rr.bet}」をゲット＆お店を宣伝してくれることに（実はいいやつ？）`:rr.lostCab?'自称プロパズドラーに負けて、パズバト筐体を1台持っていかれた…':'自称プロパズドラーに負けたが、筐体は勘弁してもらえた…';}
